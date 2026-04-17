@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MotionEvent
@@ -49,6 +50,35 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (!isSupportedDevice()) {
+            showUnsupportedDeviceDialog()
+            return
+        }
+
+        showSupportedDeviceDialog()
+    }
+
+    private fun showSupportedDeviceDialog() {
+        val buildModel = Build.MODEL ?: "Unknown"
+        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
+
+        AlertDialog.Builder(this)
+            .setTitle("Supported Device Detected")
+            .setMessage(
+                "Model check passed.\n\n" +
+                    "Required model: NX809J\n" +
+                    "Detected Build.MODEL: $buildModel\n" +
+                    "Detected ro.product.model: $propModel\n\n" +
+                    "Tap OK to continue launching Redmagic HW Controls."
+            )
+            .setCancelable(false)
+            .setPositiveButton("OK") { _, _ ->
+                launchMainUi()
+            }
+            .show()
+    }
+
+    private fun launchMainUi() {
         val topInset = getStatusBarHeight()
 
         val root = LinearLayout(this).apply {
@@ -305,6 +335,38 @@ class MainActivity : Activity() {
 
         setActiveMode(balancedCardRef)
         refreshStatus()
+    }
+
+    private fun isSupportedDevice(): Boolean {
+        val required = "NX809J"
+
+        val buildModel = Build.MODEL ?: ""
+        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: ""
+        val propVendorModel = RootShell.execForOutput("getprop ro.product.vendor.model")?.trim() ?: ""
+        val propMarketName = RootShell.execForOutput("getprop ro.product.marketname")?.trim() ?: ""
+
+        return buildModel.contains(required, ignoreCase = true) ||
+            propModel.contains(required, ignoreCase = true) ||
+            propVendorModel.contains(required, ignoreCase = true) ||
+            propMarketName.contains(required, ignoreCase = true)
+    }
+
+    private fun showUnsupportedDeviceDialog() {
+        val buildModel = Build.MODEL ?: "Unknown"
+        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
+
+        AlertDialog.Builder(this)
+            .setTitle("Unsupported Device")
+            .setMessage(
+                "This app only supports model NX809J.\n\n" +
+                    "Detected Build.MODEL: $buildModel\n" +
+                    "Detected ro.product.model: $propModel"
+            )
+            .setCancelable(false)
+            .setPositiveButton("Close") { _, _ ->
+                finishAffinity()
+            }
+            .show()
     }
 
     private fun refreshStatus() {

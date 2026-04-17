@@ -1,59 +1,67 @@
 package com.example.redmagiccontrol
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.graphics.Color
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.example.redmagiccontrol.databinding.ActivityMainBinding
+import android.view.Gravity
+import android.widget.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var status: TextView
+    private lateinit var rpmText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setupUi()
-        refreshStatus()
+
+        status = TextView(this).apply {
+            text = "Checking root..."
+            textSize = 16f
+            setPadding(24, 24, 24, 24)
+        }
+
+        rpmText = TextView(this).apply {
+            text = "RPM: unknown"
+            textSize = 16f
+            setPadding(24, 8, 24, 16)
+        }
+
+        val rootCheckBtn = button("Check root") {
+            val ok = RootShell.hasRoot()
+            status.text = if (ok) "Root available" else "Root not available"
+
+            AlertDialog.Builder(this)
+                .setTitle("Root Status")
+                .setMessage(
+                    if (ok)
+                        "Root access granted\n\nApp is running as root"
+                    else
+                        "Root access NOT granted\n\nCheck your root manager"
+                )
+                .setPositiveButton("OK", null)
+                .show()
+        }
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+
+            addView(status)
+            addView(rpmText)
+            addView(rootCheckBtn)
+        }
+
+        val scroll = ScrollView(this)
+        scroll.addView(layout)
+
+        setContentView(scroll)
     }
 
-    private fun setupUi() = with(binding) {
-        btnCheckRoot.setOnClickListener { refreshStatus() }
-        btnFanOn.setOnClickListener { HardwareController.enableFan(true); refreshStatus() }
-        btnFanOff.setOnClickListener { HardwareController.enableFan(false); refreshStatus() }
-        btnReadRpm.setOnClickListener { refreshStatus() }
-        btnPumpOn.setOnClickListener { HardwareController.enablePump(true); refreshStatus() }
-        btnPumpOff.setOnClickListener { HardwareController.enablePump(false); refreshStatus() }
-        btnEnableTriggers.setOnClickListener { HardwareController.enableTriggers(); refreshStatus() }
-        btnDisableTriggers.setOnClickListener { HardwareController.disableTriggers(); refreshStatus() }
-        btnSliderApp.setOnClickListener { HardwareController.setSliderLaunchApp(packageName); refreshStatus() }
-        btnSliderRaw.setOnClickListener { HardwareController.disableSliderSystemHandling(); refreshStatus() }
-        btnLedPurple.setOnClickListener { HardwareController.setAllLeds(mode = 3, color = 8) }
-        btnLedRed.setOnClickListener { HardwareController.setLed(zone = 1, mode = 2, color = 1) }
-        btnLedOff.setOnClickListener { HardwareController.turnOffAllLeds() }
-        btnVibrate.setOnClickListener { HardwareController.vibrate(durationMs = 100, gain = 220) }
-
-        seekFanLevel.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
-                HardwareController.setFanLevel(value.toInt())
-                refreshStatus()
-            }
+    private fun button(text: String, onClick: () -> Unit): Button {
+        return Button(this).apply {
+            this.text = text
+            setOnClickListener { onClick() }
         }
-    }
-
-    private fun refreshStatus() = with(binding) {
-        val root = if (RootShell.hasRoot()) "Root available" else "Root not available"
-        val fanEnabled = HardwareController.isFanEnabled()
-        val rpm = HardwareController.readFanRpm()?.toString() ?: "n/a"
-        val slider = HardwareController.readSliderState() ?: "n/a"
-        val triggerState = if (HardwareController.areTriggersEnabled()) "enabled" else "disabled"
-
-        tvStatus.text = buildString {
-            appendLine(root)
-            appendLine("Fan enabled: $fanEnabled")
-            appendLine("Fan RPM: $rpm")
-            appendLine("Triggers: $triggerState")
-            appendLine("Slider state: $slider")
-        }
-        tvFanLevel.text = getString(R.string.fan_level_value, seekFanLevel.value.toInt())
     }
 }

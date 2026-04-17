@@ -3,13 +3,12 @@ package com.example.redmagiccontrol
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -45,23 +44,6 @@ class MainActivity : Activity() {
     private var selectedCurve = "balanced"
     private var autoFanCurveEnabled = false
 
-    private val autoFanHandler = Handler(Looper.getMainLooper())
-    private val autoFanRunnable = object : Runnable {
-        override fun run() {
-            if (autoFanCurveEnabled) {
-                val level = HardwareController.applyAutoFanCurve()
-                if (level != null) {
-                    fanSeek.progress = level
-                    curveStatusText.text = "Auto fan curve active • Applied fan level $level from temperature"
-                } else {
-                    curveStatusText.text = "Auto fan curve active • Temperature unavailable"
-                }
-                refreshStatus()
-                autoFanHandler.postDelayed(this, 3000)
-            }
-        }
-    }
-
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
 
@@ -91,11 +73,6 @@ class MainActivity : Activity() {
         } else {
             showSupportedDeviceDialog()
         }
-    }
-
-    override fun onDestroy() {
-        autoFanHandler.removeCallbacks(autoFanRunnable)
-        super.onDestroy()
     }
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -381,12 +358,18 @@ class MainActivity : Activity() {
                 updateManualCurveUiState()
 
                 if (checked) {
-                    autoFanHandler.removeCallbacks(autoFanRunnable)
-                    autoFanHandler.post(autoFanRunnable)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(Intent(this@MainActivity, AutoFanService::class.java))
+                    } else {
+                        startService(Intent(this@MainActivity, AutoFanService::class.java))
+                    }
+                    curveStatusText.text = "Auto fan curve active • Running in background service"
                 } else {
-                    autoFanHandler.removeCallbacks(autoFanRunnable)
-                    curveStatusText.text = "Selected curve: ${selectedCurve.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • Manual control"
+                    stopService(Intent(this@MainActivity, AutoFanService::class.java))
+                    curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
                 }
+
+                refreshStatus()
             }
         }
 

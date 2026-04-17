@@ -2,6 +2,7 @@ package com.example.redmagiccontrol
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -12,6 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -34,6 +36,9 @@ class MainActivity : Activity() {
 
     private var selectedCurve = "balanced"
 
+    private val prefsName = "redmagic_hw_controls_prefs"
+    private val skipSupportedDialogKey = "skip_supported_dialog"
+
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
     private val panelPressed = Color.parseColor("#1A2230")
@@ -55,27 +60,94 @@ class MainActivity : Activity() {
             return
         }
 
-        showSupportedDeviceDialog()
+        if (shouldSkipSupportedDialog()) {
+            launchMainUi()
+        } else {
+            showSupportedDeviceDialog()
+        }
+    }
+
+    private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+
+    private fun shouldSkipSupportedDialog(): Boolean {
+        return prefs().getBoolean(skipSupportedDialogKey, false)
+    }
+
+    private fun setSkipSupportedDialog(skip: Boolean) {
+        prefs().edit().putBoolean(skipSupportedDialogKey, skip).apply()
     }
 
     private fun showSupportedDeviceDialog() {
         val buildModel = Build.MODEL ?: "Unknown"
         val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
 
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(10), dp(20), 0)
+        }
+
+        val info = TextView(this).apply {
+            text =
+                "Model check passed.\n\n" +
+                "Required model: NX809J\n" +
+                "Detected Build.MODEL: $buildModel\n" +
+                "Detected ro.product.model: $propModel\n\n" +
+                "Tap OK to continue launching Redmagic HW Controls."
+            setTextColor(textPrimary)
+            textSize = 14f
+        }
+
+        val neverShowAgain = CheckBox(this).apply {
+            text = "Never show again"
+            setTextColor(textPrimary)
+            textSize = 14f
+            setPadding(0, dp(14), 0, 0)
+        }
+
+        container.addView(info)
+        container.addView(neverShowAgain)
+
         AlertDialog.Builder(this)
             .setTitle("Supported Device Detected")
-            .setMessage(
-                "Model check passed.\n\n" +
-                    "Required model: NX809J\n" +
-                    "Detected Build.MODEL: $buildModel\n" +
-                    "Detected ro.product.model: $propModel\n\n" +
-                    "Tap OK to continue launching Redmagic HW Controls."
-            )
+            .setView(container)
             .setCancelable(false)
             .setPositiveButton("OK") { _, _ ->
+                setSkipSupportedDialog(neverShowAgain.isChecked)
                 launchMainUi()
             }
             .show()
+    }
+
+    private fun showUnsupportedDeviceDialog() {
+        val buildModel = Build.MODEL ?: "Unknown"
+        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
+
+        AlertDialog.Builder(this)
+            .setTitle("Unsupported Device")
+            .setMessage(
+                "This app only supports model NX809J.\n\n" +
+                "Detected Build.MODEL: $buildModel\n" +
+                "Detected ro.product.model: $propModel"
+            )
+            .setCancelable(false)
+            .setPositiveButton("Close App") { _, _ ->
+                finishAffinity()
+            }
+            .show()
+    }
+
+    private fun isSupportedDevice(): Boolean {
+        val required = "NX809J"
+
+        val buildModel = Build.MODEL ?: ""
+        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: ""
+        val propVendorModel = RootShell.execForOutput("getprop ro.product.vendor.model")?.trim() ?: ""
+        val propMarketName = RootShell.execForOutput("getprop ro.product.marketname")?.trim() ?: ""
+
+        return buildModel.contains(required, ignoreCase = true) ||
+            propModel.contains(required, ignoreCase = true) ||
+            propVendorModel.contains(required, ignoreCase = true) ||
+            propMarketName.contains(required, ignoreCase = true)
     }
 
     private fun launchMainUi() {
@@ -335,38 +407,6 @@ class MainActivity : Activity() {
 
         setActiveMode(balancedCardRef)
         refreshStatus()
-    }
-
-    private fun isSupportedDevice(): Boolean {
-        val required = "NX809J"
-
-        val buildModel = Build.MODEL ?: ""
-        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: ""
-        val propVendorModel = RootShell.execForOutput("getprop ro.product.vendor.model")?.trim() ?: ""
-        val propMarketName = RootShell.execForOutput("getprop ro.product.marketname")?.trim() ?: ""
-
-        return buildModel.contains(required, ignoreCase = true) ||
-            propModel.contains(required, ignoreCase = true) ||
-            propVendorModel.contains(required, ignoreCase = true) ||
-            propMarketName.contains(required, ignoreCase = true)
-    }
-
-    private fun showUnsupportedDeviceDialog() {
-        val buildModel = Build.MODEL ?: "Unknown"
-        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
-
-        AlertDialog.Builder(this)
-            .setTitle("Unsupported Device")
-            .setMessage(
-                "This app only supports model NX809J.\n\n" +
-                    "Detected Build.MODEL: $buildModel\n" +
-                    "Detected ro.product.model: $propModel"
-            )
-            .setCancelable(false)
-            .setPositiveButton("Close") { _, _ ->
-                finishAffinity()
-            }
-            .show()
     }
 
     private fun refreshStatus() {

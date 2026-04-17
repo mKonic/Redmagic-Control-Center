@@ -30,6 +30,11 @@ class MainActivity : Activity() {
     private lateinit var tempText: TextView
     private lateinit var curveStatusText: TextView
 
+    private lateinit var deviceModelValue: TextView
+    private lateinit var deviceRomValue: TextView
+    private lateinit var deviceCpuValue: TextView
+    private lateinit var deviceRamValue: TextView
+
     private lateinit var quietCardRef: LinearLayout
     private lateinit var balancedCardRef: LinearLayout
     private lateinit var turboCardRef: LinearLayout
@@ -89,10 +94,10 @@ class MainActivity : Activity() {
         val info = TextView(this).apply {
             text =
                 "Model check passed.\n\n" +
-                "Required model: NX809J\n" +
-                "Detected Build.MODEL: $buildModel\n" +
-                "Detected ro.product.model: $propModel\n\n" +
-                "Tap OK to continue launching Redmagic HW Controls."
+                    "Required model: NX809J\n" +
+                    "Detected Build.MODEL: $buildModel\n" +
+                    "Detected ro.product.model: $propModel\n\n" +
+                    "Tap OK to continue launching Redmagic HW Controls."
             setTextColor(textPrimary)
             textSize = 14f
         }
@@ -126,8 +131,8 @@ class MainActivity : Activity() {
             .setTitle("Unsupported Device")
             .setMessage(
                 "This app only supports model NX809J.\n\n" +
-                "Detected Build.MODEL: $buildModel\n" +
-                "Detected ro.product.model: $propModel"
+                    "Detected Build.MODEL: $buildModel\n" +
+                    "Detected ro.product.model: $propModel"
             )
             .setCancelable(false)
             .setPositiveButton("Close App") { _, _ ->
@@ -184,6 +189,28 @@ class MainActivity : Activity() {
             setPadding(0, dp(4), 0, 0)
         }
 
+        val deviceInfoLabel = TextView(this).apply {
+            text = "DEVICE INFO"
+            textSize = 12f
+            setTextColor(accent)
+            setTypeface(typeface, Typeface.BOLD)
+            letterSpacing = 0.12f
+            setPadding(0, dp(16), 0, dp(10))
+        }
+
+        deviceModelValue = infoValue()
+        deviceRomValue = infoValue()
+        deviceCpuValue = infoValue()
+        deviceRamValue = infoValue()
+
+        val infoBlock = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(infoRow("Model", deviceModelValue))
+            addView(infoRow("ROM", deviceRomValue))
+            addView(infoRow("CPU", deviceCpuValue))
+            addView(infoRow("RAM", deviceRamValue))
+        }
+
         rootChip = statusChip("ROOT --")
         fanChip = statusChip("FAN --")
         rpmChip = statusChip("RPM --")
@@ -204,6 +231,8 @@ class MainActivity : Activity() {
         val heroCard = heroCard().apply {
             addView(title)
             addView(subtitle)
+            addView(deviceInfoLabel)
+            addView(infoBlock)
             addView(chipRow)
         }
 
@@ -415,6 +444,11 @@ class MainActivity : Activity() {
         val rpm = HardwareController.readFanRpm()
         val tempF = HardwareController.readTemperatureF()
 
+        deviceModelValue.text = Build.MODEL ?: "Unknown"
+        deviceRomValue.text = HardwareController.readShortRomFingerprint()
+        deviceCpuValue.text = HardwareController.readCpuModel()
+        deviceRamValue.text = HardwareController.readRamInfo()
+
         rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
@@ -426,6 +460,39 @@ class MainActivity : Activity() {
         setChipState(fanChip, fanEnabled)
         setChipState(rpmChip, (rpm ?: 0) > 0)
         setChipState(tempChip, tempF != null)
+    }
+
+    private fun infoRow(label: String, valueView: TextView): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 0, 0, dp(6))
+
+            val labelView = TextView(this@MainActivity).apply {
+                text = label
+                textSize = 13f
+                setTextColor(textSecondary)
+                setTypeface(typeface, Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(dp(64), ViewGroup.LayoutParams.WRAP_CONTENT)
+            }
+
+            valueView.layoutParams = LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+
+            addView(labelView)
+            addView(valueView)
+        }
+    }
+
+    private fun infoValue(): TextView {
+        return TextView(this).apply {
+            text = "--"
+            textSize = 13f
+            setTextColor(textPrimary)
+            maxLines = 1
+        }
     }
 
     private fun heroCard(): LinearLayout {

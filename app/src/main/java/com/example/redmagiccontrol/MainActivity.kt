@@ -493,7 +493,8 @@ class MainActivity : Activity() {
 
         if (autoFanCurveEnabled) {
             curveStatusText.text = "Auto fan curve active • Running in background service"
-            startAutoFanService()
+        } else {
+            curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
         }
 
         updateManualCurveUiState()

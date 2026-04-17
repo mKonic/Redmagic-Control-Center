@@ -130,13 +130,8 @@ object HardwareController {
         for (path in candidates) {
             val raw = RootShell.execForOutput("cat $path 2>/dev/null")?.trim()?.toFloatOrNull() ?: continue
 
-            if (raw > 1000f && raw < 200000f) {
-                return raw / 1000f
-            }
-
-            if (raw > 0f && raw < 200f) {
-                return raw
-            }
+            if (raw > 1000f && raw < 200000f) return raw / 1000f
+            if (raw > 0f && raw < 200f) return raw
         }
 
         return null
@@ -150,24 +145,16 @@ object HardwareController {
     fun chooseFanLevelForTempF(tempF: Float, curve: String): Int {
         return when (curve.toLowerCase()) {
             "quiet" -> when {
-                tempF < 90f -> 1
-                tempF < 100f -> 2
-                tempF < 110f -> 3
-                tempF < 118f -> 4
-                else -> 5
+                tempF < 95f -> 0
+                else -> 1
             }
             "turbo" -> when {
-                tempF < 86f -> 2
-                tempF < 95f -> 3
-                tempF < 104f -> 4
+                tempF < 100f -> 4
                 else -> 5
             }
             else -> when {
-                tempF < 88f -> 1
-                tempF < 97f -> 2
-                tempF < 106f -> 3
-                tempF < 115f -> 4
-                else -> 5
+                tempF < 100f -> 2
+                else -> 3
             }
         }
     }

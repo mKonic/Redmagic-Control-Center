@@ -44,7 +44,7 @@ class MainActivity : Activity() {
     private val danger = Color.parseColor("#5B2C33")
     private val textPrimary = Color.parseColor("#E8EEF7")
     private val textSecondary = Color.parseColor("#9AA8BA")
-    private val highlightBorder = Color.parseColor("#C7D2E1")
+    private val highlightBorder = Color.parseColor("#7F8EA3")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +59,7 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply {
             setBackgroundColor(bgColor)
             clipToPadding = false
-            setPadding(0, topInset, 0, 0)
+            setPadding(0, topInset + dp(10), 0, 0)
         }
 
         val content = LinearLayout(this).apply {
@@ -120,19 +120,31 @@ class MainActivity : Activity() {
             })
         }
 
-        quietCardRef = modeCard("Quiet", "Fan level 1-5") {
+        quietCardRef = modeCard("Quiet", "Nearly silent • fan 0-1") {
             selectedCurve = "quiet"
             setActiveMode(quietCardRef)
+            val level = HardwareController.applyFanCurve(selectedCurve)
+            if (level != null) fanSeek.progress = level
+            curveStatusText.text = "Selected curve: Quiet • Applied immediately"
+            refreshStatus()
         }
 
-        balancedCardRef = modeCard("Balanced", "Fan level 1-5") {
+        balancedCardRef = modeCard("Balanced", "Everyday use • fan 2-3") {
             selectedCurve = "balanced"
             setActiveMode(balancedCardRef)
+            val level = HardwareController.applyFanCurve(selectedCurve)
+            if (level != null) fanSeek.progress = level
+            curveStatusText.text = "Selected curve: Balanced • Applied immediately"
+            refreshStatus()
         }
 
-        turboCardRef = modeCard("Turbo", "Fan level 2-5") {
+        turboCardRef = modeCard("Turbo", "Max cooling • fan 4-5") {
             selectedCurve = "turbo"
             setActiveMode(turboCardRef)
+            val level = HardwareController.applyFanCurve(selectedCurve)
+            if (level != null) fanSeek.progress = level
+            curveStatusText.text = "Selected curve: Turbo • Applied immediately"
+            refreshStatus()
         }
 
         val modeScrollContent = LinearLayout(this).apply {
@@ -199,18 +211,6 @@ class MainActivity : Activity() {
             setPadding(0, dp(6), 0, dp(4))
         }
 
-        val applyCurveBtn = actionButton("APPLY CURVE") {
-            val level = HardwareController.applyFanCurve(selectedCurve)
-            if (level != null) {
-                fanSeek.progress = level
-                curveStatusText.text =
-                    "Selected curve: ${selectedCurve.substring(0,1).toUpperCase() + selectedCurve.substring(1)} • Applied fan level $level"
-            } else {
-                curveStatusText.text = "Selected curve: ${selectedCurve.substring(0,1).toUpperCase() + selectedCurve.substring(1)} • Temp unavailable"
-            }
-            refreshStatus()
-        }
-
         val coolingPanel = sectionPanel().apply {
             addView(sectionLabel("COOLING"))
             addView(tempText)
@@ -218,14 +218,13 @@ class MainActivity : Activity() {
             addView(fanSeek)
             addView(row(fanOnBtn, fanOffBtn))
             addView(singleRow(rpmBtn))
-            addView(spacer(dp(12)))
+            addView(spacer(dp(16)))
             addView(sectionLabel("SIMPLE FAN CURVE"))
             addView(curveStatusText)
             addView(modeScroller)
-            addView(singleRow(applyCurveBtn))
-            addView(subtleLabel("Quiet: <90°F=1, <100°F=2, <110°F=3, <118°F=4, else 5"))
-            addView(subtleLabel("Balanced: <88°F=1, <97°F=2, <106°F=3, <115°F=4, else 5"))
-            addView(subtleLabel("Turbo: <86°F=2, <95°F=3, <104°F=4, else 5"))
+            addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
+            addView(subtleLabel("Balanced → moderate cooling, stays between fan 2-3"))
+            addView(subtleLabel("Turbo → max cooling and sound, stays between fan 4-5"))
         }
 
         val pumpOnBtn = actionButton("PUMP ON") {
@@ -393,8 +392,8 @@ class MainActivity : Activity() {
             setPadding(0, dp(4), 0, dp(10))
         }
 
-        val applyBtn = Button(this).apply {
-            text = "SELECT"
+        val chooseBtn = Button(this).apply {
+            text = "CHOOSE"
             textSize = 12f
             setAllCaps(false)
             setTextColor(textPrimary)
@@ -406,7 +405,7 @@ class MainActivity : Activity() {
 
         card.addView(titleView)
         card.addView(subtitleView)
-        card.addView(applyBtn)
+        card.addView(chooseBtn)
 
         card.setOnClickListener { onClick() }
         applyPressEffect(card)
@@ -423,11 +422,6 @@ class MainActivity : Activity() {
         turboCardRef.background = normal
 
         active.background = selected
-        curveStatusText.text = "Selected curve: " + when (active) {
-            quietCardRef -> "Quiet"
-            balancedCardRef -> "Balanced"
-            else -> "Turbo"
-        }
     }
 
     private fun sectionLabel(text: String): TextView {

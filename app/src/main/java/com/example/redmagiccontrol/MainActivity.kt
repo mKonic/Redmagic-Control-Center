@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -20,16 +19,19 @@ class MainActivity : Activity() {
     private lateinit var rpmText: TextView
     private lateinit var fanSeek: SeekBar
 
-    private val bgColor = Color.parseColor("#0B0F14")
-    private val cardColor = Color.parseColor("#141A22")
-    private val accentColor = Color.parseColor("#00E5FF")
-    private val accentAlt = Color.parseColor("#7C4DFF")
+    private val bgColor = Color.parseColor("#070B11")
+    private val cardColor = Color.parseColor("#101722")
+    private val accentColor = Color.parseColor("#00D9FF")
+    private val accentAlt = Color.parseColor("#7B4DFF")
     private val textPrimary = Color.parseColor("#EAF2FF")
     private val textSecondary = Color.parseColor("#94A3B8")
     private val dangerColor = Color.parseColor("#FF5252")
+    private val borderColor = Color.parseColor("#1E2A3A")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val topInset = getStatusBarHeight()
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -38,29 +40,32 @@ class MainActivity : Activity() {
 
         val scroll = ScrollView(this).apply {
             setBackgroundColor(bgColor)
+            clipToPadding = false
+            setPadding(0, topInset, 0, 0)
         }
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(24))
+            setPadding(dp(16), dp(12), dp(16), dp(28))
         }
 
         val title = TextView(this).apply {
             text = "REDMAGIC CONTROL"
-            textSize = 24f
+            textSize = 22f
             setTextColor(textPrimary)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.08f
+            letterSpacing = 0.06f
         }
 
         val subtitle = TextView(this).apply {
-            text = "Game Space style hardware control"
+            text = "Hardware control dashboard"
             textSize = 13f
             setTextColor(textSecondary)
-            setPadding(0, dp(4), 0, dp(12))
+            setPadding(0, dp(4), 0, 0)
         }
 
         val headerCard = card().apply {
+            setPadding(dp(18), dp(18), dp(18), dp(18))
             addView(title)
             addView(subtitle)
         }
@@ -73,9 +78,9 @@ class MainActivity : Activity() {
 
         rpmText = TextView(this).apply {
             text = "RPM: unknown"
-            textSize = 14f
+            textSize = 13f
             setTextColor(textSecondary)
-            setPadding(0, dp(8), 0, 0)
+            setPadding(0, dp(10), 0, 0)
         }
 
         val statusCard = card().apply {
@@ -241,9 +246,9 @@ class MainActivity : Activity() {
             setPadding(dp(16), dp(16), dp(16), dp(16))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(18).toFloat()
+                cornerRadius = dp(20).toFloat()
                 setColor(cardColor)
-                setStroke(dp(1), Color.parseColor("#223041"))
+                setStroke(dp(1), borderColor)
             }
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -260,8 +265,8 @@ class MainActivity : Activity() {
             textSize = 12f
             setTextColor(accentColor)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.12f
-            setPadding(0, 0, 0, dp(10))
+            letterSpacing = 0.14f
+            setPadding(0, 0, 0, dp(12))
         }
     }
 
@@ -270,30 +275,23 @@ class MainActivity : Activity() {
             this.text = text
             textSize = 13f
             setTextColor(textSecondary)
-            setPadding(0, 0, 0, dp(6))
+            setPadding(0, 0, 0, dp(8))
         }
     }
 
     private fun actionButton(text: String, color: Int, onClick: () -> Unit): Button {
         return Button(this).apply {
             this.text = text
-            setTextColor(Color.WHITE)
             textSize = 13f
+            setTextColor(Color.WHITE)
             setAllCaps(false)
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(14).toFloat()
+                cornerRadius = dp(16).toFloat()
                 setColor(color)
             }
-            setPadding(dp(12), dp(12), dp(12), dp(12))
+            setPadding(dp(12), dp(14), dp(12), dp(14))
             setOnClickListener { onClick() }
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
-            ).apply {
-                marginEnd = dp(8)
-            }
         }
     }
 
@@ -307,13 +305,13 @@ class MainActivity : Activity() {
                 topMargin = dp(8)
             }
 
-            val leftParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            leftParams.marginEnd = dp(6)
-            left.layoutParams = leftParams
+            left.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginEnd = dp(6)
+            }
 
-            val rightParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            rightParams.marginStart = dp(6)
-            right.layoutParams = rightParams
+            right.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = dp(6)
+            }
 
             addView(left)
             addView(right)
@@ -337,6 +335,11 @@ class MainActivity : Activity() {
 
             addView(button)
         }
+    }
+
+    private fun getStatusBarHeight(): Int {
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (resourceId > 0) resources.getDimensionPixelSize(resourceId) else dp(24)
     }
 
     private fun dp(value: Int): Int {

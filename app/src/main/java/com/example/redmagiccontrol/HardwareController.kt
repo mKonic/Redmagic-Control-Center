@@ -161,9 +161,27 @@ object HardwareController {
         }
     }
 
+    fun chooseAutoFanLevelForTempF(tempF: Float): Int {
+        return when {
+            tempF < 90f -> 0
+            tempF < 97f -> 1
+            tempF < 104f -> 2
+            tempF < 111f -> 3
+            tempF < 118f -> 4
+            else -> 5
+        }
+    }
+
     fun applyFanCurve(curve: String): Int? {
         val tempF = readTemperatureF() ?: return null
         val level = chooseFanLevelForTempF(tempF, curve)
+        setFanLevel(level)
+        return level
+    }
+
+    fun applyAutoFanCurve(): Int? {
+        val tempF = readTemperatureF() ?: return null
+        val level = chooseAutoFanLevelForTempF(tempF)
         setFanLevel(level)
         return level
     }

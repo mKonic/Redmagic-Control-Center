@@ -8,6 +8,8 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -38,8 +40,27 @@ class MainActivity : Activity() {
     private lateinit var quietCardRef: LinearLayout
     private lateinit var balancedCardRef: LinearLayout
     private lateinit var turboCardRef: LinearLayout
+    private lateinit var autoCurveCheck: CheckBox
 
     private var selectedCurve = "balanced"
+    private var autoFanCurveEnabled = false
+
+    private val autoFanHandler = Handler(Looper.getMainLooper())
+    private val autoFanRunnable = object : Runnable {
+        override fun run() {
+            if (autoFanCurveEnabled) {
+                val level = HardwareController.applyAutoFanCurve()
+                if (level != null) {
+                    fanSeek.progress = level
+                    curveStatusText.text = "Auto fan curve active • Applied fan level $level from temperature"
+                } else {
+                    curveStatusText.text = "Auto fan curve active • Temperature unavailable"
+                }
+                refreshStatus()
+                autoFanHandler.postDelayed(this, 3000)
+            }
+        }
+    }
 
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
@@ -70,6 +91,11 @@ class MainActivity : Activity() {
         } else {
             showSupportedDeviceDialog()
         }
+    }
+
+    override fun onDestroy() {
+        autoFanHandler.removeCallbacks(autoFanRunnable)
+        super.onDestroy()
     }
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -241,7 +267,7 @@ class MainActivity : Activity() {
             progress = 0
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    if (fromUser) {
+                    if (fromUser && !autoFanCurveEnabled) {
                         HardwareController.setFanLevel(progress)
                         refreshStatus()
                     }
@@ -252,6 +278,7 @@ class MainActivity : Activity() {
         }
 
         quietCardRef = modeCard("Quiet", "Nearly silent • fan 0-1") {
+            if (autoFanCurveEnabled) return@modeCard
             selectedCurve = "quiet"
             setActiveMode(quietCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
@@ -261,6 +288,7 @@ class MainActivity : Activity() {
         }
 
         balancedCardRef = modeCard("Balanced", "Everyday use • fan 2-3") {
+            if (autoFanCurveEnabled) return@modeCard
             selectedCurve = "balanced"
             setActiveMode(balancedCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
@@ -270,6 +298,7 @@ class MainActivity : Activity() {
         }
 
         turboCardRef = modeCard("Turbo", "Max cooling • fan 4-5") {
+            if (autoFanCurveEnabled) return@modeCard
             selectedCurve = "turbo"
             setActiveMode(turboCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
@@ -342,6 +371,25 @@ class MainActivity : Activity() {
             setPadding(0, dp(6), 0, dp(4))
         }
 
+        autoCurveCheck = CheckBox(this).apply {
+            text = "Automatic fan control based on temperature"
+            setTextColor(textPrimary)
+            textSize = 13f
+            setPadding(0, dp(6), 0, dp(4))
+            setOnCheckedChangeListener { _, checked ->
+                autoFanCurveEnabled = checked
+                updateManualCurveUiState()
+
+                if (checked) {
+                    autoFanHandler.removeCallbacks(autoFanRunnable)
+                    autoFanHandler.post(autoFanRunnable)
+                } else {
+                    autoFanHandler.removeCallbacks(autoFanRunnable)
+                    curveStatusText.text = "Selected curve: ${selectedCurve.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • Manual control"
+                }
+            }
+        }
+
         val coolingPanel = sectionPanel().apply {
             addView(sectionHeader("❄", "COOLING"))
             addView(tempText)
@@ -351,8 +399,10 @@ class MainActivity : Activity() {
             addView(singleRow(rpmBtn))
             addView(spacer(dp(16)))
             addView(sectionHeader("▦", "SIMPLE FAN CURVE"))
+            addView(autoCurveCheck)
             addView(curveStatusText)
             addView(modeScroller)
+            addView(subtleLabel("Auto mode ramps fan by temperature and disables manual curve cards"))
             addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
             addView(subtleLabel("Balanced → moderate cooling, stays between fan 2-3"))
             addView(subtleLabel("Turbo → max cooling and sound, stays between fan 4-5"))
@@ -435,7 +485,24 @@ class MainActivity : Activity() {
         setContentView(root)
 
         setActiveMode(balancedCardRef)
+        updateManualCurveUiState()
         refreshStatus()
+    }
+
+    private fun updateManualCurveUiState() {
+        val alpha = if (autoFanCurveEnabled) 0.40f else 1f
+
+        quietCardRef.alpha = alpha
+        balancedCardRef.alpha = alpha
+        turboCardRef.alpha = alpha
+
+        quietCardRef.isEnabled = !autoFanCurveEnabled
+        balancedCardRef.isEnabled = !autoFanCurveEnabled
+        turboCardRef.isEnabled = !autoFanCurveEnabled
+
+        quietCardRef.isClickable = !autoFanCurveEnabled
+        balancedCardRef.isClickable = !autoFanCurveEnabled
+        turboCardRef.isClickable = !autoFanCurveEnabled
     }
 
     private fun refreshStatus() {

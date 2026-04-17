@@ -310,7 +310,7 @@ class MainActivity : Activity() {
         }
 
         val systemPanel = sectionPanel().apply {
-            addView(sectionLabel("SYSTEM"))
+            addView(sectionHeader("⚙", "SYSTEM"))
             addView(row(rootCheckBtn, refreshBtn))
         }
 
@@ -343,14 +343,14 @@ class MainActivity : Activity() {
         }
 
         val coolingPanel = sectionPanel().apply {
-            addView(sectionLabel("COOLING"))
+            addView(sectionHeader("❄", "COOLING"))
             addView(tempText)
             addView(subtleLabel("Fan level"))
             addView(fanSeek)
             addView(row(fanOnBtn, fanOffBtn))
             addView(singleRow(rpmBtn))
             addView(spacer(dp(16)))
-            addView(sectionLabel("SIMPLE FAN CURVE"))
+            addView(sectionHeader("▦", "SIMPLE FAN CURVE"))
             addView(curveStatusText)
             addView(modeScroller)
             addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
@@ -369,7 +369,7 @@ class MainActivity : Activity() {
         }
 
         val pumpPanel = sectionPanel().apply {
-            addView(sectionLabel("PUMP"))
+            addView(sectionHeader("◉", "PUMP"))
             addView(row(pumpOnBtn, pumpOffBtn))
         }
 
@@ -386,7 +386,7 @@ class MainActivity : Activity() {
         }
 
         val lightingPanel = sectionPanel().apply {
-            addView(sectionLabel("LIGHTING"))
+            addView(sectionHeader("✦", "LIGHTING"))
             addView(row(ledPurpleBtn, ledRedBtn))
             addView(singleRow(ledOffBtn))
         }
@@ -407,7 +407,7 @@ class MainActivity : Activity() {
         }
 
         val controlsPanel = sectionPanel().apply {
-            addView(sectionLabel("TRIGGERS & SLIDER"))
+            addView(sectionHeader("⌁", "TRIGGERS & SLIDER"))
             addView(singleRow(trigEnableBtn))
             addView(singleRow(sliderAppBtn))
             addView(singleRow(sliderRawBtn))
@@ -418,7 +418,7 @@ class MainActivity : Activity() {
         }
 
         val hapticPanel = sectionPanel().apply {
-            addView(sectionLabel("HAPTICS"))
+            addView(sectionHeader("≈", "HAPTICS"))
             addView(singleRow(vibrateBtn))
         }
 
@@ -465,6 +465,7 @@ class MainActivity : Activity() {
     private fun infoRow(label: String, valueView: TextView): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.TOP
             setPadding(0, 0, 0, dp(6))
 
             val labelView = TextView(this@MainActivity).apply {
@@ -491,7 +492,38 @@ class MainActivity : Activity() {
             text = "--"
             textSize = 13f
             setTextColor(textPrimary)
-            maxLines = 1
+            setLineSpacing(0f, 1.1f)
+            isSingleLine = false
+            maxLines = 4
+        }
+    }
+
+    private fun sectionHeader(icon: String, text: String): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, 0, 0, dp(12))
+
+            val iconView = TextView(this@MainActivity).apply {
+                this.text = icon
+                textSize = 12f
+                setTextColor(textPrimary)
+                gravity = Gravity.CENTER
+                background = roundedFill(Color.parseColor("#1E2633"), 10)
+                setPadding(dp(8), dp(6), dp(8), dp(6))
+            }
+
+            val labelView = TextView(this@MainActivity).apply {
+                this.text = text
+                textSize = 12f
+                setTextColor(accent)
+                setTypeface(typeface, Typeface.BOLD)
+                letterSpacing = 0.08f
+                setPadding(dp(10), 0, 0, 0)
+            }
+
+            addView(iconView)
+            addView(labelView)
         }
     }
 
@@ -591,17 +623,6 @@ class MainActivity : Activity() {
         turboCardRef.background = normal
 
         active.background = selected
-    }
-
-    private fun sectionLabel(text: String): TextView {
-        return TextView(this).apply {
-            this.text = text
-            textSize = 12f
-            setTextColor(accent)
-            setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.12f
-            setPadding(0, 0, 0, dp(12))
-        }
     }
 
     private fun subtleLabel(text: String): TextView {

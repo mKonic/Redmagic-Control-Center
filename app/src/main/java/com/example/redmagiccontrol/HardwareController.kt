@@ -1,5 +1,8 @@
 package com.example.redmagiccontrol
 
+import kotlin.math.abs
+import kotlin.math.round
+
 object HardwareController {
 
     private const val FAN_ENABLE = "/sys/kernel/fan/fan_enable"
@@ -166,47 +169,25 @@ object HardwareController {
     }
 
     fun readCpuModel(): String {
-        val cpuInfo = RootShell.execForOutput("cat /proc/cpuinfo 2>/dev/null") ?: ""
-        val lines = cpuInfo.lines()
-
-        val hardware = lines.firstOrNull { it.startsWith("Hardware", ignoreCase = true) }
-            ?.substringAfter(":")?.trim()
-        if (!hardware.isNullOrBlank()) return hardware
-
-        val modelName = lines.firstOrNull { it.startsWith("model name", ignoreCase = true) }
-            ?.substringAfter(":")?.trim()
-        if (!modelName.isNullOrBlank()) return modelName
-
-        val processor = lines.firstOrNull { it.startsWith("Processor", ignoreCase = true) }
-            ?.substringAfter(":")?.trim()
-        if (!processor.isNullOrBlank()) return processor
-
-        val socModel = RootShell.execForOutput("getprop ro.soc.model")?.trim()
-        if (!socModel.isNullOrBlank()) return socModel
-
-        val boardPlatform = RootShell.execForOutput("getprop ro.board.platform")?.trim()
-        if (!boardPlatform.isNullOrBlank()) return boardPlatform
-
-        return "Unknown"
+        return "Snapdragon 8 Elite Gen 5"
     }
 
     fun readRamInfo(): String {
         val memInfo = RootShell.execForOutput("cat /proc/meminfo 2>/dev/null") ?: return "Unknown"
         val totalLine = memInfo.lines().firstOrNull { it.startsWith("MemTotal:") } ?: return "Unknown"
         val kb = totalLine.substringAfter("MemTotal:").trim().substringBefore(" ").toLongOrNull() ?: return "Unknown"
+
         val gb = kb / 1024.0 / 1024.0
-        return if (gb >= 1.0) {
-            "${kotlin.math.round(gb).toInt()} GB"
-        } else {
-            "Unknown"
-        }
+        val rounded = round(gb).toInt()
+        val supported = listOf(12, 16, 24)
+        val nearest = supported.minByOrNull { abs(it - rounded) } ?: rounded
+
+        return "$nearest GB"
     }
 
     fun readShortRomFingerprint(): String {
         val fp = RootShell.execForOutput("getprop ro.build.fingerprint")?.trim().orEmpty()
-        if (fp.isNotBlank()) {
-            return if (fp.length > 36) fp.take(36) + "..." else fp
-        }
+        if (fp.isNotBlank()) return fp
 
         val displayId = RootShell.execForOutput("getprop ro.build.display.id")?.trim().orEmpty()
         if (displayId.isNotBlank()) return displayId

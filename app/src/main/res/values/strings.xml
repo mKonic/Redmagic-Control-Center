@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RedMagic Root Control</string>
+    <string name="fan_level_value">Fan level: %1$d</string>
+    <string name="accessibility_desc">Shoulder trigger handler</string>
+</resources>

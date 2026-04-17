@@ -23,10 +23,15 @@ class MainActivity : Activity() {
     private lateinit var rootChip: TextView
     private lateinit var fanChip: TextView
     private lateinit var rpmChip: TextView
+    private lateinit var tempChip: TextView
+    private lateinit var tempText: TextView
+    private lateinit var curveStatusText: TextView
 
     private lateinit var quietCardRef: LinearLayout
     private lateinit var balancedCardRef: LinearLayout
     private lateinit var turboCardRef: LinearLayout
+
+    private var selectedCurve = "balanced"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -34,15 +39,11 @@ class MainActivity : Activity() {
     private val borderColor = Color.parseColor("#232C3B")
 
     private val accent = Color.parseColor("#8FA3BF")
-    private val accentDim = Color.parseColor("#607086")
     private val chipOn = Color.parseColor("#202B38")
     private val chipActive = Color.parseColor("#2B3A4F")
     private val danger = Color.parseColor("#5B2C33")
-    private val success = Color.parseColor("#203428")
-
     private val textPrimary = Color.parseColor("#E8EEF7")
     private val textSecondary = Color.parseColor("#9AA8BA")
-    private val textMuted = Color.parseColor("#66758A")
     private val highlightBorder = Color.parseColor("#C7D2E1")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +85,7 @@ class MainActivity : Activity() {
         rootChip = statusChip("ROOT --")
         fanChip = statusChip("FAN --")
         rpmChip = statusChip("RPM --")
+        tempChip = statusChip("TEMP --")
 
         val chipRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -93,6 +95,8 @@ class MainActivity : Activity() {
             addView(fanChip)
             addView(space(dp(8)))
             addView(rpmChip)
+            addView(space(dp(8)))
+            addView(tempChip)
         }
 
         val heroCard = heroCard().apply {
@@ -116,34 +120,19 @@ class MainActivity : Activity() {
             })
         }
 
-        quietCardRef = modeCard(
-            title = "Quiet",
-            subtitle = "Fan level 1"
-        ) {
-            HardwareController.setFanLevel(1)
-            fanSeek.progress = 1
+        quietCardRef = modeCard("Quiet", "Fan level 1-5") {
+            selectedCurve = "quiet"
             setActiveMode(quietCardRef)
-            refreshStatus()
         }
 
-        balancedCardRef = modeCard(
-            title = "Balanced",
-            subtitle = "Fan level 3"
-        ) {
-            HardwareController.setFanLevel(3)
-            fanSeek.progress = 3
+        balancedCardRef = modeCard("Balanced", "Fan level 1-5") {
+            selectedCurve = "balanced"
             setActiveMode(balancedCardRef)
-            refreshStatus()
         }
 
-        turboCardRef = modeCard(
-            title = "Turbo",
-            subtitle = "Fan level 5"
-        ) {
-            HardwareController.setFanLevel(5)
-            fanSeek.progress = 5
+        turboCardRef = modeCard("Turbo", "Fan level 2-5") {
+            selectedCurve = "turbo"
             setActiveMode(turboCardRef)
-            refreshStatus()
         }
 
         val modeScrollContent = LinearLayout(this).apply {
@@ -162,7 +151,6 @@ class MainActivity : Activity() {
 
         val rootCheckBtn = actionButton("CHECK ROOT") {
             val ok = RootShell.hasRoot()
-
             AlertDialog.Builder(this)
                 .setTitle("Root Status")
                 .setMessage(
@@ -171,7 +159,6 @@ class MainActivity : Activity() {
                 )
                 .setPositiveButton("OK", null)
                 .show()
-
             refreshStatus()
         }
 
@@ -198,15 +185,47 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
+        tempText = TextView(this).apply {
+            text = "Current temp: --°F"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(6), 0, dp(4))
+        }
+
+        curveStatusText = TextView(this).apply {
+            text = "Selected curve: Balanced"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(6), 0, dp(4))
+        }
+
+        val applyCurveBtn = actionButton("APPLY CURVE") {
+            val level = HardwareController.applyFanCurve(selectedCurve)
+            if (level != null) {
+                fanSeek.progress = level
+                curveStatusText.text =
+                    "Selected curve: ${selectedCurve.replaceFirstChar { it.uppercase() }} • Applied fan level $level"
+            } else {
+                curveStatusText.text = "Selected curve: ${selectedCurve.replaceFirstChar { it.uppercase() }} • Temp unavailable"
+            }
+            refreshStatus()
+        }
+
         val coolingPanel = sectionPanel().apply {
             addView(sectionLabel("COOLING"))
+            addView(tempText)
             addView(subtleLabel("Fan level"))
             addView(fanSeek)
             addView(row(fanOnBtn, fanOffBtn))
             addView(singleRow(rpmBtn))
             addView(spacer(dp(12)))
-            addView(sectionLabel("PERFORMANCE MODES"))
+            addView(sectionLabel("SIMPLE FAN CURVE"))
+            addView(curveStatusText)
             addView(modeScroller)
+            addView(singleRow(applyCurveBtn))
+            addView(subtleLabel("Quiet: <90°F=1, <100°F=2, <110°F=3, <118°F=4, else 5"))
+            addView(subtleLabel("Balanced: <88°F=1, <97°F=2, <106°F=3, <115°F=4, else 5"))
+            addView(subtleLabel("Turbo: <86°F=2, <95°F=3, <104°F=4, else 5"))
         }
 
         val pumpOnBtn = actionButton("PUMP ON") {
@@ -285,6 +304,7 @@ class MainActivity : Activity() {
         root.addView(scroll)
         setContentView(root)
 
+        setActiveMode(balancedCardRef)
         refreshStatus()
     }
 
@@ -292,14 +312,19 @@ class MainActivity : Activity() {
         val rooted = RootShell.hasRoot()
         val fanEnabled = HardwareController.isFanEnabled()
         val rpm = HardwareController.readFanRpm()
+        val tempF = HardwareController.readTemperatureF()
 
         rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
+        tempChip.text = "TEMP ${tempF?.toInt() ?: "--"}°F"
+
+        tempText.text = "Current temp: ${tempF?.toInt() ?: "--"}°F"
 
         setChipState(rootChip, rooted)
         setChipState(fanChip, fanEnabled)
-        setRpmChipState(rpmChip, rpm)
+        setChipState(rpmChip, (rpm ?: 0) > 0)
+        setChipState(tempChip, tempF != null)
     }
 
     private fun heroCard(): LinearLayout {
@@ -310,9 +335,7 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(14)
-            }
+            ).apply { bottomMargin = dp(14) }
         }
     }
 
@@ -324,9 +347,7 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(14)
-            }
+            ).apply { bottomMargin = dp(14) }
         }
     }
 
@@ -347,19 +368,13 @@ class MainActivity : Activity() {
         view.setTextColor(textPrimary)
     }
 
-    private fun setRpmChipState(view: TextView, rpm: Int?) {
-        val active = (rpm ?: 0) > 0
-        view.background = roundedFill(if (active) chipActive else chipOn, 14)
-        view.setTextColor(textPrimary)
-    }
-
     private fun modeCard(title: String, subtitle: String, onClick: () -> Unit): LinearLayout {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
             background = roundedBg(panelColor, borderColor, 18)
             layoutParams = LinearLayout.LayoutParams(dp(170), ViewGroup.LayoutParams.WRAP_CONTENT)
-            minimumHeight = dp(120)
+            minimumHeight = dp(108)
             isClickable = true
             isFocusable = true
         }
@@ -379,7 +394,7 @@ class MainActivity : Activity() {
         }
 
         val applyBtn = Button(this).apply {
-            text = "APPLY"
+            text = "SELECT"
             textSize = 12f
             setAllCaps(false)
             setTextColor(textPrimary)
@@ -408,6 +423,11 @@ class MainActivity : Activity() {
         turboCardRef.background = normal
 
         active.background = selected
+        curveStatusText.text = "Selected curve: " + when (active) {
+            quietCardRef -> "Quiet"
+            balancedCardRef -> "Balanced"
+            else -> "Turbo"
+        }
     }
 
     private fun sectionLabel(text: String): TextView {
@@ -424,9 +444,9 @@ class MainActivity : Activity() {
     private fun subtleLabel(text: String): TextView {
         return TextView(this).apply {
             this.text = text
-            textSize = 13f
+            textSize = 12f
             setTextColor(textSecondary)
-            setPadding(0, 0, 0, dp(8))
+            setPadding(0, dp(4), 0, 0)
         }
     }
 
@@ -449,14 +469,11 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(8)
-            }
+            ).apply { topMargin = dp(8) }
 
             left.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                 marginEnd = dp(6)
             }
-
             right.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                 marginStart = dp(6)
             }
@@ -472,15 +489,12 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(8)
-            }
+            ).apply { topMargin = dp(8) }
 
             button.layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-
             addView(button)
         }
     }

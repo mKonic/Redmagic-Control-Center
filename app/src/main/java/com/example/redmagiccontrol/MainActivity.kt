@@ -46,6 +46,7 @@ class MainActivity : Activity() {
 
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
+    private val autoFanEnabledKey = "auto_fan_enabled"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -83,6 +84,27 @@ class MainActivity : Activity() {
 
     private fun setSkipSupportedDialog(skip: Boolean) {
         prefs().edit().putBoolean(skipSupportedDialogKey, skip).apply()
+    }
+
+    private fun isAutoFanEnabledSaved(): Boolean {
+        return prefs().getBoolean(autoFanEnabledKey, false)
+    }
+
+    private fun setAutoFanEnabledSaved(enabled: Boolean) {
+        prefs().edit().putBoolean(autoFanEnabledKey, enabled).apply()
+    }
+
+    private fun startAutoFanService() {
+        val intent = Intent(this, AutoFanService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun stopAutoFanService() {
+        stopService(Intent(this, AutoFanService::class.java))
     }
 
     private fun showSupportedDeviceDialog() {
@@ -355,17 +377,14 @@ class MainActivity : Activity() {
             setPadding(0, dp(6), 0, dp(4))
             setOnCheckedChangeListener { _, checked ->
                 autoFanCurveEnabled = checked
+                setAutoFanEnabledSaved(checked)
                 updateManualCurveUiState()
 
                 if (checked) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(Intent(this@MainActivity, AutoFanService::class.java))
-                    } else {
-                        startService(Intent(this@MainActivity, AutoFanService::class.java))
-                    }
+                    startAutoFanService()
                     curveStatusText.text = "Auto fan curve active • Running in background service"
                 } else {
-                    stopService(Intent(this@MainActivity, AutoFanService::class.java))
+                    stopAutoFanService()
                     curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
                 }
 
@@ -468,6 +487,15 @@ class MainActivity : Activity() {
         setContentView(root)
 
         setActiveMode(balancedCardRef)
+
+        autoFanCurveEnabled = isAutoFanEnabledSaved()
+        autoCurveCheck.isChecked = autoFanCurveEnabled
+
+        if (autoFanCurveEnabled) {
+            curveStatusText.text = "Auto fan curve active • Running in background service"
+            startAutoFanService()
+        }
+
         updateManualCurveUiState()
         refreshStatus()
     }

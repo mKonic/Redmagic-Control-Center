@@ -116,25 +116,30 @@ object HardwareController {
     }
 
     fun readTemperatureC(): Float? {
-        val cmd = """
-            for f in /sys/class/thermal/thermal_zone*/temp /sys/devices/virtual/thermal/thermal_zone*/temp; do
-              if [ -f "\$f" ]; then
-                v=$(cat "\$f" 2>/dev/null)
-                case "\$v" in
-                  ''|*[!0-9-]*) continue;;
-                esac
-                if [ "\$v" -gt 1000 ] && [ "\$v" -lt 200000 ]; then
-                  echo "\$v"
-                  break
-                elif [ "\$v" -gt 0 ] && [ "\$v" -lt 200 ]; then
-                  echo \$((v * 1000))
-                  break
-                fi
-              fi
-            done
-        """.trimIndent().replace("\n", "; ")
-        val raw = RootShell.execForOutput(cmd)?.trim()?.toFloatOrNull() ?: return null
-        return raw / 1000f
+        val candidates = listOf(
+            "/sys/class/thermal/thermal_zone0/temp",
+            "/sys/class/thermal/thermal_zone1/temp",
+            "/sys/class/thermal/thermal_zone2/temp",
+            "/sys/class/thermal/thermal_zone3/temp",
+            "/sys/devices/virtual/thermal/thermal_zone0/temp",
+            "/sys/devices/virtual/thermal/thermal_zone1/temp",
+            "/sys/devices/virtual/thermal/thermal_zone2/temp",
+            "/sys/devices/virtual/thermal/thermal_zone3/temp"
+        )
+
+        for (path in candidates) {
+            val raw = RootShell.execForOutput("cat $path 2>/dev/null")?.trim()?.toFloatOrNull() ?: continue
+
+            if (raw > 1000f && raw < 200000f) {
+                return raw / 1000f
+            }
+
+            if (raw > 0f && raw < 200f) {
+                return raw
+            }
+        }
+
+        return null
     }
 
     fun readTemperatureF(): Float? {

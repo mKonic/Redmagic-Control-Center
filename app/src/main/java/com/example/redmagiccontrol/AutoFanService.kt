@@ -24,7 +24,7 @@ class AutoFanService : Service() {
             val tempF = HardwareController.readTemperatureF()
             val level = HardwareController.applyAutoFanCurve()
             updateNotification(tempF, level)
-            handler.postDelayed(this, 3000)
+            handler.postDelayed(this, 15000)
         }
     }
 

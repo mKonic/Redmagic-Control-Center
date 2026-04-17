@@ -202,7 +202,7 @@ class MainActivity : Activity() {
 
         val contentFrame = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), topInset + dp(10), dp(16), dp(110))
+            setPadding(dp(16), topInset + dp(10), dp(16), dp(96))
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
@@ -220,10 +220,14 @@ class MainActivity : Activity() {
         contentFrame.addView(controlsTab)
         contentFrame.addView(lightingTab)
 
-        val navBar = bottomNavBar()
+        val navWrap = LinearLayout(this).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(18), 0, dp(18), dp(18))
+            addView(bottomNavBar())
+        }
 
         root.addView(contentFrame)
-        root.addView(navBar)
+        root.addView(navWrap)
 
         setContentView(root)
 
@@ -289,25 +293,37 @@ class MainActivity : Activity() {
         rpmChip = statusChip("RPM --")
         tempChip = statusChip("TEMP --")
 
-        val chipsRow1 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            addView(rootChip)
-            addView(space(dp(8)))
-            addView(fanChip)
-        }
+        val statusGrid = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
 
-        val chipsRow2 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(8), 0, 0)
-            addView(rpmChip)
-            addView(space(dp(8)))
-            addView(tempChip)
+            val row1 = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                addView(rootChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginEnd = dp(6)
+                })
+                addView(fanChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = dp(6)
+                })
+            }
+
+            val row2 = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, dp(10), 0, 0)
+                addView(rpmChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginEnd = dp(6)
+                })
+                addView(tempChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = dp(6)
+                })
+            }
+
+            addView(row1)
+            addView(row2)
         }
 
         val statusCard = sectionPanel().apply {
             addView(sectionHeader("◎", "LIVE STATUS"))
-            addView(chipsRow1)
-            addView(chipsRow2)
+            addView(statusGrid)
         }
 
         container.addView(welcomeCard)
@@ -509,7 +525,7 @@ class MainActivity : Activity() {
         }
 
         val controlsCard = sectionPanel().apply {
-            addView(sectionHeader("⌁", "TRIGGERS & SLIDER"))
+            addView(sectionHeader("⌘", "TRIGGERS & SLIDER"))
             addView(singleRow(trigEnableBtn))
             addView(singleRow(sliderAppBtn))
             addView(singleRow(sliderRawBtn))
@@ -580,14 +596,18 @@ class MainActivity : Activity() {
     private fun bottomNavBar(): LinearLayout {
         homeNav = navItem("⌂", "Home") { switchTab("home") }
         coolingNav = navItem("❄", "Cooling") { switchTab("cooling") }
-        controlsNav = navItem("⌁", "Controls") { switchTab("controls") }
+        controlsNav = navItem("⌘", "Controls") { switchTab("controls") }
         lightingNav = navItem("✦", "Lighting") { switchTab("lighting") }
 
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(dp(12), dp(10), dp(12), dp(20))
+            setPadding(dp(10), dp(8), dp(10), dp(8))
             background = roundedTopBar()
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
 
             addView(homeNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(coolingNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
@@ -600,24 +620,24 @@ class MainActivity : Activity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(8), dp(10), dp(8), dp(10))
+            setPadding(dp(8), dp(8), dp(8), dp(8))
             isClickable = true
             isFocusable = true
             setOnClickListener { onClick() }
 
             addView(TextView(this@MainActivity).apply {
                 text = icon
-                textSize = 16f
+                textSize = 15f
                 setTextColor(textPrimary)
                 gravity = Gravity.CENTER
             })
 
             addView(TextView(this@MainActivity).apply {
                 text = label
-                textSize = 11f
+                textSize = 10f
                 setTextColor(textPrimary)
                 gravity = Gravity.CENTER
-                setPadding(0, dp(4), 0, 0)
+                setPadding(0, dp(3), 0, 0)
             })
         }
     }
@@ -626,7 +646,7 @@ class MainActivity : Activity() {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(Color.parseColor("#11161F"))
-            cornerRadius = dp(28).toFloat()
+            cornerRadius = dp(24).toFloat()
             setStroke(dp(1), borderColor)
         }
     }
@@ -806,7 +826,7 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = dp(14)
+                bottomMargin = dp(12)
             }
         }
     }
@@ -818,7 +838,7 @@ class MainActivity : Activity() {
             textSize = 12f
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            setPadding(dp(12), dp(12), dp(12), dp(12))
             background = roundedFill(chipOn, 14)
         }
     }

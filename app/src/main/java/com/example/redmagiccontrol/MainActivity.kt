@@ -204,9 +204,9 @@ class MainActivity : Activity() {
             if (level != null) {
                 fanSeek.progress = level
                 curveStatusText.text =
-                    "Selected curve: ${selectedCurve.replaceFirstChar { it.uppercase() }} • Applied fan level $level"
+                    "Selected curve: ${selectedCurve.substring(0,1).toUpperCase() + substring(1)} • Applied fan level $level"
             } else {
-                curveStatusText.text = "Selected curve: ${selectedCurve.replaceFirstChar { it.uppercase() }} • Temp unavailable"
+                curveStatusText.text = "Selected curve: ${selectedCurve.substring(0,1).toUpperCase() + substring(1)} • Temp unavailable"
             }
             refreshStatus()
         }

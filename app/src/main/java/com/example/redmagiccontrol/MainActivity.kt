@@ -7,6 +7,8 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.HorizontalScrollView
@@ -22,20 +24,26 @@ class MainActivity : Activity() {
     private lateinit var fanChip: TextView
     private lateinit var rpmChip: TextView
 
-    private val bgColor = Color.parseColor("#070B11")
-    private val panelColor = Color.parseColor("#101722")
-    private val panelAlt = Color.parseColor("#0D1520")
-    private val borderColor = Color.parseColor("#1B2A3A")
+    private lateinit var quietCardRef: LinearLayout
+    private lateinit var balancedCardRef: LinearLayout
+    private lateinit var turboCardRef: LinearLayout
 
-    private val cyan = Color.parseColor("#00D9FF")
-    private val purple = Color.parseColor("#7B4DFF")
-    private val red = Color.parseColor("#FF5252")
-    private val green = Color.parseColor("#00C853")
-    private val amber = Color.parseColor("#FFB300")
+    private val bgColor = Color.parseColor("#0A0D12")
+    private val panelColor = Color.parseColor("#121720")
+    private val panelPressed = Color.parseColor("#1A2230")
+    private val borderColor = Color.parseColor("#232C3B")
 
-    private val textPrimary = Color.parseColor("#EAF2FF")
-    private val textSecondary = Color.parseColor("#94A3B8")
-    private val textMuted = Color.parseColor("#6B7A90")
+    private val accent = Color.parseColor("#8FA3BF")
+    private val accentDim = Color.parseColor("#607086")
+    private val chipOn = Color.parseColor("#202B38")
+    private val chipActive = Color.parseColor("#2B3A4F")
+    private val danger = Color.parseColor("#5B2C33")
+    private val success = Color.parseColor("#203428")
+
+    private val textPrimary = Color.parseColor("#E8EEF7")
+    private val textSecondary = Color.parseColor("#9AA8BA")
+    private val textMuted = Color.parseColor("#66758A")
+    private val highlightBorder = Color.parseColor("#C7D2E1")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,22 +68,22 @@ class MainActivity : Activity() {
 
         val title = TextView(this).apply {
             text = "REDMAGIC HW CONTROLS"
-            textSize = 24f
+            textSize = 22f
             setTextColor(textPrimary)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.05f
+            letterSpacing = 0.04f
         }
 
         val subtitle = TextView(this).apply {
-            text = "Cooling, lighting, triggers, and hardware controls"
+            text = "Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(4), 0, 0)
         }
 
-        rootChip = statusChip("ROOT --", textPrimary, textMuted)
-        fanChip = statusChip("FAN --", textPrimary, textMuted)
-        rpmChip = statusChip("RPM --", textPrimary, textMuted)
+        rootChip = statusChip("ROOT --")
+        fanChip = statusChip("FAN --")
+        rpmChip = statusChip("RPM --")
 
         val chipRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -108,43 +116,43 @@ class MainActivity : Activity() {
             })
         }
 
-        val quietCard = modeCard(
+        quietCardRef = modeCard(
             title = "Quiet",
-            subtitle = "Low noise / fan level 1",
-            accent = green
+            subtitle = "Fan level 1"
         ) {
             HardwareController.setFanLevel(1)
             fanSeek.progress = 1
+            setActiveMode(quietCardRef)
             refreshStatus()
         }
 
-        val balancedCard = modeCard(
+        balancedCardRef = modeCard(
             title = "Balanced",
-            subtitle = "Daily use / fan level 3",
-            accent = cyan
+            subtitle = "Fan level 3"
         ) {
             HardwareController.setFanLevel(3)
             fanSeek.progress = 3
+            setActiveMode(balancedCardRef)
             refreshStatus()
         }
 
-        val turboCard = modeCard(
+        turboCardRef = modeCard(
             title = "Turbo",
-            subtitle = "Max cooling / fan level 5",
-            accent = purple
+            subtitle = "Fan level 5"
         ) {
             HardwareController.setFanLevel(5)
             fanSeek.progress = 5
+            setActiveMode(turboCardRef)
             refreshStatus()
         }
 
         val modeScrollContent = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            addView(quietCard)
-            addView(space(dp(12)))
-            addView(balancedCard)
-            addView(space(dp(12)))
-            addView(turboCard)
+            addView(quietCardRef)
+            addView(space(dp(10)))
+            addView(balancedCardRef)
+            addView(space(dp(10)))
+            addView(turboCardRef)
         }
 
         val modeScroller = HorizontalScrollView(this).apply {
@@ -152,7 +160,7 @@ class MainActivity : Activity() {
             addView(modeScrollContent)
         }
 
-        val rootCheckBtn = actionButton("CHECK ROOT", cyan) {
+        val rootCheckBtn = actionButton("CHECK ROOT") {
             val ok = RootShell.hasRoot()
 
             AlertDialog.Builder(this)
@@ -167,7 +175,7 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val refreshBtn = actionButton("REFRESH STATUS", purple) {
+        val refreshBtn = actionButton("REFRESH STATUS") {
             refreshStatus()
         }
 
@@ -176,17 +184,17 @@ class MainActivity : Activity() {
             addView(row(rootCheckBtn, refreshBtn))
         }
 
-        val fanOnBtn = actionButton("FAN ON", cyan) {
+        val fanOnBtn = actionButton("FAN ON") {
             HardwareController.enableFan(true)
             refreshStatus()
         }
 
-        val fanOffBtn = actionButton("FAN OFF", red) {
+        val fanOffBtn = actionButton("FAN OFF", isDanger = true) {
             HardwareController.enableFan(false)
             refreshStatus()
         }
 
-        val rpmBtn = actionButton("READ RPM", purple) {
+        val rpmBtn = actionButton("READ RPM") {
             refreshStatus()
         }
 
@@ -201,12 +209,12 @@ class MainActivity : Activity() {
             addView(modeScroller)
         }
 
-        val pumpOnBtn = actionButton("PUMP ON", cyan) {
+        val pumpOnBtn = actionButton("PUMP ON") {
             HardwareController.enablePump(true)
             refreshStatus()
         }
 
-        val pumpOffBtn = actionButton("PUMP OFF", red) {
+        val pumpOffBtn = actionButton("PUMP OFF", isDanger = true) {
             HardwareController.enablePump(false)
             refreshStatus()
         }
@@ -216,15 +224,15 @@ class MainActivity : Activity() {
             addView(row(pumpOnBtn, pumpOffBtn))
         }
 
-        val ledPurpleBtn = actionButton("PURPLE BREATHING", purple) {
+        val ledPurpleBtn = actionButton("PURPLE BREATHING") {
             HardwareController.setAllLeds(mode = 3, color = 8)
         }
 
-        val ledRedBtn = actionButton("LOGO RED STATIC", cyan) {
+        val ledRedBtn = actionButton("LOGO RED STATIC") {
             HardwareController.setLed(zone = 1, mode = 2, color = 1)
         }
 
-        val ledOffBtn = actionButton("LEDS OFF", red) {
+        val ledOffBtn = actionButton("LEDS OFF", isDanger = true) {
             HardwareController.turnOffAllLeds()
         }
 
@@ -234,17 +242,17 @@ class MainActivity : Activity() {
             addView(singleRow(ledOffBtn))
         }
 
-        val trigEnableBtn = actionButton("ENABLE TRIGGERS", cyan) {
+        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
             HardwareController.enableTriggers()
             refreshStatus()
         }
 
-        val sliderAppBtn = actionButton("SLIDER OPENS APP", purple) {
+        val sliderAppBtn = actionButton("SLIDER OPENS APP") {
             HardwareController.setSliderLaunchApp(packageName)
             refreshStatus()
         }
 
-        val sliderRawBtn = actionButton("DISABLE SLIDER ACTION", red) {
+        val sliderRawBtn = actionButton("DISABLE SLIDER ACTION", isDanger = true) {
             HardwareController.disableSliderSystemHandling()
             refreshStatus()
         }
@@ -256,7 +264,7 @@ class MainActivity : Activity() {
             addView(singleRow(sliderRawBtn))
         }
 
-        val vibrateBtn = actionButton("TEST HAPTIC", cyan) {
+        val vibrateBtn = actionButton("TEST HAPTIC") {
             HardwareController.vibrate(durationMs = 100, gain = 220)
         }
 
@@ -289,22 +297,16 @@ class MainActivity : Activity() {
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
 
-        setChipColor(rootChip, if (rooted) green else red)
-        setChipColor(fanChip, if (fanEnabled) cyan else red)
-        setChipColor(rpmChip, if ((rpm ?: 0) > 0) purple else amber)
+        setChipState(rootChip, rooted)
+        setChipState(fanChip, fanEnabled)
+        setRpmChipState(rpmChip, rpm)
     }
 
     private fun heroCard(): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(18), dp(18), dp(18))
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.parseColor("#0E1824"), Color.parseColor("#08111B"))
-            ).apply {
-                cornerRadius = dp(24).toFloat()
-                setStroke(dp(1), borderColor)
-            }
+            background = roundedBg(panelColor, borderColor, 22)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -318,12 +320,7 @@ class MainActivity : Activity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(20).toFloat()
-                setColor(panelColor)
-                setStroke(dp(1), borderColor)
-            }
+            background = roundedBg(panelColor, borderColor, 20)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -333,80 +330,93 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun statusChip(text: String, textColor: Int, bg: Int): TextView {
+    private fun statusChip(text: String): TextView {
         return TextView(this).apply {
             this.text = text
-            setTextColor(textColor)
+            setTextColor(textPrimary)
             textSize = 12f
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = GradientDrawable().apply {
-                cornerRadius = dp(14).toFloat()
-                setColor(bg)
-            }
+            background = roundedFill(chipOn, 14)
         }
     }
 
-    private fun setChipColor(view: TextView, color: Int) {
-        view.background = GradientDrawable().apply {
-            cornerRadius = dp(14).toFloat()
-            setColor(color)
-        }
-        view.setTextColor(Color.WHITE)
+    private fun setChipState(view: TextView, active: Boolean) {
+        view.background = roundedFill(if (active) chipActive else chipOn, 14)
+        view.setTextColor(textPrimary)
     }
 
-    private fun modeCard(title: String, subtitle: String, accent: Int, onClick: () -> Unit): LinearLayout {
-        return LinearLayout(this).apply {
+    private fun setRpmChipState(view: TextView, rpm: Int?) {
+        val active = (rpm ?: 0) > 0
+        view.background = roundedFill(if (active) chipActive else chipOn, 14)
+        view.setTextColor(textPrimary)
+    }
+
+    private fun modeCard(title: String, subtitle: String, onClick: () -> Unit): LinearLayout {
+        val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(panelAlt, panelColor)
-            ).apply {
-                cornerRadius = dp(20).toFloat()
-                setStroke(dp(1), accent)
-            }
-            layoutParams = LinearLayout.LayoutParams(dp(220), ViewGroup.LayoutParams.WRAP_CONTENT)
-
-            val titleView = TextView(this@MainActivity).apply {
-                text = title
-                textSize = 20f
-                setTextColor(textPrimary)
-                setTypeface(typeface, Typeface.BOLD)
-            }
-
-            val subtitleView = TextView(this@MainActivity).apply {
-                text = subtitle
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, dp(6), 0, dp(12))
-            }
-
-            val applyBtn = Button(this@MainActivity).apply {
-                text = "APPLY"
-                setTextColor(Color.WHITE)
-                setAllCaps(false)
-                background = GradientDrawable().apply {
-                    cornerRadius = dp(14).toFloat()
-                    setColor(accent)
-                }
-                setOnClickListener { onClick() }
-            }
-
-            addView(titleView)
-            addView(subtitleView)
-            addView(applyBtn)
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = roundedBg(panelColor, borderColor, 18)
+            layoutParams = LinearLayout.LayoutParams(dp(170), ViewGroup.LayoutParams.WRAP_CONTENT)
+            minimumHeight = dp(120)
+            isClickable = true
+            isFocusable = true
         }
+
+        val titleView = TextView(this).apply {
+            text = title
+            textSize = 16f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = subtitle
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(4), 0, dp(10))
+        }
+
+        val applyBtn = Button(this).apply {
+            text = "APPLY"
+            textSize = 12f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 12)
+            setPadding(dp(10), dp(10), dp(10), dp(10))
+            setOnClickListener { onClick() }
+            applyPressEffect(this)
+        }
+
+        card.addView(titleView)
+        card.addView(subtitleView)
+        card.addView(applyBtn)
+
+        card.setOnClickListener { onClick() }
+        applyPressEffect(card)
+
+        return card
+    }
+
+    private fun setActiveMode(active: LinearLayout) {
+        val normal = roundedBg(panelColor, borderColor, 18)
+        val selected = roundedBg(panelPressed, highlightBorder, 18)
+
+        quietCardRef.background = normal
+        balancedCardRef.background = normal
+        turboCardRef.background = normal
+
+        active.background = selected
     }
 
     private fun sectionLabel(text: String): TextView {
         return TextView(this).apply {
             this.text = text
             textSize = 12f
-            setTextColor(cyan)
+            setTextColor(accent)
             setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.14f
+            letterSpacing = 0.12f
             setPadding(0, 0, 0, dp(12))
         }
     }
@@ -420,18 +430,16 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun actionButton(text: String, color: Int, onClick: () -> Unit): Button {
+    private fun actionButton(text: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
         return Button(this).apply {
             this.text = text
             textSize = 13f
-            setTextColor(Color.WHITE)
+            setTextColor(textPrimary)
             setAllCaps(false)
-            background = GradientDrawable().apply {
-                cornerRadius = dp(16).toFloat()
-                setColor(color)
-            }
+            background = roundedFill(if (isDanger) danger else panelPressed, 16)
             setPadding(dp(12), dp(14), dp(12), dp(14))
             setOnClickListener { onClick() }
+            applyPressEffect(this, if (isDanger) Color.parseColor("#733943") else Color.parseColor("#293447"))
         }
     }
 
@@ -474,6 +482,43 @@ class MainActivity : Activity() {
             )
 
             addView(button)
+        }
+    }
+
+    private fun applyPressEffect(view: View, pressedColor: Int = Color.parseColor("#253040")) {
+        val normalBg = view.background
+        view.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.alpha = 0.92f
+                    v.background = when (v) {
+                        is Button -> roundedFill(pressedColor, 16)
+                        else -> roundedBg(pressedColor, highlightBorder, 18)
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.alpha = 1f
+                    v.background = normalBg
+                }
+            }
+            false
+        }
+    }
+
+    private fun roundedBg(fill: Int, stroke: Int, radiusDp: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(radiusDp).toFloat()
+            setColor(fill)
+            setStroke(dp(1), stroke)
+        }
+    }
+
+    private fun roundedFill(fill: Int, radiusDp: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(radiusDp).toFloat()
+            setColor(fill)
         }
     }
 

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -23,23 +24,34 @@ import android.widget.TextView
 
 class MainActivity : Activity() {
 
-    private lateinit var fanSeek: SeekBar
     private lateinit var rootChip: TextView
     private lateinit var fanChip: TextView
     private lateinit var rpmChip: TextView
     private lateinit var tempChip: TextView
+
     private lateinit var tempText: TextView
     private lateinit var curveStatusText: TextView
+    private lateinit var fanSeek: SeekBar
+    private lateinit var autoCurveCheck: CheckBox
+
+    private lateinit var quietCardRef: LinearLayout
+    private lateinit var balancedCardRef: LinearLayout
+    private lateinit var turboCardRef: LinearLayout
 
     private lateinit var deviceModelValue: TextView
     private lateinit var deviceRomValue: TextView
     private lateinit var deviceCpuValue: TextView
     private lateinit var deviceRamValue: TextView
 
-    private lateinit var quietCardRef: LinearLayout
-    private lateinit var balancedCardRef: LinearLayout
-    private lateinit var turboCardRef: LinearLayout
-    private lateinit var autoCurveCheck: CheckBox
+    private lateinit var homeTab: LinearLayout
+    private lateinit var coolingTab: LinearLayout
+    private lateinit var controlsTab: LinearLayout
+    private lateinit var lightingTab: LinearLayout
+
+    private lateinit var homeNav: LinearLayout
+    private lateinit var coolingNav: LinearLayout
+    private lateinit var controlsNav: LinearLayout
+    private lateinit var lightingNav: LinearLayout
 
     private var selectedCurve = "balanced"
     private var autoFanCurveEnabled = false
@@ -188,39 +200,75 @@ class MainActivity : Activity() {
             setBackgroundColor(bgColor)
         }
 
-        val scroll = ScrollView(this).apply {
-            setBackgroundColor(bgColor)
-            clipToPadding = false
-            setPadding(0, topInset + dp(10), 0, 0)
-        }
-
-        val content = LinearLayout(this).apply {
+        val contentFrame = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(12), dp(16), dp(28))
+            setPadding(dp(16), topInset + dp(10), dp(16), dp(110))
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
         }
 
-        val title = TextView(this).apply {
-            text = "REDMAGIC HW CONTROLS"
-            textSize = 22f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.04f
+        homeTab = createHomeTab()
+        coolingTab = createCoolingTab()
+        controlsTab = createControlsTab()
+        lightingTab = createLightingTab()
+
+        contentFrame.addView(homeTab)
+        contentFrame.addView(coolingTab)
+        contentFrame.addView(controlsTab)
+        contentFrame.addView(lightingTab)
+
+        val navBar = bottomNavBar()
+
+        root.addView(contentFrame)
+        root.addView(navBar)
+
+        setContentView(root)
+
+        autoFanCurveEnabled = isAutoFanEnabledSaved()
+        autoCurveCheck.isChecked = autoFanCurveEnabled
+
+        if (autoFanCurveEnabled) {
+            curveStatusText.text = "Auto fan curve active • Running in background service"
+        } else {
+            curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
         }
 
-        val subtitle = TextView(this).apply {
-            text = "Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(4), 0, 0)
+        setActiveMode(balancedCardRef)
+        updateManualCurveUiState()
+        switchTab("home")
+        refreshStatus()
+    }
+
+    private fun createHomeTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        val welcomeCard = sectionPanel().apply {
+            addView(titleText("REDMAGIC HW CONTROLS"))
+            addView(subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
         }
 
-        val deviceInfoLabel = TextView(this).apply {
-            text = "DEVICE INFO"
-            textSize = 12f
-            setTextColor(accent)
-            setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.12f
-            setPadding(0, dp(16), 0, dp(10))
+        val summaryCard = sectionPanel().apply {
+            addView(sectionHeader("⌂", "WELCOME"))
+            addView(bodyText("Root-powered hardware control utility for Redmagic 11 Pro."))
+            addView(bodyText("Controls fan behavior, pump, lighting, triggers, slider actions, and haptics."))
+        }
+
+        val linksCard = sectionPanel().apply {
+            addView(sectionHeader("↗", "GITHUB & REFERENCE"))
+
+            val githubBtn = actionButton("OPEN GITHUB") {
+                openUrl("https://github.com/austineyoung2000/Red")
+            }
+
+            val referenceBtn = actionButton("OPEN REFERENCE") {
+                openUrl("https://www.reddit.com/r/RedMagic/comments/1rtoako/red_magic_11_pro_hardware_control_guide_for/")
+            }
+
+            addView(singleRow(githubBtn))
+            addView(singleRow(referenceBtn))
         }
 
         deviceModelValue = infoValue()
@@ -228,8 +276,8 @@ class MainActivity : Activity() {
         deviceCpuValue = infoValue()
         deviceRamValue = infoValue()
 
-        val infoBlock = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        val infoCard = sectionPanel().apply {
+            addView(sectionHeader("ⓘ", "DEVICE INFO"))
             addView(infoRow("Model", deviceModelValue))
             addView(infoRow("ROM", deviceRomValue))
             addView(infoRow("CPU", deviceCpuValue))
@@ -241,24 +289,44 @@ class MainActivity : Activity() {
         rpmChip = statusChip("RPM --")
         tempChip = statusChip("TEMP --")
 
-        val chipRow = LinearLayout(this).apply {
+        val chipsRow1 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(14), 0, 0)
             addView(rootChip)
             addView(space(dp(8)))
             addView(fanChip)
-            addView(space(dp(8)))
+        }
+
+        val chipsRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(8), 0, 0)
             addView(rpmChip)
             addView(space(dp(8)))
             addView(tempChip)
         }
 
-        val heroCard = heroCard().apply {
-            addView(title)
-            addView(subtitle)
-            addView(deviceInfoLabel)
-            addView(infoBlock)
-            addView(chipRow)
+        val statusCard = sectionPanel().apply {
+            addView(sectionHeader("◎", "LIVE STATUS"))
+            addView(chipsRow1)
+            addView(chipsRow2)
+        }
+
+        container.addView(welcomeCard)
+        container.addView(summaryCard)
+        container.addView(linksCard)
+        container.addView(infoCard)
+        container.addView(statusCard)
+
+        return container
+    }
+
+    private fun createCoolingTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        tempText = TextView(this).apply {
+            text = "Current temp: --°F"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(6), 0, dp(4))
         }
 
         fanSeek = SeekBar(this).apply {
@@ -274,6 +342,20 @@ class MainActivity : Activity() {
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {}
             })
+        }
+
+        val fanOnBtn = actionButton("FAN ON") {
+            HardwareController.enableFan(true)
+            refreshStatus()
+        }
+
+        val fanOffBtn = actionButton("FAN OFF", isDanger = true) {
+            HardwareController.enableFan(false)
+            refreshStatus()
+        }
+
+        val rpmBtn = actionButton("READ RPM") {
+            refreshStatus()
         }
 
         quietCardRef = modeCard("Quiet", "Nearly silent • fan 0-1") {
@@ -320,49 +402,6 @@ class MainActivity : Activity() {
             addView(modeScrollContent)
         }
 
-        val rootCheckBtn = actionButton("CHECK ROOT") {
-            val ok = RootShell.hasRoot()
-            AlertDialog.Builder(this)
-                .setTitle("Root Status")
-                .setMessage(
-                    if (ok) "Root access granted\n\nApp is running as root"
-                    else "Root access NOT granted\n\nCheck your root manager"
-                )
-                .setPositiveButton("OK", null)
-                .show()
-            refreshStatus()
-        }
-
-        val refreshBtn = actionButton("REFRESH STATUS") {
-            refreshStatus()
-        }
-
-        val systemPanel = sectionPanel().apply {
-            addView(sectionHeader("⚙", "SYSTEM"))
-            addView(row(rootCheckBtn, refreshBtn))
-        }
-
-        val fanOnBtn = actionButton("FAN ON") {
-            HardwareController.enableFan(true)
-            refreshStatus()
-        }
-
-        val fanOffBtn = actionButton("FAN OFF", isDanger = true) {
-            HardwareController.enableFan(false)
-            refreshStatus()
-        }
-
-        val rpmBtn = actionButton("READ RPM") {
-            refreshStatus()
-        }
-
-        tempText = TextView(this).apply {
-            text = "Current temp: --°F"
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(6), 0, dp(4))
-        }
-
         curveStatusText = TextView(this).apply {
             text = "Selected curve: Balanced"
             textSize = 13f
@@ -392,7 +431,7 @@ class MainActivity : Activity() {
             }
         }
 
-        val coolingPanel = sectionPanel().apply {
+        val coolingCard = sectionPanel().apply {
             addView(sectionHeader("❄", "COOLING"))
             addView(tempText)
             addView(subtleLabel("Fan level"))
@@ -400,7 +439,7 @@ class MainActivity : Activity() {
             addView(row(fanOnBtn, fanOffBtn))
             addView(singleRow(rpmBtn))
             addView(spacer(dp(16)))
-            addView(sectionHeader("▦", "SIMPLE FAN CURVE"))
+            addView(sectionHeader("▦", "FAN CURVE"))
             addView(autoCurveCheck)
             addView(curveStatusText)
             addView(modeScroller)
@@ -408,6 +447,35 @@ class MainActivity : Activity() {
             addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
             addView(subtleLabel("Balanced → moderate cooling, stays between fan 2-3"))
             addView(subtleLabel("Turbo → max cooling and sound, stays between fan 4-5"))
+        }
+
+        container.addView(coolingCard)
+        return container
+    }
+
+    private fun createControlsTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        val rootCheckBtn = actionButton("CHECK ROOT") {
+            val ok = RootShell.hasRoot()
+            AlertDialog.Builder(this)
+                .setTitle("Root Status")
+                .setMessage(
+                    if (ok) "Root access granted\n\nApp is running as root"
+                    else "Root access NOT granted\n\nCheck your root manager"
+                )
+                .setPositiveButton("OK", null)
+                .show()
+            refreshStatus()
+        }
+
+        val refreshBtn = actionButton("REFRESH STATUS") {
+            refreshStatus()
+        }
+
+        val systemCard = sectionPanel().apply {
+            addView(sectionHeader("⚙", "SYSTEM"))
+            addView(row(rootCheckBtn, refreshBtn))
         }
 
         val pumpOnBtn = actionButton("PUMP ON") {
@@ -420,27 +488,9 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val pumpPanel = sectionPanel().apply {
+        val pumpCard = sectionPanel().apply {
             addView(sectionHeader("◉", "PUMP"))
             addView(row(pumpOnBtn, pumpOffBtn))
-        }
-
-        val ledPurpleBtn = actionButton("PURPLE BREATHING") {
-            HardwareController.setAllLeds(mode = 3, color = 8)
-        }
-
-        val ledRedBtn = actionButton("LOGO RED STATIC") {
-            HardwareController.setLed(zone = 1, mode = 2, color = 1)
-        }
-
-        val ledOffBtn = actionButton("LEDS OFF", isDanger = true) {
-            HardwareController.turnOffAllLeds()
-        }
-
-        val lightingPanel = sectionPanel().apply {
-            addView(sectionHeader("✦", "LIGHTING"))
-            addView(row(ledPurpleBtn, ledRedBtn))
-            addView(singleRow(ledOffBtn))
         }
 
         val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
@@ -458,7 +508,7 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val controlsPanel = sectionPanel().apply {
+        val controlsCard = sectionPanel().apply {
             addView(sectionHeader("⌁", "TRIGGERS & SLIDER"))
             addView(singleRow(trigEnableBtn))
             addView(singleRow(sliderAppBtn))
@@ -469,36 +519,116 @@ class MainActivity : Activity() {
             HardwareController.vibrate(durationMs = 100, gain = 220)
         }
 
-        val hapticPanel = sectionPanel().apply {
+        val hapticsCard = sectionPanel().apply {
             addView(sectionHeader("≈", "HAPTICS"))
             addView(singleRow(vibrateBtn))
         }
 
-        content.addView(heroCard)
-        content.addView(systemPanel)
-        content.addView(coolingPanel)
-        content.addView(pumpPanel)
-        content.addView(lightingPanel)
-        content.addView(controlsPanel)
-        content.addView(hapticPanel)
+        container.addView(systemCard)
+        container.addView(pumpCard)
+        container.addView(controlsCard)
+        container.addView(hapticsCard)
 
-        scroll.addView(content)
-        root.addView(scroll)
-        setContentView(root)
+        return container
+    }
 
-        setActiveMode(balancedCardRef)
+    private fun createLightingTab(): LinearLayout {
+        val container = scrollTabContainer()
 
-        autoFanCurveEnabled = isAutoFanEnabledSaved()
-        autoCurveCheck.isChecked = autoFanCurveEnabled
-
-        if (autoFanCurveEnabled) {
-            curveStatusText.text = "Auto fan curve active • Running in background service"
-        } else {
-            curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
+        val ledPurpleBtn = actionButton("PURPLE BREATHING") {
+            HardwareController.setAllLeds(mode = 3, color = 8)
         }
 
-        updateManualCurveUiState()
-        refreshStatus()
+        val ledRedBtn = actionButton("LOGO RED STATIC") {
+            HardwareController.setLed(zone = 1, mode = 2, color = 1)
+        }
+
+        val ledOffBtn = actionButton("LEDS OFF", isDanger = true) {
+            HardwareController.turnOffAllLeds()
+        }
+
+        val lightingCard = sectionPanel().apply {
+            addView(sectionHeader("✦", "LIGHTING"))
+            addView(row(ledPurpleBtn, ledRedBtn))
+            addView(singleRow(ledOffBtn))
+        }
+
+        container.addView(lightingCard)
+        return container
+    }
+
+    private fun switchTab(tab: String) {
+        homeTab.visibility = if (tab == "home") View.VISIBLE else View.GONE
+        coolingTab.visibility = if (tab == "cooling") View.VISIBLE else View.GONE
+        controlsTab.visibility = if (tab == "controls") View.VISIBLE else View.GONE
+        lightingTab.visibility = if (tab == "lighting") View.VISIBLE else View.GONE
+
+        setNavSelected(homeNav, tab == "home")
+        setNavSelected(coolingNav, tab == "cooling")
+        setNavSelected(controlsNav, tab == "controls")
+        setNavSelected(lightingNav, tab == "lighting")
+    }
+
+    private fun setNavSelected(nav: LinearLayout, selected: Boolean) {
+        nav.background = roundedFill(
+            if (selected) panelPressed else Color.TRANSPARENT,
+            18
+        )
+        nav.alpha = if (selected) 1f else 0.72f
+    }
+
+    private fun bottomNavBar(): LinearLayout {
+        homeNav = navItem("⌂", "Home") { switchTab("home") }
+        coolingNav = navItem("❄", "Cooling") { switchTab("cooling") }
+        controlsNav = navItem("⌁", "Controls") { switchTab("controls") }
+        lightingNav = navItem("✦", "Lighting") { switchTab("lighting") }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(dp(12), dp(10), dp(12), dp(20))
+            background = roundedTopBar()
+
+            addView(homeNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(coolingNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(controlsNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(lightingNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }
+    }
+
+    private fun navItem(icon: String, label: String, onClick: () -> Unit): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(dp(8), dp(10), dp(8), dp(10))
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onClick() }
+
+            addView(TextView(this@MainActivity).apply {
+                text = icon
+                textSize = 16f
+                setTextColor(textPrimary)
+                gravity = Gravity.CENTER
+            })
+
+            addView(TextView(this@MainActivity).apply {
+                text = label
+                textSize = 11f
+                setTextColor(textPrimary)
+                gravity = Gravity.CENTER
+                setPadding(0, dp(4), 0, 0)
+            })
+        }
+    }
+
+    private fun roundedTopBar(): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(Color.parseColor("#11161F"))
+            cornerRadius = dp(28).toFloat()
+            setStroke(dp(1), borderColor)
+        }
     }
 
     private fun updateManualCurveUiState() {
@@ -539,6 +669,67 @@ class MainActivity : Activity() {
         setChipState(fanChip, fanEnabled)
         setChipState(rpmChip, (rpm ?: 0) > 0)
         setChipState(tempChip, tempF != null)
+    }
+
+    private fun openUrl(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun scrollTabContainer(): LinearLayout {
+        val inner = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
+            addView(ScrollView(this@MainActivity).apply {
+                setBackgroundColor(bgColor)
+                addView(inner)
+            })
+
+            tag = inner
+        }.also { outer ->
+            val scroll = outer.getChildAt(0) as ScrollView
+            val child = scroll.getChildAt(0) as LinearLayout
+            outer.removeAllViews()
+            outer.addView(scroll.apply { removeAllViews(); addView(child) })
+        }
+    }
+
+    private fun titleText(text: String): TextView {
+        return TextView(this).apply {
+            this.text = text
+            textSize = 22f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+            letterSpacing = 0.04f
+        }
+    }
+
+    private fun subtitleText(text: String): TextView {
+        return TextView(this).apply {
+            this.text = text
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(4), 0, 0)
+        }
+    }
+
+    private fun bodyText(text: String): TextView {
+        return TextView(this).apply {
+            this.text = text
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(4), 0, 0)
+        }
     }
 
     private fun infoRow(label: String, valueView: TextView): LinearLayout {
@@ -606,18 +797,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun heroCard(): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(18))
-            background = roundedBg(panelColor, borderColor, 22)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(14) }
-        }
-    }
-
     private fun sectionPanel(): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -626,7 +805,9 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(14) }
+            ).apply {
+                bottomMargin = dp(14)
+            }
         }
     }
 

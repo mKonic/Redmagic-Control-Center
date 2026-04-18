@@ -64,12 +64,20 @@ class MainActivity : Activity() {
     private var fanLedEffect = "steady"
     private var fanLedColor = 1
 
+    private var logoLedEnabled = true
+    private var logoLedEffect = "steady"
+    private var logoLedColor = 1
+
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
     private val fanLedEnabledKey = "fan_led_enabled"
     private val fanLedEffectKey = "fan_led_effect"
     private val fanLedColorKey = "fan_led_color"
+
+    private val logoLedEnabledKey = "logo_led_enabled"
+    private val logoLedEffectKey = "logo_led_effect"
+    private val logoLedColorKey = "logo_led_color"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -141,6 +149,32 @@ class MainActivity : Activity() {
         fanLedEnabled = isFanLedEnabledSaved()
         fanLedEffect = savedFanLedEffect()
         fanLedColor = savedFanLedColor()
+    }
+
+    private fun isLogoLedEnabledSaved(): Boolean {
+        return prefs().getBoolean(logoLedEnabledKey, true)
+    }
+
+    private fun savedLogoLedEffect(): String {
+        return prefs().getString(logoLedEffectKey, "steady") ?: "steady"
+    }
+
+    private fun savedLogoLedColor(): Int {
+        return prefs().getInt(logoLedColorKey, 1)
+    }
+
+    private fun saveLogoLedState() {
+        prefs().edit()
+            .putBoolean(logoLedEnabledKey, logoLedEnabled)
+            .putString(logoLedEffectKey, logoLedEffect)
+            .putInt(logoLedColorKey, logoLedColor)
+            .commit()
+    }
+
+    private fun applySavedLogoLedStateOnLaunch() {
+        logoLedEnabled = isLogoLedEnabledSaved()
+        logoLedEffect = savedLogoLedEffect()
+        logoLedColor = savedLogoLedColor()
     }
 
     private fun startAutoFanService() {
@@ -385,6 +419,7 @@ class MainActivity : Activity() {
         setContentView(root)
 
         applySavedFanLedStateOnLaunch()
+        applySavedLogoLedStateOnLaunch()
 
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
@@ -392,6 +427,16 @@ class MainActivity : Activity() {
         } else {
             HardwareController.setFanLedEnabled(false)
             stopFanLedService()
+        }
+
+        if (logoLedEnabled) {
+            if (logoLedEffect == "breathe") {
+                HardwareController.setLed(zone = 1, mode = 3, color = logoLedColor)
+            } else {
+                HardwareController.setLed(zone = 1, mode = 2, color = logoLedColor)
+            }
+        } else {
+            HardwareController.setLed(zone = 1, mode = 0, color = 0)
         }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
@@ -744,15 +789,26 @@ class MainActivity : Activity() {
         val logoCard = sectionPanel().apply {
             addView(sectionHeader("◈", "LOGO LED"))
 
-            val ledRedBtn = actionButton("LOGO RED STATIC") {
-                HardwareController.setLed(zone = 1, mode = 2, color = 1)
+            val logoSummary = TextView(this@MainActivity).apply {
+                text = "Customize logo LED effect and color"
+                textSize = 13f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
             }
 
-            val ledPurpleBtn = actionButton("LOGO PURPLE BREATHING") {
-                HardwareController.setLed(zone = 1, mode = 3, color = 8)
+            val customizeLogoBtn = actionButton("CUSTOMIZE LOGO LED") {
+                showLogoLedDialog()
             }
 
-            addView(row(ledRedBtn, ledPurpleBtn))
+            val logoOffBtn = actionButton("LOGO LED OFF", isDanger = true) {
+                logoLedEnabled = false
+                saveLogoLedState()
+                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+            }
+
+            addView(logoSummary)
+            addView(singleRow(customizeLogoBtn))
+            addView(singleRow(logoOffBtn))
         }
 
         val allLedCard = sectionPanel().apply {
@@ -776,6 +832,215 @@ class MainActivity : Activity() {
         return container
     }
 
+
+
+    private var dialogRefreshLogoLed: (() -> Unit)? = null
+
+    private fun showLogoLedDialog() {
+        val originalEnabled = logoLedEnabled
+        val originalEffect = logoLedEffect
+        val originalColor = logoLedColor
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Logo LED"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Customize logo LED with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val enableCheck = CheckBox(this).apply {
+            text = "Enable logo light"
+            isChecked = logoLedEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setPadding(0, dp(14), 0, 0)
+            setOnCheckedChangeListener { _, checked ->
+                logoLedEnabled = checked
+                if (checked) {
+                    val mode = if (logoLedEffect == "breathe") 3 else 2
+                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                } else {
+                    HardwareController.setLed(zone = 1, mode = 0, color = 0)
+                }
+            }
+        }
+
+        val effectLabel = TextView(this).apply {
+            text = "Effect"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val effectsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val steadyBtn = filterChip("Steady", logoLedEffect == "steady") {
+            logoLedEffect = "steady"
+            if (logoLedEnabled) {
+                HardwareController.setLed(zone = 1, mode = 2, color = logoLedColor)
+            }
+            dialogRefreshLogoLed?.invoke()
+        }
+
+        val breatheBtn = filterChip("Breathe", logoLedEffect == "breathe") {
+            logoLedEffect = "breathe"
+            if (logoLedEnabled) {
+                HardwareController.setLed(zone = 1, mode = 3, color = logoLedColor)
+            }
+            dialogRefreshLogoLed?.invoke()
+        }
+
+        effectsRow.addView(steadyBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(breatheBtn)
+
+        val colorLabel = TextView(this).apply {
+            text = "Color"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(10))
+        }
+
+        val colorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(colorDotGeneric("#FF0000", logoLedColor == 1) {
+                logoLedColor = 1
+                if (logoLedEnabled) {
+                    val mode = if (logoLedEffect == "breathe") 3 else 2
+                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#E100FF", logoLedColor == 8) {
+                logoLedColor = 8
+                if (logoLedEnabled) {
+                    val mode = if (logoLedEffect == "breathe") 3 else 2
+                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(enableCheck)
+        container.addView(effectLabel)
+        container.addView(effectsRow)
+        container.addView(colorLabel)
+        container.addView(colorRow)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            logoLedEnabled = originalEnabled
+            logoLedEffect = originalEffect
+            logoLedColor = originalColor
+
+            if (logoLedEnabled) {
+                val mode = if (logoLedEffect == "breathe") 3 else 2
+                HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+            } else {
+                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+            }
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            saveLogoLedState()
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            logoLedEnabled = originalEnabled
+            logoLedEffect = originalEffect
+            logoLedColor = originalColor
+
+            if (logoLedEnabled) {
+                val mode = if (logoLedEffect == "breathe") 3 else 2
+                HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+            } else {
+                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+            }
+        }
+
+        fun repaint() {
+            steadyBtn.background = roundedFill(
+                if (logoLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            breatheBtn.background = roundedFill(
+                if (logoLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        fun updateColorDots() {
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#FF0000", logoLedColor == 1)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#E100FF", logoLedColor == 8)
+        }
+
+        fun refreshUi() {
+            repaint()
+            updateColorDots()
+        }
+
+        dialogRefreshLogoLed = { refreshUi() }
+
+        refreshUi()
+        dialog.show()
+    }
 
     private fun showFanLedDialog() {
         val originalEnabled = fanLedEnabled
@@ -1008,6 +1273,15 @@ class MainActivity : Activity() {
             shape = GradientDrawable.OVAL
             setColor(Color.parseColor(hex))
             setStroke(dp(3), if (selected) Color.WHITE else Color.TRANSPARENT)
+        }
+    }
+
+    private fun colorDotGeneric(hex: String, selected: Boolean, onClick: () -> Unit): View {
+        return View(this).apply {
+            val size = dp(42)
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            background = colorDotDrawable(hex, selected)
+            setOnClickListener { onClick() }
         }
     }
 

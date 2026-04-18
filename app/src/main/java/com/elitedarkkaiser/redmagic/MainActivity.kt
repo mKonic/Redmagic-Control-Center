@@ -10,6 +10,10 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -163,6 +167,19 @@ class MainActivity : Activity() {
 
     private fun stopFanLedService() {
         stopService(Intent(this, FanLedService::class.java))
+    }
+
+    private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
+        val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
+            .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
+            .addTag("fan_led_manual_restore")
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            "fan_led_manual_restore",
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
     }
 
     private fun showSupportedDeviceDialog() {

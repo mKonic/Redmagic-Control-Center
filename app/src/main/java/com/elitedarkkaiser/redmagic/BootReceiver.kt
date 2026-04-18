@@ -3,9 +3,10 @@ package com.elitedarkkaiser.redmagic
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -17,13 +18,15 @@ class BootReceiver : BroadcastReceiver() {
 
         if (!fanLedEnabled) return
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            val serviceIntent = Intent(context, FanLedService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.startService(serviceIntent)
-            }
-        }, 15000)
+        val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
+            .setInitialDelay(20, TimeUnit.SECONDS)
+            .addTag("fan_led_boot_restore")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "fan_led_boot_restore",
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
     }
 }

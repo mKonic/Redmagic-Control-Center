@@ -878,40 +878,7 @@ class MainActivity : Activity() {
             addView(singleRow(autoPumpBtn))
         }
 
-        val debugCard = sectionPanel().apply {
-            addView(sectionHeader("⌘", "DEBUG"))
-
-            val debugText = TextView(this@MainActivity).apply {
-                text =
-                    "Fan enable: ${DashboardSnapshot.readFanEnabled()}\n" +
-                    "Fan level: ${DashboardSnapshot.readFanLevel()}\n" +
-                    "Fan RPM: ${DashboardSnapshot.readFanRpm()}\n" +
-                    "Pump enable: ${DashboardSnapshot.readPumpEnabled()}\n" +
-                    "Pump freq: ${DashboardSnapshot.readPumpFreq()}\n" +
-                    "Pump speed: ${DashboardSnapshot.readPumpSpeed()}"
-                textSize = 13f
-                setTextColor(textPrimary)
-                setLineSpacing(0f, 1.15f)
-                setPadding(0, 0, 0, dp(12))
-            }
-
-            val refreshDebugBtn = actionButton("REFRESH DEBUG") {
-                debugText.text =
-                    "Fan enable: ${DashboardSnapshot.readFanEnabled()}\n" +
-                    "Fan level: ${DashboardSnapshot.readFanLevel()}\n" +
-                    "Fan RPM: ${DashboardSnapshot.readFanRpm()}\n" +
-                    "Pump enable: ${DashboardSnapshot.readPumpEnabled()}\n" +
-                    "Pump freq: ${DashboardSnapshot.readPumpFreq()}\n" +
-                    "Pump speed: ${DashboardSnapshot.readPumpSpeed()}"
-            }
-
-            addView(debugText)
-            addView(singleRow(refreshDebugBtn))
-        }
-
-        container.addView(dashboardCard)
-        container.addView(automationCard)
-        container.addView(debugCard)
+        
         container.addView(summaryCard)
         container.addView(infoCard)
         container.addView(statusCard)
@@ -1037,6 +1004,44 @@ class MainActivity : Activity() {
             addView(singleRow(rpmBtn))
             addView(spacer(dp(16)))
             addView(sectionHeader("◉", "PUMP"))
+
+            // AUTO PUMP (SMART CONTROL)
+            val autoPumpTitle = TextView(this@MainActivity).apply {
+                text = "Auto Pump"
+                textSize = 14f
+                setTextColor(textPrimary)
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setPadding(0, dp(10), 0, dp(4))
+            }
+
+            val autoPumpDesc = TextView(this@MainActivity).apply {
+                text = "Automatically adjusts pump speed based on temperature (Safe scaling)"
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
+            }
+
+            val autoPumpToggle = actionButton(
+                if (autoPumpEnabled) "AUTO PUMP: ON" else "AUTO PUMP: OFF",
+                isDanger = !autoPumpEnabled
+            ) {
+                autoPumpEnabled = !autoPumpEnabled
+                saveAutoPumpState()
+
+                if (autoPumpEnabled) {
+                    startAutoPumpService()
+                } else {
+                    stopAutoPumpService()
+                }
+
+                switchTab("cooling")
+            }
+
+            pumpSection.addView(autoPumpTitle)
+            pumpSection.addView(autoPumpDesc)
+            pumpSection.addView(autoPumpToggle)
+
+
 
             val pumpSection = LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.VERTICAL

@@ -76,6 +76,7 @@ class MainActivity : Activity() {
 
     private var pumpEnabled = false
     private var pumpProfile = "quick"
+    private var autoPumpEnabled = false
 
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
@@ -95,6 +96,7 @@ class MainActivity : Activity() {
     private val pumpEnabledKey = "pump_enabled"
     private val pumpProfileKey = "pump_profile"
     private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
+    private val autoPumpEnabledKey = "auto_pump_enabled"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -254,6 +256,14 @@ class MainActivity : Activity() {
 
     private fun setPumpExperimentalAccepted(accepted: Boolean) {
         prefs().edit().putBoolean(pumpExperimentalAcceptedKey, accepted).commit()
+    }
+
+    private fun isAutoPumpEnabledSaved(): Boolean {
+        return prefs().getBoolean(autoPumpEnabledKey, false)
+    }
+
+    private fun saveAutoPumpState() {
+        prefs().edit().putBoolean(autoPumpEnabledKey, autoPumpEnabled).commit()
     }
 
     private fun applyPumpProfile(profile: String) {
@@ -690,6 +700,7 @@ class MainActivity : Activity() {
         applySavedLogoLedStateOnLaunch()
         applySavedShoulderLedStateOnLaunch()
         applySavedPumpStateOnLaunch()
+        autoPumpEnabled = isAutoPumpEnabledSaved()
 
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
@@ -845,7 +856,6 @@ class MainActivity : Activity() {
             addView(sectionHeader("⚙", "AUTOMATION"))
 
             val autoProfileEnabled = prefs().getBoolean("auto_profile_enabled", false)
-            val autoPumpEnabled = prefs().getBoolean("auto_pump_enabled", false)
 
             val autoProfileBtn = actionButton(
                 if (autoProfileEnabled) "AUTO PROFILES: ON" else "AUTO PROFILES: OFF",
@@ -861,21 +871,10 @@ class MainActivity : Activity() {
                 openUsageAccessSettings()
             }
 
-            val autoPumpBtn = actionButton(
-                if (autoPumpEnabled) "AUTO PUMP: ON" else "AUTO PUMP: OFF",
-                isDanger = !autoPumpEnabled
-            ) {
-                val next = !prefs().getBoolean("auto_pump_enabled", false)
-                prefs().edit().putBoolean("auto_pump_enabled", next).commit()
-                if (next) startAutoPumpService() else stopAutoPumpService()
-                switchTab("home")
-            }
-
             addView(bodyText("Auto Profiles applies saved hardware profiles based on the foreground app. Usage Access must be granted in Android settings."))
             addView(bodyText("Auto Pump uses safe temperature rules and automatically shifts between Slow, Medium, and Quick."))
             addView(singleRow(autoProfileBtn))
             addView(singleRow(usageAccessBtn))
-            addView(singleRow(autoPumpBtn))
         }
 
         
@@ -1005,95 +1004,6 @@ class MainActivity : Activity() {
             addView(spacer(dp(16)))
             addView(sectionHeader("◉", "PUMP"))
 
-            val autoPumpSection = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, dp(12), 0, dp(12))
-            }
-
-            val autoPumpTitle = TextView(this@MainActivity).apply {
-                text = "Auto Pump"
-                textSize = 15f
-                setTextColor(textPrimary)
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-            }
-
-            val autoPumpDesc = TextView(this@MainActivity).apply {
-                text = "Automatically adjusts pump speed based on temperature."
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, dp(4), 0, dp(10))
-            }
-
-            val autoPumpSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = autoPumpEnabled
-                setOnCheckedChangeListener { _, checked ->
-                    autoPumpEnabled = checked
-                    saveAutoPumpState()
-
-                    if (checked) {
-                        startAutoPumpService()
-                    } else {
-                        stopAutoPumpService()
-                    }
-                }
-            }
-
-            val autoPumpRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
-
-                addView(LinearLayout(this@MainActivity).apply {
-                    orientation = LinearLayout.VERTICAL
-                    addView(autoPumpTitle)
-                    addView(autoPumpDesc)
-                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-
-                addView(autoPumpSwitch)
-            }
-
-            autoPumpSection.addView(autoPumpRow)
-            pumpSection.addView(autoPumpSection)
-
-
-
-            // AUTO PUMP (SMART CONTROL)
-            val autoPumpTitle = TextView(this@MainActivity).apply {
-                text = "Auto Pump"
-                textSize = 14f
-                setTextColor(textPrimary)
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setPadding(0, dp(10), 0, dp(4))
-            }
-
-            val autoPumpDesc = TextView(this@MainActivity).apply {
-                text = "Automatically adjusts pump speed based on temperature (Safe scaling)"
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val autoPumpToggle = actionButton(
-                if (autoPumpEnabled) "AUTO PUMP: ON" else "AUTO PUMP: OFF",
-                isDanger = !autoPumpEnabled
-            ) {
-                autoPumpEnabled = !autoPumpEnabled
-                saveAutoPumpState()
-
-                if (autoPumpEnabled) {
-                    startAutoPumpService()
-                } else {
-                    stopAutoPumpService()
-                }
-
-                switchTab("cooling")
-            }
-
-            pumpSection.addView(autoPumpTitle)
-            pumpSection.addView(autoPumpDesc)
-            pumpSection.addView(autoPumpToggle)
-
-
-
             val pumpSection = LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(14), dp(14), dp(14), dp(14))
@@ -1178,9 +1088,50 @@ class MainActivity : Activity() {
             pumpRateRow.addView(space(dp(6)), gapParams)
             pumpRateRow.addView(experimentalBtn, chipParams)
 
+            val autoPumpTitle = TextView(this@MainActivity).apply {
+                text = "Auto Pump"
+                textSize = 14f
+                setTextColor(textPrimary)
+                setTypeface(typeface, Typeface.BOLD)
+                setPadding(0, dp(14), 0, dp(4))
+            }
+
+            val autoPumpDesc = TextView(this@MainActivity).apply {
+                text = "Automatically adjusts pump speed based on temperature."
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
+            }
+
+            val autoPumpSwitch = android.widget.Switch(this@MainActivity).apply {
+                isChecked = autoPumpEnabled
+                setOnCheckedChangeListener { _, checked ->
+                    autoPumpEnabled = checked
+                    saveAutoPumpState()
+                    if (checked) {
+                        startAutoPumpService()
+                    } else {
+                        stopAutoPumpService()
+                    }
+                    switchTab("cooling")
+                }
+            }
+
+            val autoPumpRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(autoPumpTitle)
+                    addView(autoPumpDesc)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(autoPumpSwitch)
+            }
+
             pumpSection.addView(circulationRow)
             pumpSection.addView(flowRateLabel)
             pumpSection.addView(pumpRateRow)
+            pumpSection.addView(autoPumpRow)
 
             addView(pumpSection)
             addView(spacer(dp(16)))

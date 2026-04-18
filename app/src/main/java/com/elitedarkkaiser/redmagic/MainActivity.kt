@@ -9,7 +9,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.os.Bundle
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -440,19 +439,6 @@ class MainActivity : Activity() {
 
     private fun stopFanLedService() {
         stopService(Intent(this, FanLedService::class.java))
-    }
-
-    private fun startAutoProfileService() {
-        val intent = Intent(this, AutoProfileService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
-    }
-
-    private fun stopAutoProfileService() {
-        stopService(Intent(this, AutoProfileService::class.java))
     }
 
     private fun startAutoPumpService() {
@@ -906,27 +892,7 @@ class MainActivity : Activity() {
 
         val automationCard = sectionPanel().apply {
             addView(sectionHeader("⚙", "AUTOMATION"))
-
-            val autoProfileEnabled = prefs().getBoolean("auto_profile_enabled", false)
-
-            val autoProfileBtn = actionButton(
-                if (autoProfileEnabled) "AUTO PROFILES: ON" else "AUTO PROFILES: OFF",
-                isDanger = !autoProfileEnabled
-            ) {
-                val next = !prefs().getBoolean("auto_profile_enabled", false)
-                prefs().edit().putBoolean("auto_profile_enabled", next).commit()
-                if (next) startAutoProfileService() else stopAutoProfileService()
-                switchTab("home")
-            }
-
-            val usageAccessBtn = actionButton("OPEN USAGE ACCESS") {
-                openUsageAccessSettings()
-            }
-
-            addView(bodyText("Auto Profiles applies saved hardware profiles based on the foreground app. Usage Access must be granted in Android settings."))
             addView(bodyText("Auto Pump uses safe temperature rules and automatically shifts between Slow, Medium, and Quick."))
-            addView(singleRow(autoProfileBtn))
-            addView(singleRow(usageAccessBtn))
         }
 
         
@@ -1260,56 +1226,6 @@ class MainActivity : Activity() {
         }
 
         container.addView(coolingCard)
-
-        val profiles = ProfileManager.loadProfiles(this)
-
-        val profilesCard = sectionPanel().apply {
-            addView(sectionHeader("★", "PROFILES"))
-
-            profiles.forEach { profile ->
-                addView(actionButton(profile.name) {
-                    HardwareController.enableFan(profile.fanEnabled)
-                    if (profile.fanEnabled) {
-                        HardwareController.setFanLevel(profile.fanLevel)
-                    } else {
-                        HardwareController.enableFan(false)
-                    }
-
-                    if (profile.pumpEnabled) {
-                        HardwareController.setPumpProfile(profile.pumpProfile)
-                    } else {
-                        HardwareController.enablePump(false)
-                    }
-
-                    autoFanCurveEnabled = profile.autoFan
-                    setAutoFanEnabledSaved(profile.autoFan)
-                    if (profile.autoFan) {
-                        startAutoFanService()
-                    } else {
-                        stopAutoFanService()
-                    }
-
-                    Toast.makeText(this@MainActivity, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
-                })
-            }
-
-            addView(actionButton("Save Current as Profile") {
-                val newProfile = Profile(
-                    "Custom",
-                    true,
-                    fanSeek.progress,
-                    pumpEnabled,
-                    pumpProfile,
-                    autoFanCurveEnabled
-                )
-                val updated = profiles.toMutableList()
-                updated.add(newProfile)
-                ProfileManager.saveProfiles(this@MainActivity, updated)
-                recreate()
-            })
-        }
-
-        container.addView(profilesCard)
 
         return container
     }

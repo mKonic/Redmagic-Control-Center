@@ -1420,14 +1420,6 @@ class MainActivity : Activity() {
             addView(sectionHeader("★", "PROFILES"))
             addView(bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
 
-            val saveBtn = actionButton("SAVE CURRENT PROFILE") {
-                showSaveProfileDialog {
-                    switchTab("controls")
-                }
-            }
-
-            addView(singleRow(saveBtn))
-
             val profileList = LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(0, dp(12), 0, 0)
@@ -1467,6 +1459,14 @@ class MainActivity : Activity() {
                     profileList.addView(space(dp(8)))
                 }
             }
+
+            val saveBtn = actionButton("SAVE CURRENT PROFILE") {
+                showSaveProfileDialog {
+                    renderProfiles()
+                }
+            }
+
+            addView(singleRow(saveBtn))
 
             renderProfiles()
             addView(profileList)

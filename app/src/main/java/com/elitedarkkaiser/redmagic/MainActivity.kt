@@ -141,18 +141,15 @@ class MainActivity : Activity() {
         }
 
         val bodyView = TextView(this).apply {
-            text =
-                "Model check passed.
+            text = """
+                Model check passed.
 
-" +
-                    "Required model: NX809J
-" +
-                    "Detected Build.MODEL: $buildModel
-" +
-                    "Detected ro.product.model: $propModel
+                Required model: NX809J
+                Detected Build.MODEL: $buildModel
+                Detected ro.product.model: $propModel
 
-" +
-                    "Tap OK to continue launching Redmagic HW Controls."
+                Tap OK to continue launching Redmagic HW Controls.
+            """.trimIndent()
             textSize = 14f
             setTextColor(textSecondary)
             setLineSpacing(0f, 1.15f)
@@ -194,7 +191,9 @@ class MainActivity : Activity() {
             .setCancelable(false)
             .create()
 
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        )
 
         okButton.setOnClickListener {
             setSkipSupportedDialog(neverShowAgain.isChecked)
@@ -223,13 +222,12 @@ class MainActivity : Activity() {
         }
 
         val bodyView = TextView(this).apply {
-            text =
-                "This app only supports model NX809J.
+            text = """
+                This app only supports model NX809J.
 
-" +
-                    "Detected Build.MODEL: $buildModel
-" +
-                    "Detected ro.product.model: $propModel"
+                Detected Build.MODEL: $buildModel
+                Detected ro.product.model: $propModel
+            """.trimIndent()
             textSize = 14f
             setTextColor(textSecondary)
             setLineSpacing(0f, 1.15f)
@@ -262,7 +260,9 @@ class MainActivity : Activity() {
             .setCancelable(false)
             .create()
 
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        )
 
         closeButton.setOnClickListener {
             dialog.dismiss()

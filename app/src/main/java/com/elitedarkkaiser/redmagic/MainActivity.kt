@@ -758,21 +758,9 @@ class MainActivity : Activity() {
             isHorizontalScrollBarEnabled = false
             addView(LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.HORIZONTAL
-                addView(colorDot(1, "#FF0000"))
-                addView(space(dp(10)))
-                addView(colorDot(2, "#FF1493"))
-                addView(space(dp(10)))
-                addView(colorDot(3, "#FF8C00"))
-                addView(space(dp(10)))
-                addView(colorDot(4, "#FFD700"))
-                addView(space(dp(10)))
                 addView(colorDot(5, "#00E676"))
                 addView(space(dp(10)))
-                addView(colorDot(6, "#1DE9E9"))
-                addView(space(dp(10)))
                 addView(colorDot(7, "#1565FF"))
-                addView(space(dp(10)))
-                addView(colorDot(8, "#E100FF"))
             })
         }
 
@@ -825,10 +813,7 @@ class MainActivity : Activity() {
     private fun showFanLedEffectPicker(effectValueView: TextView) {
         val effects = listOf(
             "steady",
-            "breathe",
-            "flashing",
-            "burst",
-            "flow"
+            "breathe"
         )
 
         val container = LinearLayout(this).apply {

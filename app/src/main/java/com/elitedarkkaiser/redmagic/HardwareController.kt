@@ -78,28 +78,26 @@ object HardwareController {
 
     fun setFanLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            RootShell.exec("echo 0x3003007 > $LED_EFFECT; echo 1 > $LED_CFG")
+            RootShell.exec("echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            RootShell.exec("echo 0x00 > $LED_EFFECT; echo 1 > $LED_CFG")
+            RootShell.exec("echo 0x3000000 > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
 
     fun setFanLedEffect(effectName: String, color: Int): Boolean {
+        val colorCode = when (color) {
+            5 -> 5  // green
+            7 -> 7  // blue
+            else -> 5
+        }
+
         val effectValue = when (effectName.lowercase()) {
-            "steady" -> "0x1001007"
-            "breathe" -> "0x3003007"
-            "flashing" -> "0x4004007"
-            "burst" -> "0x5005007"
-            "flow" -> "0x6006007"
-            else -> "0x3003007"
+            "steady" -> "0x300200${Integer.toHexString(colorCode)}"
+            "breathe" -> "0x300300${Integer.toHexString(colorCode)}"
+            else -> "0x300200${Integer.toHexString(colorCode)}"
         }
 
-        val cmd = buildString {
-            append("echo $effectValue > $LED_EFFECT; ")
-            append("echo 255 > /sys/class/leds/aw22xxx_led/brightness; ")
-            append("echo 1 > $LED_CFG")
-        }
-
+        val cmd = "echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
         return RootShell.exec(cmd)
     }
 

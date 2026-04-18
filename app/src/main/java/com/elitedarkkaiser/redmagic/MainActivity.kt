@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.os.Bundle
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -376,6 +377,36 @@ class MainActivity : Activity() {
 
     private fun stopFanLedService() {
         stopService(Intent(this, FanLedService::class.java))
+    }
+
+    private fun startAutoProfileService() {
+        val intent = Intent(this, AutoProfileService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun stopAutoProfileService() {
+        stopService(Intent(this, AutoProfileService::class.java))
+    }
+
+    private fun startAutoPumpService() {
+        val intent = Intent(this, AutoPumpService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun stopAutoPumpService() {
+        stopService(Intent(this, AutoPumpService::class.java))
+    }
+
+    private fun openUsageAccessSettings() {
+        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
     }
 
     private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
@@ -790,6 +821,96 @@ class MainActivity : Activity() {
         }
 
         container.addView(welcomeCard)
+        val dashboardCard = sectionPanel().apply {
+            addView(sectionHeader("◈", "LIVE DASHBOARD"))
+
+            val dashboardText = TextView(this@MainActivity).apply {
+                text = DashboardSnapshot.buildSummary(this@MainActivity)
+                textSize = 13f
+                setTextColor(textPrimary)
+                setLineSpacing(0f, 1.15f)
+                setPadding(0, 0, 0, dp(12))
+            }
+
+            val refreshBtn = actionButton("REFRESH DASHBOARD") {
+                dashboardText.text = DashboardSnapshot.buildSummary(this@MainActivity)
+            }
+
+            addView(dashboardText)
+            addView(singleRow(refreshBtn))
+        }
+
+        val automationCard = sectionPanel().apply {
+            addView(sectionHeader("⚙", "AUTOMATION"))
+
+            val autoProfileEnabled = prefs().getBoolean("auto_profile_enabled", false)
+            val autoPumpEnabled = prefs().getBoolean("auto_pump_enabled", false)
+
+            val autoProfileBtn = actionButton(
+                if (autoProfileEnabled) "AUTO PROFILES: ON" else "AUTO PROFILES: OFF",
+                isDanger = !autoProfileEnabled
+            ) {
+                val next = !prefs().getBoolean("auto_profile_enabled", false)
+                prefs().edit().putBoolean("auto_profile_enabled", next).commit()
+                if (next) startAutoProfileService() else stopAutoProfileService()
+                switchTab("home")
+            }
+
+            val usageAccessBtn = actionButton("OPEN USAGE ACCESS") {
+                openUsageAccessSettings()
+            }
+
+            val autoPumpBtn = actionButton(
+                if (autoPumpEnabled) "AUTO PUMP: ON" else "AUTO PUMP: OFF",
+                isDanger = !autoPumpEnabled
+            ) {
+                val next = !prefs().getBoolean("auto_pump_enabled", false)
+                prefs().edit().putBoolean("auto_pump_enabled", next).commit()
+                if (next) startAutoPumpService() else stopAutoPumpService()
+                switchTab("home")
+            }
+
+            addView(bodyText("Auto Profiles applies saved hardware profiles based on the foreground app. Usage Access must be granted in Android settings."))
+            addView(bodyText("Auto Pump uses safe temperature rules and automatically shifts between Slow, Medium, and Quick."))
+            addView(singleRow(autoProfileBtn))
+            addView(singleRow(usageAccessBtn))
+            addView(singleRow(autoPumpBtn))
+        }
+
+        val debugCard = sectionPanel().apply {
+            addView(sectionHeader("⌘", "DEBUG"))
+
+            val debugText = TextView(this@MainActivity).apply {
+                text =
+                    "Fan enable: ${DashboardSnapshot.readFanEnabled()}\n" +
+                    "Fan level: ${DashboardSnapshot.readFanLevel()}\n" +
+                    "Fan RPM: ${DashboardSnapshot.readFanRpm()}\n" +
+                    "Pump enable: ${DashboardSnapshot.readPumpEnabled()}\n" +
+                    "Pump freq: ${DashboardSnapshot.readPumpFreq()}\n" +
+                    "Pump speed: ${DashboardSnapshot.readPumpSpeed()}"
+                textSize = 13f
+                setTextColor(textPrimary)
+                setLineSpacing(0f, 1.15f)
+                setPadding(0, 0, 0, dp(12))
+            }
+
+            val refreshDebugBtn = actionButton("REFRESH DEBUG") {
+                debugText.text =
+                    "Fan enable: ${DashboardSnapshot.readFanEnabled()}\n" +
+                    "Fan level: ${DashboardSnapshot.readFanLevel()}\n" +
+                    "Fan RPM: ${DashboardSnapshot.readFanRpm()}\n" +
+                    "Pump enable: ${DashboardSnapshot.readPumpEnabled()}\n" +
+                    "Pump freq: ${DashboardSnapshot.readPumpFreq()}\n" +
+                    "Pump speed: ${DashboardSnapshot.readPumpSpeed()}"
+            }
+
+            addView(debugText)
+            addView(singleRow(refreshDebugBtn))
+        }
+
+        container.addView(dashboardCard)
+        container.addView(automationCard)
+        container.addView(debugCard)
         container.addView(summaryCard)
         container.addView(infoCard)
         container.addView(statusCard)
@@ -1017,6 +1138,37 @@ class MainActivity : Activity() {
         }
 
         container.addView(coolingCard)
+
+        val profiles = ProfileManager.loadProfiles(this)
+
+        val profilesCard = sectionPanel().apply {
+            addView(sectionHeader("★", "PROFILES"))
+
+            profiles.forEach { profile ->
+                addView(actionButton(profile.name) {
+                    HardwareController.applyProfile(profile)
+                    Toast.makeText(context, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                })
+            }
+
+            addView(actionButton("Save Current as Profile") {
+                val newProfile = Profile(
+                    "Custom",
+                    true,
+                    fanSeek.progress,
+                    pumpEnabled,
+                    pumpProfile,
+                    autoFanCurveEnabled
+                )
+                val updated = profiles.toMutableList()
+                updated.add(newProfile)
+                ProfileManager.saveProfiles(this@MainActivity, updated)
+                recreate()
+            })
+        }
+
+        container.addView(profilesCard)
+
         return container
     }
 

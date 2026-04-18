@@ -1233,7 +1233,6 @@ class MainActivity : Activity() {
         }
 
         val experimentalBtn = filterChip("⚠ Experimental", pumpProfile == "experimental") {
-            dialog.dismiss()
             confirmExperimentalPumpThenApply()
         }
 

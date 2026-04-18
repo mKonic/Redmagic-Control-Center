@@ -454,10 +454,6 @@ class MainActivity : Activity() {
         stopService(Intent(this, AutoPumpService::class.java))
     }
 
-    private fun openUsageAccessSettings() {
-        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-    }
-
     private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
         val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
             .setInitialDelay(delaySeconds, TimeUnit.SECONDS)

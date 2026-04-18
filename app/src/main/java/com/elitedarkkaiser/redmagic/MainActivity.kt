@@ -26,6 +26,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 
 class MainActivity : Activity() {
 
@@ -1146,8 +1147,28 @@ class MainActivity : Activity() {
 
             profiles.forEach { profile ->
                 addView(actionButton(profile.name) {
-                    HardwareController.applyProfile(profile)
-                    Toast.makeText(context, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                    HardwareController.enableFan(profile.fanEnabled)
+                    if (profile.fanEnabled) {
+                        HardwareController.setFanLevel(profile.fanLevel)
+                    } else {
+                        HardwareController.enableFan(false)
+                    }
+
+                    if (profile.pumpEnabled) {
+                        HardwareController.setPumpProfile(profile.pumpProfile)
+                    } else {
+                        HardwareController.enablePump(false)
+                    }
+
+                    autoFanCurveEnabled = profile.autoFan
+                    setAutoFanEnabledSaved(profile.autoFan)
+                    if (profile.autoFan) {
+                        startAutoFanService()
+                    } else {
+                        stopAutoFanService()
+                    }
+
+                    Toast.makeText(this@MainActivity, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
                 })
             }
 

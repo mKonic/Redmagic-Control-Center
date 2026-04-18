@@ -3,6 +3,7 @@ package com.elitedarkkaiser.redmagic
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 
@@ -12,16 +13,16 @@ class BootReceiver : BroadcastReceiver() {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
 
         val prefs = context.getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-
         val fanLedEnabled = prefs.getBoolean("fan_led_enabled", false)
-        val fanLedEffect = prefs.getString("fan_led_effect", "steady") ?: "steady"
-        val fanLedColor = prefs.getInt("fan_led_color", 5)
+
+        if (!fanLedEnabled) return
 
         Handler(Looper.getMainLooper()).postDelayed({
-            if (fanLedEnabled) {
-                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            val serviceIntent = Intent(context, FanLedService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
             } else {
-                HardwareController.setFanLedEnabled(false)
+                context.startService(serviceIntent)
             }
         }, 15000)
     }

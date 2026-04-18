@@ -152,6 +152,19 @@ class MainActivity : Activity() {
         stopService(Intent(this, AutoFanService::class.java))
     }
 
+    private fun startFanLedService() {
+        val intent = Intent(this, FanLedService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun stopFanLedService() {
+        stopService(Intent(this, FanLedService::class.java))
+    }
+
     private fun showSupportedDeviceDialog() {
         val buildModel = Build.MODEL ?: "Unknown"
         val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
@@ -358,8 +371,10 @@ class MainActivity : Activity() {
 
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            startFanLedService()
         } else {
             HardwareController.setFanLedEnabled(false)
+            stopFanLedService()
         }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
@@ -699,7 +714,9 @@ class MainActivity : Activity() {
 
             val fanLedOffBtn = actionButton("FAN LED OFF", isDanger = true) {
                 fanLedEnabled = false
+                saveFanLedState()
                 HardwareController.setFanLedEnabled(false)
+                stopFanLedService()
             }
 
             addView(fanLedSummary)
@@ -894,6 +911,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveFanLedState()
+            if (fanLedEnabled) {
+                startFanLedService()
+            } else {
+                stopFanLedService()
+            }
             dialog.dismiss()
         }
 

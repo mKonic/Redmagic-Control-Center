@@ -293,37 +293,38 @@ class MainActivity : Activity() {
         rpmChip = statusChip("RPM --")
         tempChip = statusChip("TEMP --")
 
-        val statusGrid = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        val statusRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
 
-            val row1 = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                addView(rootChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = dp(6)
-                })
-                addView(fanChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = dp(6)
-                })
-            }
+            addView(rootChip, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = dp(10) })
 
-            val row2 = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, dp(10), 0, 0)
-                addView(rpmChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginEnd = dp(6)
-                })
-                addView(tempChip, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = dp(6)
-                })
-            }
+            addView(fanChip, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = dp(10) })
 
-            addView(row1)
-            addView(row2)
+            addView(rpmChip, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = dp(10) })
+
+            addView(tempChip, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ))
+        }
+
+        val statusScroller = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(statusRow)
         }
 
         val statusCard = sectionPanel().apply {
             addView(sectionHeader("◎", "LIVE STATUS"))
-            addView(statusGrid)
+            addView(statusScroller)
         }
 
         container.addView(welcomeCard)
@@ -839,10 +840,11 @@ class MainActivity : Activity() {
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
             isSingleLine = true
-            minHeight = dp(56)
-            includeFontPadding = true
-            setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = roundedFill(chipOn, 14)
+            minHeight = dp(48)
+            minimumWidth = dp(96)
+            includeFontPadding = false
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+            background = roundedFill(chipOn, 999)
         }
     }
 

@@ -84,6 +84,27 @@ object HardwareController {
         }
     }
 
+
+    fun setLogoLedEnabled(enabled: Boolean): Boolean {
+        return if (enabled) {
+            RootShell.exec("echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
+        } else {
+            RootShell.exec("echo 0x1000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+        }
+    }
+
+    fun setLogoLedEffect(effectName: String, color: Int): Boolean {
+        val effectValue = when {
+            effectName.lowercase() == "steady" && color == 1 -> "0x1002001"
+            effectName.lowercase() == "breathe" && color == 8 -> "0x1003008"
+            effectName.lowercase() == "steady" && color == 8 -> "0x1002008"
+            effectName.lowercase() == "breathe" && color == 1 -> "0x1003001"
+            else -> "0x1002001"
+        }
+
+        return RootShell.exec("echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+    }
+
     fun setFanLedEffect(effectName: String, color: Int): Boolean {
         val colorCode = when (color) {
             5 -> 5  // green

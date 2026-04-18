@@ -430,13 +430,9 @@ class MainActivity : Activity() {
         }
 
         if (logoLedEnabled) {
-            if (logoLedEffect == "breathe") {
-                HardwareController.setLed(zone = 1, mode = 3, color = logoLedColor)
-            } else {
-                HardwareController.setLed(zone = 1, mode = 2, color = logoLedColor)
-            }
+            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
         } else {
-            HardwareController.setLed(zone = 1, mode = 0, color = 0)
+            HardwareController.setLogoLedEnabled(false)
         }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
@@ -803,7 +799,7 @@ class MainActivity : Activity() {
             val logoOffBtn = actionButton("LOGO LED OFF", isDanger = true) {
                 logoLedEnabled = false
                 saveLogoLedState()
-                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+                HardwareController.setLogoLedEnabled(false)
             }
 
             addView(logoSummary)
@@ -871,10 +867,9 @@ class MainActivity : Activity() {
             setOnCheckedChangeListener { _, checked ->
                 logoLedEnabled = checked
                 if (checked) {
-                    val mode = if (logoLedEffect == "breathe") 3 else 2
-                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
                 } else {
-                    HardwareController.setLed(zone = 1, mode = 0, color = 0)
+                    HardwareController.setLogoLedEnabled(false)
                 }
             }
         }
@@ -893,7 +888,7 @@ class MainActivity : Activity() {
         val steadyBtn = filterChip("Steady", logoLedEffect == "steady") {
             logoLedEffect = "steady"
             if (logoLedEnabled) {
-                HardwareController.setLed(zone = 1, mode = 2, color = logoLedColor)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
             }
             dialogRefreshLogoLed?.invoke()
         }
@@ -901,7 +896,7 @@ class MainActivity : Activity() {
         val breatheBtn = filterChip("Breathe", logoLedEffect == "breathe") {
             logoLedEffect = "breathe"
             if (logoLedEnabled) {
-                HardwareController.setLed(zone = 1, mode = 3, color = logoLedColor)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
             }
             dialogRefreshLogoLed?.invoke()
         }
@@ -922,8 +917,7 @@ class MainActivity : Activity() {
             addView(colorDotGeneric("#FF0000", logoLedColor == 1) {
                 logoLedColor = 1
                 if (logoLedEnabled) {
-                    val mode = if (logoLedEffect == "breathe") 3 else 2
-                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
                 }
                 dialogRefreshLogoLed?.invoke()
             })
@@ -931,8 +925,7 @@ class MainActivity : Activity() {
             addView(colorDotGeneric("#E100FF", logoLedColor == 8) {
                 logoLedColor = 8
                 if (logoLedEnabled) {
-                    val mode = if (logoLedEffect == "breathe") 3 else 2
-                    HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
                 }
                 dialogRefreshLogoLed?.invoke()
             })
@@ -988,10 +981,9 @@ class MainActivity : Activity() {
             logoLedColor = originalColor
 
             if (logoLedEnabled) {
-                val mode = if (logoLedEffect == "breathe") 3 else 2
-                HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
             } else {
-                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+                HardwareController.setLogoLedEnabled(false)
             }
 
             dialog.dismiss()
@@ -1008,10 +1000,9 @@ class MainActivity : Activity() {
             logoLedColor = originalColor
 
             if (logoLedEnabled) {
-                val mode = if (logoLedEffect == "breathe") 3 else 2
-                HardwareController.setLed(zone = 1, mode = mode, color = logoLedColor)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
             } else {
-                HardwareController.setLed(zone = 1, mode = 0, color = 0)
+                HardwareController.setLogoLedEnabled(false)
             }
         }
 

@@ -19,6 +19,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.CheckBox
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -288,6 +289,135 @@ class MainActivity : Activity() {
 
         return "Pump Mode: AUTO • $profile (${String.format("%.0f", tempF)}°F)" to
             "Speed: $speed • Freq: 4"
+    }
+
+
+    private fun buildCurrentHardwareProfile(name: String): HardwareProfile {
+        return HardwareProfile(
+            name = name,
+
+            fanEnabled = HardwareController.isFanEnabled(),
+            fanLevel = fanSeek.progress,
+            autoFanEnabled = autoFanCurveEnabled,
+            fanCurveMode = selectedCurve,
+
+            pumpEnabled = pumpEnabled,
+            pumpProfile = pumpProfile,
+            autoPumpEnabled = autoPumpEnabled,
+
+            fanLedEnabled = fanLedEnabled,
+            fanLedEffect = fanLedEffect,
+            fanLedColor = fanLedColor,
+
+            logoLedEnabled = logoLedEnabled,
+            logoLedEffect = logoLedEffect,
+            logoLedColor = logoLedColor,
+
+            shoulderLedEnabled = shoulderLedEnabled,
+            shoulderLedEffect = shoulderLedEffect,
+            shoulderLedColor = shoulderLedColor,
+
+            triggerEnabled = true,
+            hapticsEnabled = true
+        )
+    }
+
+    private fun applyProfileToUiState(profile: HardwareProfile) {
+        autoFanCurveEnabled = profile.autoFanEnabled
+        selectedCurve = profile.fanCurveMode
+
+        pumpEnabled = profile.pumpEnabled
+        pumpProfile = profile.pumpProfile
+        autoPumpEnabled = profile.autoPumpEnabled
+
+        fanLedEnabled = profile.fanLedEnabled
+        fanLedEffect = profile.fanLedEffect
+        fanLedColor = profile.fanLedColor
+
+        logoLedEnabled = profile.logoLedEnabled
+        logoLedEffect = profile.logoLedEffect
+        logoLedColor = profile.logoLedColor
+
+        shoulderLedEnabled = profile.shoulderLedEnabled
+        shoulderLedEffect = profile.shoulderLedEffect
+        shoulderLedColor = profile.shoulderLedColor
+
+        fanSeek.progress = profile.fanLevel
+
+        setAutoFanEnabledSaved(profile.autoFanEnabled)
+        savePumpState()
+        saveAutoPumpState()
+        saveFanLedState()
+        saveLogoLedState()
+        saveShoulderLedState()
+
+        if (profile.autoFanEnabled) {
+            startAutoFanService()
+        } else {
+            stopAutoFanService()
+        }
+
+        if (profile.autoPumpEnabled) {
+            startAutoPumpService()
+        } else {
+            stopAutoPumpService()
+        }
+
+        refreshStatus()
+        refreshSmartPumpStatusViews()
+    }
+
+    private fun showSaveProfileDialog(onSaved: () -> Unit) {
+        val input = EditText(this).apply {
+            hint = "Profile name"
+            setTextColor(textPrimary)
+            setHintTextColor(textSecondary)
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 16)
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(10))
+            background = roundedBg(panelColor, borderColor, 22)
+            addView(input)
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Save Profile")
+            .setView(container)
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val saveBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            saveBtn.setOnClickListener {
+                val name = input.text?.toString()?.trim().orEmpty()
+                if (name.isBlank()) return@setOnClickListener
+
+                val profile = buildCurrentHardwareProfile(name)
+                ProfileManager.upsertProfile(this, profile)
+                Toast.makeText(this, "Saved $name", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                onSaved()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Profile")
+            .setMessage("Delete $profileName?")
+            .setPositiveButton("Delete") { _, _ ->
+                ProfileManager.deleteProfile(this, profileName)
+                Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
+                onDeleted()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun refreshSmartPumpStatusViews() {
@@ -1285,6 +1415,65 @@ class MainActivity : Activity() {
 
         container.addView(systemCard)
         container.addView(controlsCard)
+        
+        val profilesCard = sectionPanel().apply {
+            addView(sectionHeader("★", "PROFILES"))
+            addView(bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
+
+            val saveBtn = actionButton("SAVE CURRENT PROFILE") {
+                showSaveProfileDialog {
+                    switchTab("controls")
+                }
+            }
+
+            addView(singleRow(saveBtn))
+
+            val profileList = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(12), 0, 0)
+            }
+
+            fun renderProfiles() {
+                profileList.removeAllViews()
+                val profiles = ProfileManager.loadProfiles(this@MainActivity)
+
+                if (profiles.isEmpty()) {
+                    profileList.addView(subtleLabel("No saved profiles yet"))
+                    return
+                }
+
+                profiles.forEach { profile ->
+                    val row = LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                    }
+
+                    val applyBtn = actionButton(profile.name) {
+                        HardwareController.applyHardwareProfile(profile)
+                        applyProfileToUiState(profile)
+                        Toast.makeText(this@MainActivity, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                    }
+
+                    val deleteBtn = actionButton("DELETE", isDanger = true) {
+                        showDeleteProfileDialog(profile.name) {
+                            renderProfiles()
+                        }
+                    }
+
+                    row.addView(applyBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                    row.addView(space(dp(8)))
+                    row.addView(deleteBtn)
+
+                    profileList.addView(row)
+                    profileList.addView(space(dp(8)))
+                }
+            }
+
+            renderProfiles()
+            addView(profileList)
+        }
+
+        container.addView(profilesCard)
+
         container.addView(hapticsCard)
 
         return container

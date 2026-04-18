@@ -72,6 +72,9 @@ class MainActivity : Activity() {
     private var shoulderLedEffect = "breathe"
     private var shoulderLedColor = 8
 
+    private var pumpEnabled = false
+    private var pumpProfile = "quick"
+
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
@@ -86,6 +89,9 @@ class MainActivity : Activity() {
     private val shoulderLedEnabledKey = "shoulder_led_enabled"
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
+
+    private val pumpEnabledKey = "pump_enabled"
+    private val pumpProfileKey = "pump_profile"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -209,6 +215,26 @@ class MainActivity : Activity() {
         shoulderLedEnabled = isShoulderLedEnabledSaved()
         shoulderLedEffect = savedShoulderLedEffect()
         shoulderLedColor = savedShoulderLedColor()
+    }
+
+    private fun isPumpEnabledSaved(): Boolean {
+        return prefs().getBoolean(pumpEnabledKey, false)
+    }
+
+    private fun savedPumpProfile(): String {
+        return prefs().getString(pumpProfileKey, "quick") ?: "quick"
+    }
+
+    private fun savePumpState() {
+        prefs().edit()
+            .putBoolean(pumpEnabledKey, pumpEnabled)
+            .putString(pumpProfileKey, pumpProfile)
+            .commit()
+    }
+
+    private fun applySavedPumpStateOnLaunch() {
+        pumpEnabled = isPumpEnabledSaved()
+        pumpProfile = savedPumpProfile()
     }
 
     private fun startAutoFanService() {
@@ -455,6 +481,7 @@ class MainActivity : Activity() {
         applySavedFanLedStateOnLaunch()
         applySavedLogoLedStateOnLaunch()
         applySavedShoulderLedStateOnLaunch()
+        applySavedPumpStateOnLaunch()
 
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
@@ -474,6 +501,12 @@ class MainActivity : Activity() {
             HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
         } else {
             HardwareController.setShoulderLedEnabled(false)
+        }
+
+        if (pumpEnabled) {
+            HardwareController.setPumpProfile(pumpProfile)
+        } else {
+            HardwareController.enablePump(false)
         }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
@@ -740,19 +773,39 @@ class MainActivity : Activity() {
             addView(row(rootCheckBtn, refreshBtn))
         }
 
-        val pumpOnBtn = actionButton("PUMP ON") {
-            HardwareController.enablePump(true)
-            refreshStatus()
-        }
-
-        val pumpOffBtn = actionButton("PUMP OFF", isDanger = true) {
-            HardwareController.enablePump(false)
-            refreshStatus()
-        }
-
         val pumpCard = sectionPanel().apply {
             addView(sectionHeader("◉", "PUMP"))
-            addView(row(pumpOnBtn, pumpOffBtn))
+
+            val pumpSummary = TextView(this@MainActivity).apply {
+                text = "Liquid cooling circulation and flow rate"
+                textSize = 13f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
+            }
+
+            val circulationBtn = actionButton(
+                if (pumpEnabled) "CIRCULATION ON" else "CIRCULATION OFF",
+                isDanger = !pumpEnabled
+            ) {
+                pumpEnabled = !pumpEnabled
+                savePumpState()
+                if (pumpEnabled) {
+                    HardwareController.setPumpProfile(pumpProfile)
+                } else {
+                    HardwareController.enablePump(false)
+                }
+                refreshStatus()
+            }
+
+            val flowRateBtn = actionButton(
+                "FLOW RATE: " + pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            ) {
+                showPumpProfileDialog()
+            }
+
+            addView(pumpSummary)
+            addView(singleRow(circulationBtn))
+            addView(singleRow(flowRateBtn))
         }
 
         val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
@@ -848,21 +901,6 @@ class MainActivity : Activity() {
             addView(singleRow(logoOffBtn))
         }
 
-        val allLedCard = sectionPanel().apply {
-            addView(sectionHeader("✶", "ALL LEDS"))
-
-            val allPurpleBtn = actionButton("ALL PURPLE BREATHING") {
-                HardwareController.setAllLeds(mode = 3, color = 8)
-            }
-
-            val allOffBtn = actionButton("ALL LEDS OFF", isDanger = true) {
-                HardwareController.turnOffAllLeds()
-            }
-
-            addView(singleRow(allPurpleBtn))
-            addView(singleRow(allOffBtn))
-        }
-
         val shoulderCard = sectionPanel().apply {
             addView(sectionHeader("⟫", "SHOULDER LEDS"))
 
@@ -891,7 +929,6 @@ class MainActivity : Activity() {
         container.addView(fanLedCard)
         container.addView(logoCard)
         container.addView(shoulderCard)
-        container.addView(allLedCard)
         return container
     }
 
@@ -901,6 +938,148 @@ class MainActivity : Activity() {
 
 
     private var dialogRefreshShoulderLed: (() -> Unit)? = null
+
+
+    private var dialogRefreshPump: (() -> Unit)? = null
+
+    private fun showPumpProfileDialog() {
+        val originalEnabled = pumpEnabled
+        val originalProfile = pumpProfile
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Liquid Cooling Flow Rate"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Choose a pump profile with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val profileLabel = TextView(this).apply {
+            text = "Flow rate"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val profilesRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val quickBtn = filterChip("Quick", pumpProfile == "quick") {
+            pumpProfile = "quick"
+            pumpEnabled = true
+            HardwareController.setPumpProfile("quick")
+            dialogRefreshPump?.invoke()
+        }
+
+        val slowBtn = filterChip("Slow", pumpProfile == "slow") {
+            pumpProfile = "slow"
+            pumpEnabled = true
+            HardwareController.setPumpProfile("slow")
+            dialogRefreshPump?.invoke()
+        }
+
+        profilesRow.addView(quickBtn)
+        profilesRow.addView(space(dp(8)))
+        profilesRow.addView(slowBtn)
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(profileLabel)
+        container.addView(profilesRow)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            pumpEnabled = originalEnabled
+            pumpProfile = originalProfile
+
+            if (pumpEnabled) {
+                HardwareController.setPumpProfile(pumpProfile)
+            } else {
+                HardwareController.enablePump(false)
+            }
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            savePumpState()
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            pumpEnabled = originalEnabled
+            pumpProfile = originalProfile
+
+            if (pumpEnabled) {
+                HardwareController.setPumpProfile(pumpProfile)
+            } else {
+                HardwareController.enablePump(false)
+            }
+        }
+
+        fun repaint() {
+            quickBtn.background = roundedFill(
+                if (pumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            slowBtn.background = roundedFill(
+                if (pumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        dialogRefreshPump = { repaint() }
+        repaint()
+        dialog.show()
+    }
 
     private fun showShoulderLedDialog() {
         val originalEnabled = shoulderLedEnabled

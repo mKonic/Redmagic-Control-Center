@@ -11,6 +11,8 @@ object HardwareController {
     private const val FAN_RPM = "/sys/kernel/fan/fan_speed_count"
 
     private const val PUMP_ENABLE = "/proc/driver/micropump/enable"
+    private const val PUMP_FREQ = "/proc/driver/micropump/freq"
+    private const val PUMP_SPEED = "/proc/driver/micropump/speed"
 
     private const val LED_EFFECT = "/sys/class/leds/aw22xxx_led/effect"
     private const val LED_CFG = "/sys/class/leds/aw22xxx_led/cfg"
@@ -57,6 +59,20 @@ object HardwareController {
     fun enablePump(enabled: Boolean): Boolean {
         return RootShell.exec("echo ${if (enabled) 1 else 0} > $PUMP_ENABLE")
     }
+
+    fun setPumpProfile(profile: String): Boolean {
+        val cmd = when (profile.lowercase()) {
+            "quick" -> "echo 1 > $PUMP_ENABLE; echo 4 > $PUMP_FREQ; echo 80 > $PUMP_SPEED"
+            "slow" -> "echo 1 > $PUMP_ENABLE; echo 4 > $PUMP_FREQ; echo 60 > $PUMP_SPEED"
+            "off" -> "echo 0 > $PUMP_ENABLE"
+            else -> "echo 1 > $PUMP_ENABLE; echo 4 > $PUMP_FREQ; echo 80 > $PUMP_SPEED"
+        }
+        return RootShell.exec(cmd)
+    }
+
+    fun readPumpEnabled(): String? = RootShell.execForOutput("cat $PUMP_ENABLE")
+    fun readPumpFreq(): String? = RootShell.execForOutput("cat $PUMP_FREQ")
+    fun readPumpSpeed(): String? = RootShell.execForOutput("cat $PUMP_SPEED")
 
     fun setLed(zone: Int, mode: Int, color: Int): Boolean {
         val hex = "0x${zone}00${mode}00${color}"

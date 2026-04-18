@@ -92,6 +92,7 @@ class MainActivity : Activity() {
 
     private val pumpEnabledKey = "pump_enabled"
     private val pumpProfileKey = "pump_profile"
+    private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -240,9 +241,115 @@ class MainActivity : Activity() {
     private fun applySavedPumpStateOnLaunch() {
         pumpEnabled = isPumpEnabledSaved()
         pumpProfile = savedPumpProfile().lowercase()
-        if (pumpProfile != "quick" && pumpProfile != "slow") {
+        if (pumpProfile != "slow" && pumpProfile != "medium" && pumpProfile != "quick" && pumpProfile != "experimental") {
             pumpProfile = "quick"
         }
+    }
+
+    private fun isPumpExperimentalAccepted(): Boolean {
+        return prefs().getBoolean(pumpExperimentalAcceptedKey, false)
+    }
+
+    private fun setPumpExperimentalAccepted(accepted: Boolean) {
+        prefs().edit().putBoolean(pumpExperimentalAcceptedKey, accepted).commit()
+    }
+
+    private fun applyPumpProfile(profile: String) {
+        pumpProfile = profile
+        pumpEnabled = true
+        savePumpState()
+        HardwareController.setPumpProfile(profile)
+        refreshStatus()
+        switchTab("cooling")
+    }
+
+    private fun confirmExperimentalPumpThenApply() {
+        if (isPumpExperimentalAccepted()) {
+            applyPumpProfile("experimental")
+            return
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(10))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Experimental Pump Mode"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val bodyView = TextView(this).apply {
+            text = "This mode overclocks the liquid cooling pump beyond the standard profiles. It may provide thermal or performance benefits under heavy load, but it can also increase wear, instability, heat, noise, and possible pump failure or reduced lifespan.\n\nUse only if you understand the risks."
+            textSize = 14f
+            setTextColor(textSecondary)
+            setLineSpacing(0f, 1.15f)
+            setPadding(0, dp(14), 0, 0)
+        }
+
+        val helperView = TextView(this).apply {
+            text = "Recommended only for gaming or sustained high-performance workloads."
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(10), 0, 0)
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val acceptBtn = Button(this).apply {
+            text = "I Understand"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(acceptBtn)
+
+        container.addView(titleView)
+        container.addView(bodyView)
+        container.addView(helperView)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        )
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        acceptBtn.setOnClickListener {
+            setPumpExperimentalAccepted(true)
+            applyPumpProfile("experimental")
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun startAutoFanService() {
@@ -866,25 +973,29 @@ class MainActivity : Activity() {
                 orientation = LinearLayout.HORIZONTAL
             }
 
-            val quickBtn = segmentedChip("Quick", pumpProfile == "quick") {
-                pumpProfile = "quick"
-                pumpEnabled = true
-                savePumpState()
-                HardwareController.setPumpProfile("quick")
-                switchTab("cooling")
-            }
-
             val slowBtn = segmentedChip("Slow", pumpProfile == "slow") {
-                pumpProfile = "slow"
-                pumpEnabled = true
-                savePumpState()
-                HardwareController.setPumpProfile("slow")
-                switchTab("cooling")
+                applyPumpProfile("slow")
             }
 
+            val mediumBtn = segmentedChip("Medium", pumpProfile == "medium") {
+                applyPumpProfile("medium")
+            }
+
+            val quickBtn = segmentedChip("Quick", pumpProfile == "quick") {
+                applyPumpProfile("quick")
+            }
+
+            val experimentalBtn = segmentedChip("⚠ Experimental", pumpProfile == "experimental") {
+                confirmExperimentalPumpThenApply()
+            }
+
+            pumpRateRow.addView(slowBtn)
+            pumpRateRow.addView(space(dp(8)))
+            pumpRateRow.addView(mediumBtn)
+            pumpRateRow.addView(space(dp(8)))
             pumpRateRow.addView(quickBtn)
             pumpRateRow.addView(space(dp(8)))
-            pumpRateRow.addView(slowBtn)
+            pumpRateRow.addView(experimentalBtn)
 
             pumpSection.addView(circulationRow)
             pumpSection.addView(flowRateLabel)
@@ -1100,13 +1211,6 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
         }
 
-        val quickBtn = filterChip("Quick", pumpProfile == "quick") {
-            pumpProfile = "quick"
-            pumpEnabled = true
-            HardwareController.setPumpProfile("quick")
-            dialogRefreshPump?.invoke()
-        }
-
         val slowBtn = filterChip("Slow", pumpProfile == "slow") {
             pumpProfile = "slow"
             pumpEnabled = true
@@ -1114,9 +1218,32 @@ class MainActivity : Activity() {
             dialogRefreshPump?.invoke()
         }
 
+        val mediumBtn = filterChip("Medium", pumpProfile == "medium") {
+            pumpProfile = "medium"
+            pumpEnabled = true
+            HardwareController.setPumpProfile("medium")
+            dialogRefreshPump?.invoke()
+        }
+
+        val quickBtn = filterChip("Quick", pumpProfile == "quick") {
+            pumpProfile = "quick"
+            pumpEnabled = true
+            HardwareController.setPumpProfile("quick")
+            dialogRefreshPump?.invoke()
+        }
+
+        val experimentalBtn = filterChip("⚠ Experimental", pumpProfile == "experimental") {
+            dialog.dismiss()
+            confirmExperimentalPumpThenApply()
+        }
+
+        profilesRow.addView(slowBtn)
+        profilesRow.addView(space(dp(8)))
+        profilesRow.addView(mediumBtn)
+        profilesRow.addView(space(dp(8)))
         profilesRow.addView(quickBtn)
         profilesRow.addView(space(dp(8)))
-        profilesRow.addView(slowBtn)
+        profilesRow.addView(experimentalBtn)
 
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1189,12 +1316,20 @@ class MainActivity : Activity() {
         }
 
         fun repaint() {
+            slowBtn.background = roundedFill(
+                if (pumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            mediumBtn.background = roundedFill(
+                if (pumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
             quickBtn.background = roundedFill(
                 if (pumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"),
                 999
             )
-            slowBtn.background = roundedFill(
-                if (pumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"),
+            experimentalBtn.background = roundedFill(
+                if (pumpProfile == "experimental") panelPressed else Color.parseColor("#2A1D1D"),
                 999
             )
         }

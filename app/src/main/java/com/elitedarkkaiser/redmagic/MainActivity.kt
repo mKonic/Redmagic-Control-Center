@@ -719,49 +719,46 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        quietCardRef = modeCard("Quiet", "Nearly silent • fan 0-1") {
-            if (autoFanCurveEnabled) return@modeCard
+        quietCardRef = LinearLayout(this)
+        balancedCardRef = LinearLayout(this)
+        turboCardRef = LinearLayout(this)
+
+        val modeRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val quietChip = segmentedChip("Quiet", selectedCurve == "quiet") {
+            if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "quiet"
-            setActiveMode(quietCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Quiet • Applied immediately"
-            refreshStatus()
+            recreate()
         }
 
-        balancedCardRef = modeCard("Balanced", "Everyday use • fan 2-3") {
-            if (autoFanCurveEnabled) return@modeCard
+        val balancedChip = segmentedChip("Balanced", selectedCurve == "balanced") {
+            if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "balanced"
-            setActiveMode(balancedCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Balanced • Applied immediately"
-            refreshStatus()
+            recreate()
         }
 
-        turboCardRef = modeCard("Turbo", "Max cooling • fan 4-5") {
-            if (autoFanCurveEnabled) return@modeCard
+        val turboChip = segmentedChip("Turbo", selectedCurve == "turbo") {
+            if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "turbo"
-            setActiveMode(turboCardRef)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Turbo • Applied immediately"
-            refreshStatus()
+            recreate()
         }
 
-        val modeScrollContent = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            addView(quietCardRef)
-            addView(space(dp(10)))
-            addView(balancedCardRef)
-            addView(space(dp(10)))
-            addView(turboCardRef)
-        }
-
-        val modeScroller = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(modeScrollContent)
-        }
+        modeRow.addView(quietChip)
+        modeRow.addView(space(dp(8)))
+        modeRow.addView(balancedChip)
+        modeRow.addView(space(dp(8)))
+        modeRow.addView(turboChip)
 
         curveStatusText = TextView(this).apply {
             text = "Selected curve: Balanced"
@@ -802,41 +799,61 @@ class MainActivity : Activity() {
             addView(spacer(dp(16)))
             addView(sectionHeader("◉", "PUMP"))
 
-            val pumpSummary = TextView(this@MainActivity).apply {
-                text = "Liquid cooling circulation and flow rate"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val circulationBtn = actionButton(
-                if (pumpEnabled) "CIRCULATION ON" else "CIRCULATION OFF",
-                isDanger = !pumpEnabled
-            ) {
-                pumpEnabled = !pumpEnabled
+            addView(premiumToggleRow(
+                title = "Liquid cooling circulation",
+                subtitle = "Enable or disable the micropump",
+                checked = pumpEnabled
+            ) { checked ->
+                pumpEnabled = checked
                 savePumpState()
                 if (pumpEnabled) {
                     HardwareController.setPumpProfile(pumpProfile)
                 } else {
                     HardwareController.enablePump(false)
                 }
-                refreshStatus()
+                recreate()
+            })
+
+            addView(spacer(dp(12)))
+
+            val pumpRateLabel = TextView(this@MainActivity).apply {
+                text = "Flow rate"
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(8))
             }
 
-            val flowRateBtn = actionButton(
-                "FLOW RATE: " + pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            ) {
-                showPumpProfileDialog()
+            val pumpRateRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
             }
 
-            addView(pumpSummary)
-            addView(singleRow(circulationBtn))
-            addView(singleRow(flowRateBtn))
+            val quickBtn = segmentedChip("Quick", pumpProfile == "quick") {
+                pumpProfile = "quick"
+                pumpEnabled = true
+                savePumpState()
+                HardwareController.setPumpProfile("quick")
+                recreate()
+            }
+
+            val slowBtn = segmentedChip("Slow", pumpProfile == "slow") {
+                pumpProfile = "slow"
+                pumpEnabled = true
+                savePumpState()
+                HardwareController.setPumpProfile("slow")
+                recreate()
+            }
+
+            pumpRateRow.addView(quickBtn)
+            pumpRateRow.addView(space(dp(8)))
+            pumpRateRow.addView(slowBtn)
+
+            addView(pumpRateLabel)
+            addView(pumpRateRow)
             addView(spacer(dp(16)))
             addView(sectionHeader("▦", "FAN CURVE"))
             addView(autoCurveCheck)
             addView(curveStatusText)
-            addView(modeScroller)
+            addView(modeRow)
             addView(subtleLabel("Auto mode ramps fan by temperature and disables manual curve cards"))
             addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
             addView(subtleLabel("Balanced → moderate cooling, stays between fan 2-3"))
@@ -2009,24 +2026,24 @@ class MainActivity : Activity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 0, 0, dp(12))
+            setPadding(0, 0, 0, dp(10))
 
             val iconView = TextView(this@MainActivity).apply {
                 this.text = icon
-                textSize = 12f
-                setTextColor(textPrimary)
+                textSize = 11f
+                setTextColor(textSecondary)
                 gravity = Gravity.CENTER
-                background = roundedFill(Color.parseColor("#1E2633"), 10)
-                setPadding(dp(8), dp(6), dp(8), dp(6))
+                background = roundedFill(Color.parseColor("#1A2230"), 10)
+                setPadding(dp(7), dp(5), dp(7), dp(5))
             }
 
             val labelView = TextView(this@MainActivity).apply {
                 this.text = text
-                textSize = 12f
+                textSize = 11f
                 setTextColor(accent)
                 setTypeface(typeface, Typeface.BOLD)
-                letterSpacing = 0.08f
-                setPadding(dp(10), 0, 0, 0)
+                letterSpacing = 0.06f
+                setPadding(dp(8), 0, 0, 0)
             }
 
             addView(iconView)
@@ -2037,13 +2054,20 @@ class MainActivity : Activity() {
     private fun sectionPanel(): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = roundedBg(panelColor, borderColor, 20)
+            setPadding(dp(18), dp(18), dp(18), dp(18))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(22).toFloat()
+                setColor(panelColor)
+                setStroke(dp(1), Color.parseColor("#2A3444"))
+            }
+            elevation = dp(3).toFloat()
+            translationZ = dp(1).toFloat()
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = dp(12)
+                bottomMargin = dp(14)
             }
         }
     }
@@ -2135,6 +2159,68 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun premiumToggleRow(
+        title: String,
+        subtitle: String,
+        checked: Boolean,
+        onToggle: (Boolean) -> Unit
+    ): LinearLayout {
+        val titleView = TextView(this).apply {
+            text = title
+            textSize = 15f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = subtitle
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(4), 0, 0)
+        }
+
+        val textCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(titleView)
+            addView(subtitleView)
+        }
+
+        val toggle = android.widget.Switch(this).apply {
+            isChecked = checked
+            setOnCheckedChangeListener { _, isChecked -> onToggle(isChecked) }
+        }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 18)
+
+            addView(textCol, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(toggle)
+        }
+    }
+
+    private fun segmentedChip(
+        label: String,
+        selected: Boolean,
+        onClick: () -> Unit
+    ): Button {
+        return Button(this).apply {
+            text = label
+            textSize = 12f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(
+                if (selected) panelPressed else Color.parseColor("#1A2230"),
+                999
+            )
+            setPadding(dp(16), dp(10), dp(16), dp(10))
+            setOnClickListener { onClick() }
+            applyPressEffect(this)
+        }
+    }
+
     private fun actionButton(text: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
         return Button(this).apply {
             this.text = text
@@ -2189,7 +2275,8 @@ class MainActivity : Activity() {
         view.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.alpha = 0.92f
+                    v.alpha = 0.96f
+                    v.animate().scaleX(0.985f).scaleY(0.985f).setDuration(80).start()
                     v.background = when (v) {
                         is Button -> roundedFill(pressedColor, 16)
                         else -> roundedBg(pressedColor, highlightBorder, 18)
@@ -2197,6 +2284,7 @@ class MainActivity : Activity() {
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.alpha = 1f
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
                     v.background = normalBg
                 }
             }

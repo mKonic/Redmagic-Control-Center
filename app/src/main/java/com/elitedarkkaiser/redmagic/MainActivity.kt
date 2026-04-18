@@ -809,28 +809,57 @@ class MainActivity : Activity() {
             addView(spacer(dp(16)))
             addView(sectionHeader("◉", "PUMP"))
 
-            addView(premiumToggleRow(
-                title = "Liquid cooling circulation",
-                subtitle = "Enable or disable the micropump",
-                checked = pumpEnabled
-            ) { checked ->
-                pumpEnabled = checked
-                savePumpState()
-                if (pumpEnabled) {
-                    HardwareController.setPumpProfile(pumpProfile)
-                } else {
-                    HardwareController.enablePump(false)
+            val pumpSection = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(14), dp(14), dp(14), dp(14))
+                background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 18)
+            }
+
+            val pumpTitle = TextView(this@MainActivity).apply {
+                text = "Liquid cooling circulation"
+                textSize = 15f
+                setTextColor(textPrimary)
+                setTypeface(typeface, Typeface.BOLD)
+            }
+
+            val pumpSubtitle = TextView(this@MainActivity).apply {
+                text = "Enable or disable the micropump"
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, dp(4), 0, dp(12))
+            }
+
+            val circulationSwitch = android.widget.Switch(this@MainActivity).apply {
+                isChecked = pumpEnabled
+                setOnCheckedChangeListener { _, checked ->
+                    pumpEnabled = checked
+                    savePumpState()
+                    if (pumpEnabled) {
+                        HardwareController.setPumpProfile(pumpProfile)
+                    } else {
+                        HardwareController.enablePump(false)
+                    }
+                    refreshStatus()
+                    switchTab("cooling")
                 }
-                recreate()
-            })
+            }
 
-            addView(spacer(dp(12)))
+            val circulationRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(pumpTitle)
+                    addView(pumpSubtitle)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(circulationSwitch)
+            }
 
-            val pumpRateLabel = TextView(this@MainActivity).apply {
+            val flowRateLabel = TextView(this@MainActivity).apply {
                 text = "Flow rate"
                 textSize = 12f
                 setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(8))
+                setPadding(0, dp(4), 0, dp(8))
             }
 
             val pumpRateRow = LinearLayout(this@MainActivity).apply {
@@ -842,7 +871,7 @@ class MainActivity : Activity() {
                 pumpEnabled = true
                 savePumpState()
                 HardwareController.setPumpProfile("quick")
-                refreshStatus()
+                switchTab("cooling")
             }
 
             val slowBtn = segmentedChip("Slow", pumpProfile == "slow") {
@@ -850,15 +879,18 @@ class MainActivity : Activity() {
                 pumpEnabled = true
                 savePumpState()
                 HardwareController.setPumpProfile("slow")
-                refreshStatus()
+                switchTab("cooling")
             }
 
             pumpRateRow.addView(quickBtn)
             pumpRateRow.addView(space(dp(8)))
             pumpRateRow.addView(slowBtn)
 
-            addView(pumpRateLabel)
-            addView(pumpRateRow)
+            pumpSection.addView(circulationRow)
+            pumpSection.addView(flowRateLabel)
+            pumpSection.addView(pumpRateRow)
+
+            addView(pumpSection)
             addView(spacer(dp(16)))
             addView(sectionHeader("▦", "FAN CURVE"))
             addView(autoCurveCheck)

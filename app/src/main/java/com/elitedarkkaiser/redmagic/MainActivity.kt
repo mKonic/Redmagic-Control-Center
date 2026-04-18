@@ -68,6 +68,10 @@ class MainActivity : Activity() {
     private var logoLedEffect = "steady"
     private var logoLedColor = 1
 
+    private var shoulderLedEnabled = true
+    private var shoulderLedEffect = "breathe"
+    private var shoulderLedColor = 8
+
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
@@ -78,6 +82,10 @@ class MainActivity : Activity() {
     private val logoLedEnabledKey = "logo_led_enabled"
     private val logoLedEffectKey = "logo_led_effect"
     private val logoLedColorKey = "logo_led_color"
+
+    private val shoulderLedEnabledKey = "shoulder_led_enabled"
+    private val shoulderLedEffectKey = "shoulder_led_effect"
+    private val shoulderLedColorKey = "shoulder_led_color"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -175,6 +183,32 @@ class MainActivity : Activity() {
         logoLedEnabled = isLogoLedEnabledSaved()
         logoLedEffect = savedLogoLedEffect()
         logoLedColor = savedLogoLedColor()
+    }
+
+    private fun isShoulderLedEnabledSaved(): Boolean {
+        return prefs().getBoolean(shoulderLedEnabledKey, true)
+    }
+
+    private fun savedShoulderLedEffect(): String {
+        return prefs().getString(shoulderLedEffectKey, "breathe") ?: "breathe"
+    }
+
+    private fun savedShoulderLedColor(): Int {
+        return prefs().getInt(shoulderLedColorKey, 8)
+    }
+
+    private fun saveShoulderLedState() {
+        prefs().edit()
+            .putBoolean(shoulderLedEnabledKey, shoulderLedEnabled)
+            .putString(shoulderLedEffectKey, shoulderLedEffect)
+            .putInt(shoulderLedColorKey, shoulderLedColor)
+            .commit()
+    }
+
+    private fun applySavedShoulderLedStateOnLaunch() {
+        shoulderLedEnabled = isShoulderLedEnabledSaved()
+        shoulderLedEffect = savedShoulderLedEffect()
+        shoulderLedColor = savedShoulderLedColor()
     }
 
     private fun startAutoFanService() {
@@ -420,6 +454,7 @@ class MainActivity : Activity() {
 
         applySavedFanLedStateOnLaunch()
         applySavedLogoLedStateOnLaunch()
+        applySavedShoulderLedStateOnLaunch()
 
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
@@ -433,6 +468,12 @@ class MainActivity : Activity() {
             HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
         } else {
             HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (shoulderLedEnabled) {
+            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
         }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
@@ -822,8 +863,34 @@ class MainActivity : Activity() {
             addView(singleRow(allOffBtn))
         }
 
+        val shoulderCard = sectionPanel().apply {
+            addView(sectionHeader("⟫", "SHOULDER LEDS"))
+
+            val shoulderSummary = TextView(this@MainActivity).apply {
+                text = "Customize shoulder LED strips effect and color"
+                textSize = 13f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
+            }
+
+            val customizeShoulderBtn = actionButton("CUSTOMIZE SHOULDER LEDS") {
+                showShoulderLedDialog()
+            }
+
+            val shoulderOffBtn = actionButton("SHOULDER LEDS OFF", isDanger = true) {
+                shoulderLedEnabled = false
+                saveShoulderLedState()
+                HardwareController.setShoulderLedEnabled(false)
+            }
+
+            addView(shoulderSummary)
+            addView(singleRow(customizeShoulderBtn))
+            addView(singleRow(shoulderOffBtn))
+        }
+
         container.addView(fanLedCard)
         container.addView(logoCard)
+        container.addView(shoulderCard)
         container.addView(allLedCard)
         return container
     }
@@ -831,6 +898,209 @@ class MainActivity : Activity() {
 
 
     private var dialogRefreshLogoLed: (() -> Unit)? = null
+
+
+    private var dialogRefreshShoulderLed: (() -> Unit)? = null
+
+    private fun showShoulderLedDialog() {
+        val originalEnabled = shoulderLedEnabled
+        val originalEffect = shoulderLedEffect
+        val originalColor = shoulderLedColor
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Shoulder LEDs"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Customize shoulder LED strips with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val enableCheck = CheckBox(this).apply {
+            text = "Enable shoulder LEDs"
+            isChecked = shoulderLedEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setPadding(0, dp(14), 0, 0)
+            setOnCheckedChangeListener { _, checked ->
+                shoulderLedEnabled = checked
+                if (checked) {
+                    HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                } else {
+                    HardwareController.setShoulderLedEnabled(false)
+                }
+            }
+        }
+
+        val effectLabel = TextView(this).apply {
+            text = "Effect"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val effectsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val steadyBtn = filterChip("Steady", shoulderLedEffect == "steady") {
+            shoulderLedEffect = "steady"
+            if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            dialogRefreshShoulderLed?.invoke()
+        }
+
+        val breatheBtn = filterChip("Breathe", shoulderLedEffect == "breathe") {
+            shoulderLedEffect = "breathe"
+            if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            dialogRefreshShoulderLed?.invoke()
+        }
+
+        effectsRow.addView(steadyBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(breatheBtn)
+
+        val colorLabel = TextView(this).apply {
+            text = "Color"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(10))
+        }
+
+        val colorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(colorDotGeneric("#00E676", shoulderLedColor == 5) {
+                shoulderLedColor = 5
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#1565FF", shoulderLedColor == 7) {
+                shoulderLedColor = 7
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#E100FF", shoulderLedColor == 8) {
+                shoulderLedColor = 8
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(enableCheck)
+        container.addView(effectLabel)
+        container.addView(effectsRow)
+        container.addView(colorLabel)
+        container.addView(colorRow)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            shoulderLedEnabled = originalEnabled
+            shoulderLedEffect = originalEffect
+            shoulderLedColor = originalColor
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            saveShoulderLedState()
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            shoulderLedEnabled = originalEnabled
+            shoulderLedEffect = originalEffect
+            shoulderLedColor = originalColor
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+        }
+
+        fun repaint() {
+            steadyBtn.background = roundedFill(
+                if (shoulderLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            breatheBtn.background = roundedFill(
+                if (shoulderLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        fun updateColorDots() {
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#00E676", shoulderLedColor == 5)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#1565FF", shoulderLedColor == 7)
+            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#E100FF", shoulderLedColor == 8)
+        }
+
+        fun refreshUi() {
+            repaint()
+            updateColorDots()
+        }
+
+        dialogRefreshShoulderLed = { refreshUi() }
+
+        refreshUi()
+        dialog.show()
+    }
 
     private fun showLogoLedDialog() {
         val originalEnabled = logoLedEnabled

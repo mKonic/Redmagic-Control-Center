@@ -93,6 +93,29 @@ object HardwareController {
         }
     }
 
+
+    fun setShoulderLedEnabled(enabled: Boolean): Boolean {
+        return if (enabled) {
+            RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2002005 > $LED_EFFECT; echo 1 > $LED_CFG")
+        } else {
+            RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+        }
+    }
+
+    fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
+        val effectValue = when {
+            effectName.lowercase() == "steady" && color == 5 -> "0x2002005"
+            effectName.lowercase() == "breathe" && color == 5 -> "0x2003005"
+            effectName.lowercase() == "steady" && color == 7 -> "0x2002007"
+            effectName.lowercase() == "breathe" && color == 7 -> "0x2003007"
+            effectName.lowercase() == "steady" && color == 8 -> "0x2002008"
+            effectName.lowercase() == "breathe" && color == 8 -> "0x2003008"
+            else -> "0x2003008"
+        }
+
+        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+    }
+
     fun setLogoLedEffect(effectName: String, color: Int): Boolean {
         val effectValue = when {
             effectName.lowercase() == "steady" && color == 1 -> "0x1002001"

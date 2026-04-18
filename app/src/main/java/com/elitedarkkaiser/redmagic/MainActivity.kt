@@ -54,6 +54,9 @@ class MainActivity : Activity() {
     private lateinit var controlsTab: LinearLayout
     private lateinit var lightingTab: LinearLayout
 
+    private var smartPumpStatusView: TextView? = null
+    private var smartPumpSpeedView: TextView? = null
+
     private lateinit var homeNav: LinearLayout
     private lateinit var coolingNav: LinearLayout
     private lateinit var controlsNav: LinearLayout
@@ -288,6 +291,30 @@ class MainActivity : Activity() {
             "Speed: $speed • Freq: 4"
     }
 
+    private fun refreshSmartPumpStatusViews() {
+        val statusView = smartPumpStatusView ?: return
+        val speedView = smartPumpSpeedView ?: return
+
+        if (autoPumpEnabled) {
+            val status = buildAutoPumpStatusText()
+            statusView.text = status.first
+            speedView.text = status.second
+        } else {
+            val manualLabel = pumpProfile.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase() else it.toString()
+            }
+            val manualSpeed = when (pumpProfile.lowercase()) {
+                "slow" -> 40
+                "medium" -> 60
+                "quick" -> 80
+                "experimental" -> 90
+                else -> 60
+            }
+            statusView.text = "Pump Mode: MANUAL • $manualLabel"
+            speedView.text = "Speed: $manualSpeed • Freq: 4"
+        }
+    }
+
     private fun applyPumpProfile(profile: String) {
         pumpProfile = profile
         pumpEnabled = true
@@ -297,7 +324,7 @@ class MainActivity : Activity() {
         stopAutoPumpService()
         HardwareController.setPumpProfile(profile)
         refreshStatus()
-        switchTab("cooling")
+        refreshSmartPumpStatusViews()
     }
 
     private fun confirmExperimentalPumpThenApply() {
@@ -1132,6 +1159,8 @@ class MainActivity : Activity() {
                 textSize = 12f
                 setTextColor(textSecondary)
                 alpha = 0.95f
+            }.also {
+                smartPumpStatusView = it
             }
 
             val autoPumpSpeedInfo = TextView(this@MainActivity).apply {
@@ -1139,6 +1168,8 @@ class MainActivity : Activity() {
                 setTextColor(textSecondary)
                 setPadding(0, dp(2), 0, 0)
                 alpha = 0.90f
+            }.also {
+                smartPumpSpeedView = it
             }
 
             fun setPumpManualControlsEnabled(enabled: Boolean) {
@@ -1177,6 +1208,7 @@ class MainActivity : Activity() {
                     autoPumpSpeedInfo.visibility = View.VISIBLE
                     setPumpManualControlsEnabled(true)
                 }
+                refreshSmartPumpStatusViews()
             }
 
             val autoPumpSwitch = android.widget.Switch(this@MainActivity).apply {
@@ -1191,7 +1223,7 @@ class MainActivity : Activity() {
                     }
                     refreshAutoPumpUi()
                     refreshStatus()
-                    switchTab("cooling")
+                    refreshSmartPumpStatusViews()
                 }
             }
 

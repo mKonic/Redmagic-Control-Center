@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.redmagiccontrol"
+    namespace = "com.elitedarkkaiser.redmagic"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.redmagiccontrol"
+        applicationId = "com.elitedarkkaiser.redmagic"
         minSdk = 28
         targetSdk = 35
         versionCode = 1

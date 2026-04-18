@@ -125,57 +125,147 @@ class MainActivity : Activity() {
 
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(10), dp(20), 0)
+            setPadding(dp(22), dp(18), dp(22), dp(10))
+            background = roundedBg(panelColor, borderColor, 22)
         }
 
-        val info = TextView(this).apply {
-            text =
-                "Model check passed.\n\n" +
-                    "Required model: NX809J\n" +
-                    "Detected Build.MODEL: $buildModel\n" +
-                    "Detected ro.product.model: $propModel\n\n" +
-                    "Tap OK to continue launching Redmagic HW Controls."
+        val titleView = TextView(this).apply {
+            text = "Supported Device Detected"
+            textSize = 20f
             setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val bodyView = TextView(this).apply {
+            text =
+                "Model check passed.
+
+" +
+                    "Required model: NX809J
+" +
+                    "Detected Build.MODEL: $buildModel
+" +
+                    "Detected ro.product.model: $propModel
+
+" +
+                    "Tap OK to continue launching Redmagic HW Controls."
             textSize = 14f
+            setTextColor(textSecondary)
+            setLineSpacing(0f, 1.15f)
+            setPadding(0, dp(14), 0, 0)
         }
 
         val neverShowAgain = CheckBox(this).apply {
             text = "Never show again"
-            setTextColor(textPrimary)
             textSize = 14f
+            setTextColor(textPrimary)
             setPadding(0, dp(14), 0, 0)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
         }
 
-        container.addView(info)
-        container.addView(neverShowAgain)
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("Supported Device Detected")
+        val okButton = Button(this).apply {
+            text = "OK"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(okButton)
+
+        container.addView(titleView)
+        container.addView(bodyView)
+        container.addView(neverShowAgain)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
             .setView(container)
             .setCancelable(false)
-            .setPositiveButton("OK") { _, _ ->
-                setSkipSupportedDialog(neverShowAgain.isChecked)
-                launchMainUi()
-            }
-            .show()
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        okButton.setOnClickListener {
+            setSkipSupportedDialog(neverShowAgain.isChecked)
+            dialog.dismiss()
+            launchMainUi()
+        }
+
+        dialog.show()
     }
 
     private fun showUnsupportedDeviceDialog() {
         val buildModel = Build.MODEL ?: "Unknown"
         val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
 
-        AlertDialog.Builder(this)
-            .setTitle("Unsupported Device")
-            .setMessage(
-                "This app only supports model NX809J.\n\n" +
-                    "Detected Build.MODEL: $buildModel\n" +
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(10))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Unsupported Device"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val bodyView = TextView(this).apply {
+            text =
+                "This app only supports model NX809J.
+
+" +
+                    "Detected Build.MODEL: $buildModel
+" +
                     "Detected ro.product.model: $propModel"
-            )
+            textSize = 14f
+            setTextColor(textSecondary)
+            setLineSpacing(0f, 1.15f)
+            setPadding(0, dp(14), 0, 0)
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val closeButton = Button(this).apply {
+            text = "Close App"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(danger, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(closeButton)
+
+        container.addView(titleView)
+        container.addView(bodyView)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
             .setCancelable(false)
-            .setPositiveButton("Close App") { _, _ ->
-                finishAffinity()
-            }
-            .show()
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        closeButton.setOnClickListener {
+            dialog.dismiss()
+            finishAffinity()
+        }
+
+        dialog.show()
     }
 
     private fun isSupportedDevice(): Boolean {

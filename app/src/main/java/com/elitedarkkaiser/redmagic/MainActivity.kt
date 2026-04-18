@@ -114,6 +114,11 @@ class MainActivity : Activity() {
             return
         }
 
+        if (!RootShell.hasRoot()) {
+            showRootRequiredDialog()
+            return
+        }
+
         if (shouldSkipSupportedDialog()) {
             launchMainUi()
         } else {
@@ -352,6 +357,67 @@ class MainActivity : Activity() {
             setSkipSupportedDialog(neverShowAgain.isChecked)
             dialog.dismiss()
             launchMainUi()
+        }
+
+        dialog.show()
+    }
+
+
+    private fun showRootRequiredDialog() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(10))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Root Required"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val bodyView = TextView(this).apply {
+            text = "This app requires root access to launch.\n\nGrant root in Magisk, KernelSU, or APatch, then reopen the app."
+            textSize = 14f
+            setTextColor(textSecondary)
+            setLineSpacing(0f, 1.15f)
+            setPadding(0, dp(14), 0, 0)
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val closeButton = Button(this).apply {
+            text = "Close App"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(danger, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(closeButton)
+
+        container.addView(titleView)
+        container.addView(bodyView)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        )
+
+        closeButton.setOnClickListener {
+            dialog.dismiss()
+            finishAffinity()
         }
 
         dialog.show()
@@ -734,6 +800,39 @@ class MainActivity : Activity() {
             addView(row(fanOnBtn, fanOffBtn))
             addView(singleRow(rpmBtn))
             addView(spacer(dp(16)))
+            addView(sectionHeader("◉", "PUMP"))
+
+            val pumpSummary = TextView(this@MainActivity).apply {
+                text = "Liquid cooling circulation and flow rate"
+                textSize = 13f
+                setTextColor(textSecondary)
+                setPadding(0, 0, 0, dp(10))
+            }
+
+            val circulationBtn = actionButton(
+                if (pumpEnabled) "CIRCULATION ON" else "CIRCULATION OFF",
+                isDanger = !pumpEnabled
+            ) {
+                pumpEnabled = !pumpEnabled
+                savePumpState()
+                if (pumpEnabled) {
+                    HardwareController.setPumpProfile(pumpProfile)
+                } else {
+                    HardwareController.enablePump(false)
+                }
+                refreshStatus()
+            }
+
+            val flowRateBtn = actionButton(
+                "FLOW RATE: " + pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            ) {
+                showPumpProfileDialog()
+            }
+
+            addView(pumpSummary)
+            addView(singleRow(circulationBtn))
+            addView(singleRow(flowRateBtn))
+            addView(spacer(dp(16)))
             addView(sectionHeader("▦", "FAN CURVE"))
             addView(autoCurveCheck)
             addView(curveStatusText)
@@ -773,40 +872,6 @@ class MainActivity : Activity() {
             addView(row(rootCheckBtn, refreshBtn))
         }
 
-        val pumpCard = sectionPanel().apply {
-            addView(sectionHeader("◉", "PUMP"))
-
-            val pumpSummary = TextView(this@MainActivity).apply {
-                text = "Liquid cooling circulation and flow rate"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val circulationBtn = actionButton(
-                if (pumpEnabled) "CIRCULATION ON" else "CIRCULATION OFF",
-                isDanger = !pumpEnabled
-            ) {
-                pumpEnabled = !pumpEnabled
-                savePumpState()
-                if (pumpEnabled) {
-                    HardwareController.setPumpProfile(pumpProfile)
-                } else {
-                    HardwareController.enablePump(false)
-                }
-                refreshStatus()
-            }
-
-            val flowRateBtn = actionButton(
-                "FLOW RATE: " + pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            ) {
-                showPumpProfileDialog()
-            }
-
-            addView(pumpSummary)
-            addView(singleRow(circulationBtn))
-            addView(singleRow(flowRateBtn))
-        }
 
         val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
             HardwareController.enableTriggers()
@@ -840,7 +905,6 @@ class MainActivity : Activity() {
         }
 
         container.addView(systemCard)
-        container.addView(pumpCard)
         container.addView(controlsCard)
         container.addView(hapticsCard)
 

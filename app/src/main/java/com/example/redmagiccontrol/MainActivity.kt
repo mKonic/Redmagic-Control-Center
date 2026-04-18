@@ -835,10 +835,13 @@ class MainActivity : Activity() {
         return TextView(this).apply {
             this.text = text
             setTextColor(textPrimary)
-            textSize = 12f
+            textSize = 11f
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
-            setPadding(dp(12), dp(12), dp(12), dp(12))
+            isSingleLine = true
+            minHeight = dp(56)
+            includeFontPadding = true
+            setPadding(dp(12), dp(8), dp(12), dp(8))
             background = roundedFill(chipOn, 14)
         }
     }

@@ -130,7 +130,7 @@ class MainActivity : Activity() {
             .putBoolean(fanLedEnabledKey, fanLedEnabled)
             .putString(fanLedEffectKey, fanLedEffect)
             .putInt(fanLedColorKey, fanLedColor)
-            .apply()
+            .commit()
     }
 
     private fun applySavedFanLedStateOnLaunch() {
@@ -355,6 +355,12 @@ class MainActivity : Activity() {
         setContentView(root)
 
         applySavedFanLedStateOnLaunch()
+
+        if (fanLedEnabled) {
+            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+        } else {
+            HardwareController.setFanLedEnabled(false)
+        }
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
         autoCurveCheck.isChecked = autoFanCurveEnabled

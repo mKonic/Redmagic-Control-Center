@@ -239,7 +239,10 @@ class MainActivity : Activity() {
 
     private fun applySavedPumpStateOnLaunch() {
         pumpEnabled = isPumpEnabledSaved()
-        pumpProfile = savedPumpProfile()
+        pumpProfile = savedPumpProfile().lowercase()
+        if (pumpProfile != "quick" && pumpProfile != "slow") {
+            pumpProfile = "quick"
+        }
     }
 
     private fun startAutoFanService() {
@@ -600,23 +603,31 @@ class MainActivity : Activity() {
 
         val summaryCard = sectionPanel().apply {
             addView(sectionHeader("⌂", "WELCOME"))
-            addView(bodyText("Root-powered hardware control utility for Redmagic 11 Pro."))
-            addView(bodyText("Controls fan behavior, pump, lighting, triggers, slider actions, and haptics."))
-        }
 
-        val linksCard = sectionPanel().apply {
-            addView(sectionHeader("↗", "GITHUB & REFERENCE"))
+            addView(bodyText("RedMagic HW Controls is a root-powered control center for RedMagic 11 Pro that brings key hardware features into one place with a cleaner interface than stock tools."))
 
-            val githubBtn = actionButton("OPEN GITHUB") {
+            addView(bodyText("It lets you manage cooling behavior, fan profiles, micropump control, fan LED effects, logo lighting, shoulder LED strips, trigger tools, slider actions, and haptics directly from the app."))
+
+            addView(bodyText("The app is built around real device paths and behavior confirmed on hardware so the controls feel practical, focused, and close to an OEM-style utility."))
+
+            val linksRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, dp(14), 0, 0)
+            }
+
+            val githubBtn = segmentedChip("GitHub", false) {
                 openUrl("https://github.com/austineyoung2000/Red")
             }
 
-            val referenceBtn = actionButton("OPEN REFERENCE") {
+            val referenceBtn = segmentedChip("Reference", false) {
                 openUrl("https://www.reddit.com/r/RedMagic/comments/1rtoako/red_magic_11_pro_hardware_control_guide_for/")
             }
 
-            addView(singleRow(githubBtn))
-            addView(singleRow(referenceBtn))
+            linksRow.addView(githubBtn)
+            linksRow.addView(space(dp(8)))
+            linksRow.addView(referenceBtn)
+
+            addView(linksRow)
         }
 
         deviceModelValue = infoValue()
@@ -673,7 +684,6 @@ class MainActivity : Activity() {
 
         container.addView(welcomeCard)
         container.addView(summaryCard)
-        container.addView(linksCard)
         container.addView(infoCard)
         container.addView(statusCard)
 
@@ -832,7 +842,7 @@ class MainActivity : Activity() {
                 pumpEnabled = true
                 savePumpState()
                 HardwareController.setPumpProfile("quick")
-                recreate()
+                refreshStatus()
             }
 
             val slowBtn = segmentedChip("Slow", pumpProfile == "slow") {
@@ -840,7 +850,7 @@ class MainActivity : Activity() {
                 pumpEnabled = true
                 savePumpState()
                 HardwareController.setPumpProfile("slow")
-                recreate()
+                refreshStatus()
             }
 
             pumpRateRow.addView(quickBtn)

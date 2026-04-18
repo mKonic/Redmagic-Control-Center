@@ -368,40 +368,70 @@ class MainActivity : Activity() {
     }
 
     private fun showSaveProfileDialog(onSaved: () -> Unit) {
+        val titleView = TextView(this).apply {
+            text = "Save Profile"
+            textSize = 19f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, 0, 0, dp(14))
+        }
+
         val input = EditText(this).apply {
             hint = "Profile name"
             setTextColor(textPrimary)
             setHintTextColor(textSecondary)
-            setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 16)
+            textSize = 15f
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = roundedBg(Color.parseColor("#121A27"), Color.parseColor("#263246"), 18)
         }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = actionButton("CANCEL").apply {
+            alpha = 0.88f
+        }
+
+        val saveBtn = actionButton("SAVE").apply {
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
 
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(10))
-            background = roundedBg(panelColor, borderColor, 22)
+            setPadding(dp(22), dp(20), dp(22), dp(16))
+            background = roundedBg(panelColor, borderColor, 24)
+            addView(titleView)
             addView(input)
+            addView(buttonRow)
         }
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Save Profile")
             .setView(container)
-            .setPositiveButton("Save", null)
-            .setNegativeButton("Cancel", null)
+            .setCancelable(true)
             .create()
 
-        dialog.setOnShowListener {
-            val saveBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            saveBtn.setOnClickListener {
-                val name = input.text?.toString()?.trim().orEmpty()
-                if (name.isBlank()) return@setOnClickListener
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
-                val profile = buildCurrentHardwareProfile(name)
-                ProfileManager.upsertProfile(this, profile)
-                Toast.makeText(this, "Saved $name", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-                onSaved()
-            }
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            val name = input.text?.toString()?.trim().orEmpty()
+            if (name.isBlank()) return@setOnClickListener
+
+            val profile = buildCurrentHardwareProfile(name)
+            ProfileManager.upsertProfile(this, profile)
+            Toast.makeText(this, "Saved $name", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+            onSaved()
         }
 
         dialog.show()
@@ -1422,7 +1452,7 @@ class MainActivity : Activity() {
 
             val profileList = LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(0, dp(12), 0, 0)
+                setPadding(0, dp(10), 0, 0)
             }
 
             fun renderProfiles() {
@@ -1437,18 +1467,23 @@ class MainActivity : Activity() {
                 profiles.forEach { profile ->
                     val row = LinearLayout(this@MainActivity).apply {
                         orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
                     }
 
                     val applyBtn = actionButton(profile.name) {
                         HardwareController.applyHardwareProfile(profile)
                         applyProfileToUiState(profile)
                         Toast.makeText(this@MainActivity, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                    }.apply {
+                        setPadding(dp(16), dp(10), dp(16), dp(10))
                     }
 
-                    val deleteBtn = actionButton("DELETE", isDanger = true) {
+                    val deleteBtn = actionButton("DEL", isDanger = true) {
                         showDeleteProfileDialog(profile.name) {
                             renderProfiles()
                         }
+                    }.apply {
+                        setPadding(dp(14), dp(10), dp(14), dp(10))
                     }
 
                     row.addView(applyBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
@@ -1456,7 +1491,7 @@ class MainActivity : Activity() {
                     row.addView(deleteBtn)
 
                     profileList.addView(row)
-                    profileList.addView(space(dp(8)))
+                    profileList.addView(space(dp(10)))
                 }
             }
 

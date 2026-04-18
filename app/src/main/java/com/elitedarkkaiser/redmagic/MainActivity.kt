@@ -63,6 +63,9 @@ class MainActivity : Activity() {
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
+    private val fanLedEnabledKey = "fan_led_enabled"
+    private val fanLedEffectKey = "fan_led_effect"
+    private val fanLedColorKey = "fan_led_color"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -108,6 +111,32 @@ class MainActivity : Activity() {
 
     private fun setAutoFanEnabledSaved(enabled: Boolean) {
         prefs().edit().putBoolean(autoFanEnabledKey, enabled).apply()
+    }
+
+    private fun isFanLedEnabledSaved(): Boolean {
+        return prefs().getBoolean(fanLedEnabledKey, false)
+    }
+
+    private fun savedFanLedEffect(): String {
+        return prefs().getString(fanLedEffectKey, "steady") ?: "steady"
+    }
+
+    private fun savedFanLedColor(): Int {
+        return prefs().getInt(fanLedColorKey, 5)
+    }
+
+    private fun saveFanLedState() {
+        prefs().edit()
+            .putBoolean(fanLedEnabledKey, fanLedEnabled)
+            .putString(fanLedEffectKey, fanLedEffect)
+            .putInt(fanLedColorKey, fanLedColor)
+            .apply()
+    }
+
+    private fun applySavedFanLedStateOnLaunch() {
+        fanLedEnabled = isFanLedEnabledSaved()
+        fanLedEffect = savedFanLedEffect()
+        fanLedColor = savedFanLedColor()
     }
 
     private fun startAutoFanService() {
@@ -324,6 +353,8 @@ class MainActivity : Activity() {
         root.addView(navWrap)
 
         setContentView(root)
+
+        applySavedFanLedStateOnLaunch()
 
         autoFanCurveEnabled = isAutoFanEnabledSaved()
         autoCurveCheck.isChecked = autoFanCurveEnabled
@@ -707,6 +738,10 @@ class MainActivity : Activity() {
 
 
     private fun showFanLedDialog() {
+        val originalEnabled = fanLedEnabled
+        val originalEffect = fanLedEffect
+        val originalColor = fanLedColor
+
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(22), dp(18), dp(22), dp(12))
@@ -720,6 +755,13 @@ class MainActivity : Activity() {
             setTypeface(typeface, Typeface.BOLD)
         }
 
+        val subtitleView = TextView(this).apply {
+            text = "Confirmed working options for fan LED"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
         val enableCheck = CheckBox(this).apply {
             text = "Enable fan light"
             isChecked = fanLedEnabled
@@ -727,40 +769,62 @@ class MainActivity : Activity() {
             setTextColor(textPrimary)
             buttonTintList = android.content.res.ColorStateList.valueOf(accent)
             setPadding(0, dp(14), 0, 0)
+            setOnCheckedChangeListener { _, checked ->
+                fanLedEnabled = checked
+                if (checked) {
+                    HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                } else {
+                    HardwareController.setFanLedEnabled(false)
+                }
+            }
         }
 
         val effectLabel = TextView(this).apply {
-            text = "Selected effect"
+            text = "Effect"
             textSize = 12f
             setTextColor(textSecondary)
-            setPadding(0, dp(16), 0, dp(6))
+            setPadding(0, dp(16), 0, dp(8))
         }
 
-        val effectValue = TextView(this).apply {
-            text = fanLedEffect.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            textSize = 15f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
+        val effectsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
         }
 
-        val chooseEffectBtn = actionButton("SELECT LED EFFECT") {
-            showFanLedEffectPicker(effectValue)
+        val steadyBtn = filterChip("Steady", fanLedEffect == "steady") {
+            fanLedEffect = "steady"
+            if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            dialogRefreshFanLed()
         }
+
+        val breatheBtn = filterChip("Breathe", fanLedEffect == "breathe") {
+            fanLedEffect = "breathe"
+            if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            dialogRefreshFanLed()
+        }
+
+        effectsRow.addView(steadyBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(breatheBtn)
 
         val colorLabel = TextView(this).apply {
-            text = "Select LED color"
+            text = "Color"
             textSize = 12f
             setTextColor(textSecondary)
             setPadding(0, dp(16), 0, dp(10))
         }
 
-        val colorRow = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                addView(colorDot(5, "#00E676"))
-                addView(space(dp(10)))
-                addView(colorDot(7, "#1565FF"))
+        val colorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(colorDot(5, "#00E676") {
+                fanLedColor = 5
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed()
+            })
+            addView(space(dp(10)))
+            addView(colorDot(7, "#1565FF") {
+                fanLedColor = 7
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed()
             })
         }
 
@@ -770,8 +834,17 @@ class MainActivity : Activity() {
             setPadding(0, dp(18), 0, 0)
         }
 
-        val applyBtn = Button(this).apply {
-            text = "Apply"
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
             textSize = 13f
             setAllCaps(false)
             setTextColor(textPrimary)
@@ -779,13 +852,15 @@ class MainActivity : Activity() {
             setPadding(dp(20), dp(10), dp(20), dp(10))
         }
 
-        buttonRow.addView(applyBtn)
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
 
         container.addView(titleView)
+        container.addView(subtitleView)
         container.addView(enableCheck)
         container.addView(effectLabel)
-        container.addView(effectValue)
-        container.addView(singleRow(chooseEffectBtn))
+        container.addView(effectsRow)
         container.addView(colorLabel)
         container.addView(colorRow)
         container.addView(buttonRow)
@@ -797,78 +872,97 @@ class MainActivity : Activity() {
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
-        applyBtn.setOnClickListener {
-            fanLedEnabled = enableCheck.isChecked
+        cancelBtn.setOnClickListener {
+            fanLedEnabled = originalEnabled
+            fanLedEffect = originalEffect
+            fanLedColor = originalColor
+
             if (fanLedEnabled) {
                 HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
             } else {
                 HardwareController.setFanLedEnabled(false)
             }
+
             dialog.dismiss()
         }
 
-        dialog.show()
-    }
-
-    private fun showFanLedEffectPicker(effectValueView: TextView) {
-        val effects = listOf(
-            "steady",
-            "breathe"
-        )
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(12))
-            background = roundedBg(panelColor, borderColor, 22)
+        saveBtn.setOnClickListener {
+            saveFanLedState()
+            dialog.dismiss()
         }
 
-        val titleView = TextView(this).apply {
-            text = "Select LED effects"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
+        dialog.setOnCancelListener {
+            fanLedEnabled = originalEnabled
+            fanLedEffect = originalEffect
+            fanLedColor = originalColor
 
-        container.addView(titleView)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-
-        effects.forEach { effect ->
-            val item = TextView(this).apply {
-                text = effect.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                textSize = 16f
-                setTextColor(if (fanLedEffect == effect) accent else textPrimary)
-                setPadding(0, dp(18), 0, dp(6))
-                setOnClickListener {
-                    fanLedEffect = effect
-                    effectValueView.text = effect.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-                    dialog.dismiss()
-                }
+            if (fanLedEnabled) {
+                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            } else {
+                HardwareController.setFanLedEnabled(false)
             }
-            container.addView(item)
         }
+
+        fun repaint() {
+            steadyBtn.background = roundedFill(
+                if (fanLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            breatheBtn.background = roundedFill(
+                if (fanLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        fun updateColorDots() {
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#00E676", fanLedColor == 5)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#1565FF", fanLedColor == 7)
+        }
+
+        repaint()
+        updateColorDots()
+
+        fun refreshUi() {
+            repaint()
+            updateColorDots()
+        }
+
+        dialogRefreshFanLed = { refreshUi() }
 
         dialog.show()
     }
 
-    private fun colorDot(colorId: Int, hex: String): View {
+    private var dialogRefreshFanLed: (() -> Unit)? = null
+
+    private fun filterChip(label: String, selected: Boolean, onClick: () -> Unit): Button {
+        return Button(this).apply {
+            text = label
+            textSize = 12f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(
+                if (selected) panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun colorDot(colorId: Int, hex: String, onClick: () -> Unit): View {
         return View(this).apply {
             val size = dp(42)
             layoutParams = LinearLayout.LayoutParams(size, size)
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.parseColor(hex))
-                setStroke(dp(2), if (fanLedColor == colorId) Color.WHITE else Color.TRANSPARENT)
-            }
-            setOnClickListener {
-                fanLedColor = colorId
-                showFanLedDialog()
-            }
+            background = colorDotDrawable(hex, fanLedColor == colorId)
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun colorDotDrawable(hex: String, selected: Boolean): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(Color.parseColor(hex))
+            setStroke(dp(3), if (selected) Color.WHITE else Color.TRANSPARENT)
         }
     }
 

@@ -75,6 +75,27 @@ object HardwareController {
         return RootShell.exec(cmd)
     }
 
+
+    fun setFanLedEnabled(enabled: Boolean, mode: Int = 2, color: Int = 1): Boolean {
+        return if (enabled) {
+            setLed(zone = 1, mode = mode, color = color)
+        } else {
+            setLed(zone = 1, mode = 0, color = 0)
+        }
+    }
+
+    fun setFanLedEffect(effectName: String, color: Int): Boolean {
+        val mode = when (effectName.lowercase()) {
+            "steady" -> 2
+            "breathe" -> 3
+            "flashing" -> 4
+            "burst" -> 5
+            "flow" -> 6
+            else -> 2
+        }
+        return setLed(zone = 1, mode = mode, color = color)
+    }
+
     fun turnOffAllLeds(): Boolean {
         val cmd = buildString {
             for (z in 1..3) {

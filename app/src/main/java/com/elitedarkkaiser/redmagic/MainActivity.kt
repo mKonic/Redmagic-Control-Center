@@ -793,13 +793,13 @@ class MainActivity : Activity() {
         val steadyBtn = filterChip("Steady", fanLedEffect == "steady") {
             fanLedEffect = "steady"
             if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
-            dialogRefreshFanLed()
+            dialogRefreshFanLed?.invoke()
         }
 
         val breatheBtn = filterChip("Breathe", fanLedEffect == "breathe") {
             fanLedEffect = "breathe"
             if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
-            dialogRefreshFanLed()
+            dialogRefreshFanLed?.invoke()
         }
 
         effectsRow.addView(steadyBtn)
@@ -818,13 +818,13 @@ class MainActivity : Activity() {
             addView(colorDot(5, "#00E676") {
                 fanLedColor = 5
                 if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
-                dialogRefreshFanLed()
+                dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(7, "#1565FF") {
                 fanLedColor = 7
                 if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
-                dialogRefreshFanLed()
+                dialogRefreshFanLed?.invoke()
             })
         }
 

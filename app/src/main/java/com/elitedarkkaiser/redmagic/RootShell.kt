@@ -1,4 +1,4 @@
-package com.example.redmagiccontrol
+package com.elitedarkkaiser.redmagic
 
 import java.io.BufferedReader
 import java.io.DataOutputStream

@@ -1,4 +1,4 @@
-package com.example.redmagiccontrol
+package com.elitedarkkaiser.redmagic
 
 import android.app.Activity
 import android.app.AlertDialog

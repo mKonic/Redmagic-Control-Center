@@ -1,4 +1,4 @@
-package com.example.redmagiccontrol
+package com.elitedarkkaiser.redmagic
 
 import kotlin.math.abs
 import kotlin.math.round

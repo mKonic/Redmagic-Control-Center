@@ -1,4 +1,4 @@
-package com.example.redmagiccontrol
+package com.elitedarkkaiser.redmagic
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -15,16 +15,25 @@ class AutoFanService : Service() {
     companion object {
         private const val CHANNEL_ID = "auto_fan_service_channel"
         private const val NOTIF_ID = 1101
+        private const val POLL_INTERVAL_MS = 15000L
+        private const val HYSTERESIS_F = 5f
     }
 
     private val handler = Handler(Looper.getMainLooper())
+    private var lastAppliedLevel = -1
 
     private val loop = object : Runnable {
         override fun run() {
             val tempF = HardwareController.readTemperatureF()
-            val level = HardwareController.applyAutoFanCurve()
-            updateNotification(tempF, level)
-            handler.postDelayed(this, 15000)
+            val nextLevel = chooseStableFanLevel(tempF, lastAppliedLevel)
+
+            if (nextLevel != null && nextLevel != lastAppliedLevel) {
+                HardwareController.setFanLevel(nextLevel)
+                lastAppliedLevel = nextLevel
+            }
+
+            updateNotification(tempF, lastAppliedLevel)
+            handler.postDelayed(this, POLL_INTERVAL_MS)
         }
     }
 
@@ -46,11 +55,45 @@ class AutoFanService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private fun chooseStableFanLevel(tempF: Float?, currentLevel: Int): Int? {
+        if (tempF == null) return currentLevel.takeIf { it >= 0 } ?: 0
+
+        val baseLevel = when {
+            tempF < 95f -> 0
+            tempF < 104f -> 1
+            tempF < 113f -> 2
+            tempF < 122f -> 3
+            tempF < 131f -> 4
+            else -> 5
+        }
+
+        if (currentLevel < 0) return baseLevel
+
+        if (baseLevel > currentLevel) {
+            return baseLevel
+        }
+
+        if (baseLevel < currentLevel) {
+            val holdThreshold = when (currentLevel) {
+                5 -> 131f - HYSTERESIS_F
+                4 -> 122f - HYSTERESIS_F
+                3 -> 113f - HYSTERESIS_F
+                2 -> 104f - HYSTERESIS_F
+                1 -> 95f - HYSTERESIS_F
+                else -> Float.MIN_VALUE
+            }
+
+            return if (tempF < holdThreshold) baseLevel else currentLevel
+        }
+
+        return currentLevel
+    }
+
     private fun updateNotification(tempF: Float?, level: Int?) {
         val tempText = if (tempF != null) "${tempF.toInt()}°F" else "--°F"
-        val levelText = if (level != null) "Level $level" else "Unknown"
+        val levelText = if (level != null && level >= 0) "Level $level" else "Unknown"
 
-        val notification = buildNotification("Auto Fan Curve Active • Temp: $tempText • Fan: $levelText")
+        val notification = buildNotification("Auto Fan Active • Temp: $tempText • Fan: $levelText")
         val nm = getSystemService(NotificationManager::class.java)
         nm.notify(NOTIF_ID, notification)
     }

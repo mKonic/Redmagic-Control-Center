@@ -1,4 +1,4 @@
-package com.example.redmagiccontrol
+package com.elitedarkkaiser.redmagic
 
 import android.accessibilityservice.AccessibilityService
 import android.view.KeyEvent

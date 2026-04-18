@@ -299,17 +299,17 @@ class MainActivity : Activity() {
             addView(rootChip, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(10) })
+            ).apply { marginEnd = dp(6) })
 
             addView(fanChip, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(10) })
+            ).apply { marginEnd = dp(6) })
 
             addView(rpmChip, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(10) })
+            ).apply { marginEnd = dp(6) })
 
             addView(tempChip, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -836,14 +836,14 @@ class MainActivity : Activity() {
         return TextView(this).apply {
             this.text = text
             setTextColor(textPrimary)
-            textSize = 11f
+            textSize = 10f
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
             isSingleLine = true
-            minHeight = dp(48)
-            minimumWidth = dp(96)
+            minHeight = dp(40)
+            minimumWidth = dp(80)
             includeFontPadding = false
-            setPadding(dp(16), dp(8), dp(16), dp(8))
+            setPadding(dp(12), dp(6), dp(12), dp(6))
             background = roundedFill(chipOn, 999)
         }
     }

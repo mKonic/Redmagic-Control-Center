@@ -1005,6 +1005,57 @@ class MainActivity : Activity() {
             addView(spacer(dp(16)))
             addView(sectionHeader("◉", "PUMP"))
 
+            val autoPumpSection = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(12), 0, dp(12))
+            }
+
+            val autoPumpTitle = TextView(this@MainActivity).apply {
+                text = "Auto Pump"
+                textSize = 15f
+                setTextColor(textPrimary)
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+            }
+
+            val autoPumpDesc = TextView(this@MainActivity).apply {
+                text = "Automatically adjusts pump speed based on temperature."
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, dp(4), 0, dp(10))
+            }
+
+            val autoPumpSwitch = android.widget.Switch(this@MainActivity).apply {
+                isChecked = autoPumpEnabled
+                setOnCheckedChangeListener { _, checked ->
+                    autoPumpEnabled = checked
+                    saveAutoPumpState()
+
+                    if (checked) {
+                        startAutoPumpService()
+                    } else {
+                        stopAutoPumpService()
+                    }
+                }
+            }
+
+            val autoPumpRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+
+                addView(LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(autoPumpTitle)
+                    addView(autoPumpDesc)
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+
+                addView(autoPumpSwitch)
+            }
+
+            autoPumpSection.addView(autoPumpRow)
+            pumpSection.addView(autoPumpSection)
+
+
+
             // AUTO PUMP (SMART CONTROL)
             val autoPumpTitle = TextView(this@MainActivity).apply {
                 text = "Auto Pump"

@@ -985,17 +985,20 @@ class MainActivity : Activity() {
                 applyPumpProfile("quick")
             }
 
-            val experimentalBtn = segmentedChip("⚠ Experimental", pumpProfile == "experimental") {
+            val experimentalBtn = segmentedChip("⚠ Exp", pumpProfile == "experimental") {
                 confirmExperimentalPumpThenApply()
             }
 
-            pumpRateRow.addView(slowBtn)
-            pumpRateRow.addView(space(dp(8)))
-            pumpRateRow.addView(mediumBtn)
-            pumpRateRow.addView(space(dp(8)))
-            pumpRateRow.addView(quickBtn)
-            pumpRateRow.addView(space(dp(8)))
-            pumpRateRow.addView(experimentalBtn)
+            val chipParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            val gapParams = LinearLayout.LayoutParams(dp(6), ViewGroup.LayoutParams.WRAP_CONTENT)
+
+            pumpRateRow.addView(slowBtn, chipParams)
+            pumpRateRow.addView(space(dp(6)), gapParams)
+            pumpRateRow.addView(mediumBtn, chipParams)
+            pumpRateRow.addView(space(dp(6)), gapParams)
+            pumpRateRow.addView(quickBtn, chipParams)
+            pumpRateRow.addView(space(dp(6)), gapParams)
+            pumpRateRow.addView(experimentalBtn, chipParams)
 
             pumpSection.addView(circulationRow)
             pumpSection.addView(flowRateLabel)
@@ -1232,17 +1235,20 @@ class MainActivity : Activity() {
             dialogRefreshPump?.invoke()
         }
 
-        val experimentalBtn = filterChip("⚠ Experimental", pumpProfile == "experimental") {
+        val experimentalBtn = filterChip("⚠ Exp", pumpProfile == "experimental") {
             confirmExperimentalPumpThenApply()
         }
 
-        profilesRow.addView(slowBtn)
-        profilesRow.addView(space(dp(8)))
-        profilesRow.addView(mediumBtn)
-        profilesRow.addView(space(dp(8)))
-        profilesRow.addView(quickBtn)
-        profilesRow.addView(space(dp(8)))
-        profilesRow.addView(experimentalBtn)
+        val chipParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        val gapParams = LinearLayout.LayoutParams(dp(6), ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        profilesRow.addView(slowBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(mediumBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(quickBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(experimentalBtn, chipParams)
 
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1944,15 +1950,21 @@ class MainActivity : Activity() {
     private fun filterChip(label: String, selected: Boolean, onClick: () -> Unit): Button {
         return Button(this).apply {
             text = label
-            textSize = 12f
+            textSize = 11f
             setAllCaps(false)
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            isSingleLine = true
+            minWidth = 0
+            minimumWidth = 0
             setTextColor(textPrimary)
             background = roundedFill(
                 if (selected) panelPressed else Color.parseColor("#1E2633"),
-                999
+                16
             )
-            setPadding(dp(16), dp(8), dp(16), dp(8))
+            setPadding(dp(10), dp(6), dp(10), dp(6))
             setOnClickListener { onClick() }
+            applyPressEffect(this)
         }
     }
 

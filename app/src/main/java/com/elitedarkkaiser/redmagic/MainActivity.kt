@@ -391,11 +391,11 @@ class MainActivity : Activity() {
             setPadding(0, dp(18), 0, 0)
         }
 
-        val cancelBtn = actionButton("CANCEL").apply {
+        val cancelBtn = actionButton("CANCEL") {}.apply {
             alpha = 0.88f
         }
 
-        val saveBtn = actionButton("SAVE").apply {
+        val saveBtn = actionButton("SAVE") {}.apply {
             setPadding(dp(18), dp(10), dp(18), dp(10))
         }
 

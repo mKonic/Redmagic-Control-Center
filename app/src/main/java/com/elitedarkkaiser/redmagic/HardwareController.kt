@@ -142,10 +142,10 @@ private fun mapUnifiedLedColor(color: Int): Int {
 
 private fun mapUnifiedLedEffect(effectName: String): String {
     return when (effectName.lowercase()) {
-        "steady" -> "002"
-        "breathe" -> "003"
-        "flashing" -> "004"
-        else -> "002"
+        "steady" -> "00200"
+        "breathe" -> "00300"
+        "flashing" -> "00400"
+        else -> "00200"
     }
 }
 

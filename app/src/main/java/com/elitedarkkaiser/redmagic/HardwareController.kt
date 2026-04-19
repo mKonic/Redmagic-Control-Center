@@ -200,6 +200,22 @@ fun turnOffAllLeds(): Boolean {
         return RootShell.exec("input tap $x $y")
     }
 
+    private fun setSliderStockFunction(value: Int): Boolean {
+        val cmd = "settings put system fourth_physical_key_function_value $value; " +
+            "settings put system physical_key_function_app_value cn.nubia.gamelauncher"
+        return RootShell.exec(cmd)
+    }
+
+    fun setSliderOpenCamera(): Boolean = setSliderStockFunction(1)
+
+    fun setSliderOpenGameSpace(): Boolean = setSliderStockFunction(2)
+
+    fun setSliderSoundMode(): Boolean = setSliderStockFunction(3)
+
+    fun setSliderFlashlight(): Boolean = setSliderStockFunction(4)
+
+    fun setSliderVoiceRecorder(): Boolean = setSliderStockFunction(5)
+
     fun setSliderLaunchApp(pkg: String): Boolean {
         val cmd = "settings put system fourth_physical_key_function_value 16; " +
             "settings put system physical_key_function_app_value $pkg"

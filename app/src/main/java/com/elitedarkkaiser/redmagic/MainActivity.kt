@@ -1703,6 +1703,58 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
+        val cameraBtn = actionButton("CAMERA") {
+            HardwareController.setSliderOpenCamera()
+            saveMagicKeyAppPackage(null)
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Camera", Toast.LENGTH_SHORT).show()
+        }
+
+        val gameSpaceBtn = actionButton("GAMESPACE") {
+            HardwareController.setSliderOpenGameSpace()
+            saveMagicKeyAppPackage(null)
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to GameSpace", Toast.LENGTH_SHORT).show()
+        }
+
+        val soundModeBtn = actionButton("SOUND MODE") {
+            HardwareController.setSliderSoundMode()
+            saveMagicKeyAppPackage(null)
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Sound Mode", Toast.LENGTH_SHORT).show()
+        }
+
+        val flashlightBtn = actionButton("FLASHLIGHT") {
+            HardwareController.setSliderFlashlight()
+            saveMagicKeyAppPackage(null)
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Flashlight", Toast.LENGTH_SHORT).show()
+        }
+
+        val recorderBtn = actionButton("VOICE RECORDER") {
+            HardwareController.setSliderVoiceRecorder()
+            saveMagicKeyAppPackage(null)
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Voice Recorder", Toast.LENGTH_SHORT).show()
+        }
+
+        val stockFunctionsCard = sectionPanel().apply {
+            addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
+            addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
+            addView(singleRow(trigEnableBtn))
+            addView(row(cameraBtn, gameSpaceBtn))
+            addView(spacer(dp(8)))
+            addView(row(soundModeBtn, flashlightBtn))
+            addView(spacer(dp(8)))
+            addView(singleRow(recorderBtn))
+            addView(spacer(dp(8)))
+            addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
+                HardwareController.disableSliderSystemHandling()
+                saveMagicKeyAppPackage(null)
+                refreshStatus()
+            }))
+        }
+
         val sliderAppBtn = actionButton(
             "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
         ) {}
@@ -1710,18 +1762,15 @@ class MainActivity : Activity() {
             showMagicKeyAppPicker(sliderAppBtn)
         }
 
-        val sliderRawBtn = actionButton("DISABLE SLIDER ACTION", isDanger = true) {
-            HardwareController.disableSliderSystemHandling()
-            saveMagicKeyAppPackage(null)
-            sliderAppBtn.text = "MAGIC KEY APP: Choose App"
-            refreshStatus()
-        }
-
-        val controlsCard = sectionPanel().apply {
-            addView(sectionHeader("⌘", "TRIGGERS & SLIDER"))
-            addView(singleRow(trigEnableBtn))
+        val sliderCard = sectionPanel().apply {
+            addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
+            addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
             addView(singleRow(sliderAppBtn))
-            addView(singleRow(sliderRawBtn))
+            addView(singleRow(actionButton("CLEAR APP SELECTION", isDanger = true) {
+                saveMagicKeyAppPackage(null)
+                sliderAppBtn.text = "MAGIC KEY APP: Choose App"
+                refreshStatus()
+            }))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {
@@ -1734,7 +1783,8 @@ class MainActivity : Activity() {
         }
 
         container.addView(systemCard)
-        container.addView(controlsCard)
+        container.addView(stockFunctionsCard)
+        container.addView(sliderCard)
         
         val profilesCard = sectionPanel().apply {
             addView(sectionHeader("★", "PROFILES"))

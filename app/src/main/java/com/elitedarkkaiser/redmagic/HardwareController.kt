@@ -121,14 +121,23 @@ object HardwareController {
     }
 
     fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
-        val effectValue = when {
-            effectName.lowercase() == "steady" && color == 5 -> "0x2002005"
-            effectName.lowercase() == "breathe" && color == 5 -> "0x2003005"
-            effectName.lowercase() == "steady" && color == 7 -> "0x2002007"
-            effectName.lowercase() == "breathe" && color == 7 -> "0x2003007"
-            effectName.lowercase() == "steady" && color == 8 -> "0x2002008"
-            effectName.lowercase() == "breathe" && color == 8 -> "0x2003008"
-            else -> "0x2003008"
+        val colorCode = when (color) {
+            1 -> 1  // red
+            3 -> 3  // orange
+            4 -> 4  // yellow
+            5 -> 5  // green
+            6 -> 6  // cyan
+            7 -> 7  // blue
+            8 -> 8  // purple
+            9 -> 9  // pink
+            else -> 5
+        }
+
+        val effectValue = when (effectName.lowercase()) {
+            "steady" -> "0x200200${Integer.toHexString(colorCode)}"
+            "breathe" -> "0x200300${Integer.toHexString(colorCode)}"
+            "flashing" -> "0x200400${Integer.toHexString(colorCode)}"
+            else -> "0x200200${Integer.toHexString(colorCode)}"
         }
 
         return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")

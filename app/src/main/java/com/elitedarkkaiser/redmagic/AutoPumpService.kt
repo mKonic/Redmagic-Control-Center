@@ -13,6 +13,12 @@ import android.os.Looper
 class AutoPumpService : Service() {
 
     companion object {
+        private const val HOT_POLL_MS = 5000L
+        private const val COOL_POLL_MS = 10000L
+        private const val HOT_TEMP_THRESHOLD_F = 95f
+    }
+
+    companion object {
         private const val CHANNEL_ID = "auto_pump_channel"
         private const val NOTIF_ID = 2202
     }
@@ -22,8 +28,9 @@ class AutoPumpService : Service() {
 
     private val pollRunnable = object : Runnable {
         override fun run() {
-            applyPumpRule()
-            handler.postDelayed(this, 5000)
+            val tempF = applyPumpRule()
+            val nextDelay = if ((tempF ?: 0f) >= HOT_TEMP_THRESHOLD_F) HOT_POLL_MS else COOL_POLL_MS
+            handler.postDelayed(this, nextDelay)
         }
     }
 
@@ -46,8 +53,8 @@ class AutoPumpService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun applyPumpRule() {
-        val tempF = DashboardSnapshot.readCpuTempF().toFloatOrNull() ?: return
+    private fun applyPumpRule(): Float? {
+        val tempF = DashboardSnapshot.readCpuTempF().toFloatOrNull() ?: return null
 
         val profile = when {
             tempF >= 105f -> "quick"
@@ -55,13 +62,18 @@ class AutoPumpService : Service() {
             else -> "slow"
         }
 
-        if (profile == lastProfile) return
+        if (profile != lastProfile) {
+            HardwareController.setPumpProfile(profile)
+            lastProfile = profile
 
-        HardwareController.setPumpProfile(profile)
-        lastProfile = profile
+            val nm = getSystemService(NotificationManager::class.java)
+            nm.notify(
+                NOTIF_ID,
+                buildNotification("Pump: ${profile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • ${tempF}°F")
+            )
+        }
 
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.notify(NOTIF_ID, buildNotification("Pump: ${profile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • ${tempF}°F"))
+        return tempF
     }
 
     private fun buildNotification(text: String): Notification {

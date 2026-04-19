@@ -135,12 +135,23 @@ object HardwareController {
     }
 
     fun setLogoLedEffect(effectName: String, color: Int): Boolean {
-        val effectValue = when {
-            effectName.lowercase() == "steady" && color == 1 -> "0x1002001"
-            effectName.lowercase() == "breathe" && color == 8 -> "0x1003008"
-            effectName.lowercase() == "steady" && color == 8 -> "0x1002008"
-            effectName.lowercase() == "breathe" && color == 1 -> "0x1003001"
-            else -> "0x1002001"
+        val colorCode = when (color) {
+            1 -> 1  // red
+            3 -> 3  // orange
+            4 -> 4  // yellow
+            5 -> 5  // green
+            6 -> 6  // cyan
+            7 -> 7  // blue
+            8 -> 8  // purple
+            9 -> 9  // pink
+            else -> 1
+        }
+
+        val effectValue = when (effectName.lowercase()) {
+            "steady" -> "0x100200${Integer.toHexString(colorCode)}"
+            "breathe" -> "0x100300${Integer.toHexString(colorCode)}"
+            "flashing" -> "0x100400${Integer.toHexString(colorCode)}"
+            else -> "0x100200${Integer.toHexString(colorCode)}"
         }
 
         return RootShell.exec("echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")

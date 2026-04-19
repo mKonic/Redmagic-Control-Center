@@ -1576,6 +1576,9 @@ class MainActivity : Activity() {
                 logoLedEnabled = false
                 saveLogoLedState()
                 HardwareController.setLogoLedEnabled(false)
+                if (!fanLedEnabled && !shoulderLedEnabled) {
+                    stopFanLedService()
+                }
             }
 
             addView(logoSummary)
@@ -1601,6 +1604,9 @@ class MainActivity : Activity() {
                 shoulderLedEnabled = false
                 saveShoulderLedState()
                 HardwareController.setShoulderLedEnabled(false)
+                if (!fanLedEnabled && !logoLedEnabled) {
+                    stopFanLedService()
+                }
             }
 
             addView(shoulderSummary)
@@ -1989,6 +1995,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveShoulderLedState()
+            if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
+                startFanLedService()
+            } else {
+                stopFanLedService()
+            }
             dialog.dismiss()
         }
 
@@ -2260,6 +2271,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveLogoLedState()
+            if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
+                startFanLedService()
+            } else {
+                stopFanLedService()
+            }
             dialog.dismiss()
         }
 
@@ -2509,7 +2525,7 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveFanLedState()
-            if (fanLedEnabled) {
+            if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
                 startFanLedService()
             } else {
                 stopFanLedService()

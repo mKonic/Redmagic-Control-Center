@@ -25,10 +25,13 @@ class FanLedService : Service() {
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    turnOffAllManagedLeds()
+                }
                 Intent.ACTION_SCREEN_ON,
                 Intent.ACTION_USER_PRESENT -> {
                     handler.postDelayed({
-                        reapplySavedFanLedState()
+                        reapplySavedLedState()
                     }, 1500)
                 }
             }
@@ -40,11 +43,11 @@ class FanLedService : Service() {
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification("Fan LED persistence active"))
         registerFanLedReceiver()
-        reapplySavedFanLedState()
+        reapplySavedLedState()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        reapplySavedFanLedState()
+        reapplySavedLedState()
         return START_STICKY
     }
 
@@ -61,25 +64,64 @@ class FanLedService : Service() {
 
     private fun registerFanLedReceiver() {
         val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_USER_PRESENT)
         }
         registerReceiver(screenReceiver, filter)
     }
 
-    private fun reapplySavedFanLedState() {
+    private fun reapplySavedLedState() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-        val enabled = prefs.getBoolean("fan_led_enabled", false)
-        val effect = prefs.getString("fan_led_effect", "steady") ?: "steady"
-        val color = prefs.getInt("fan_led_color", 5)
 
-        if (enabled) {
-            HardwareController.setFanLedEffect(effect, color)
-            updateNotification("Fan LED active • ${effect.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}")
+        val fanEnabled = prefs.getBoolean("fan_led_enabled", false)
+        val fanEffect = prefs.getString("fan_led_effect", "steady") ?: "steady"
+        val fanColor = prefs.getInt("fan_led_color", 5)
+
+        val logoEnabled = prefs.getBoolean("logo_led_enabled", true)
+        val logoEffect = prefs.getString("logo_led_effect", "steady") ?: "steady"
+        val logoColor = prefs.getInt("logo_led_color", 1)
+
+        val shoulderEnabled = prefs.getBoolean("shoulder_led_enabled", true)
+        val shoulderEffect = prefs.getString("shoulder_led_effect", "breathe") ?: "breathe"
+        val shoulderColor = prefs.getInt("shoulder_led_color", 8)
+
+        if (fanEnabled) {
+            HardwareController.setFanLedEffect(fanEffect, fanColor)
         } else {
             HardwareController.setFanLedEnabled(false)
+        }
+
+        if (logoEnabled) {
+            HardwareController.setLogoLedEffect(logoEffect, logoColor)
+        } else {
+            HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (shoulderEnabled) {
+            HardwareController.setShoulderLedEffect(shoulderEffect, shoulderColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
+        }
+
+        if (fanEnabled || logoEnabled || shoulderEnabled) {
+            updateNotification(
+                "LED persistence active • Fan: " +
+                    (if (fanEnabled) "on" else "off") +
+                    " • Logo: " +
+                    (if (logoEnabled) "on" else "off") +
+                    " • Shoulder: " +
+                    (if (shoulderEnabled) "on" else "off")
+            )
+        } else {
             stopSelf()
         }
+    }
+
+    private fun turnOffAllManagedLeds() {
+        HardwareController.setFanLedEnabled(false)
+        HardwareController.setLogoLedEnabled(false)
+        HardwareController.setShoulderLedEnabled(false)
     }
 
     private fun buildNotification(text: String): Notification {
@@ -106,10 +148,10 @@ class FanLedService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Fan LED Service",
+                "LED Persistence Service",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Keeps custom fan LED settings active"
+                description = "Keeps custom LED settings synced with screen state"
             }
 
             val nm = getSystemService(NotificationManager::class.java)

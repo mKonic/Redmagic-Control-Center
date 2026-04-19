@@ -22,7 +22,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.CheckBox
 import android.widget.HorizontalScrollView
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -192,231 +191,39 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun readMagicKeyModeLabel(): String {
-        val raw = RootShell.execForOutput("settings get system fourth_physical_key_function_value")?.trim().orEmpty()
-        return when (raw) {
-            "1" -> "Camera"
-            "2" -> "GameSpace"
-            "3" -> "Sound Mode"
-            "4" -> "Flashlight"
-            "5" -> "Voice Recorder"
-            "16" -> "Launch App"
-            "0" -> "Disabled"
-            else -> "Unknown"
-        }
-    }
-
     private fun showMagicKeyAppPicker(targetButton: Button) {
-        data class MagicKeyAppItem(
-            val pkg: String,
-            val label: String,
-            val launchable: Boolean,
-            val icon: android.graphics.drawable.Drawable?
-        )
+        val launcherIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
 
-        val allApps = packageManager.getInstalledApplications(0)
-            .map { appInfo ->
-                val pkg = appInfo.packageName
-                val label = try {
-                    packageManager.getApplicationLabel(appInfo).toString()
-                } catch (_: Throwable) {
-                    pkg
-                }
-                val icon = try {
-                    packageManager.getApplicationIcon(appInfo)
-                } catch (_: Throwable) {
-                    null
-                }
-                MagicKeyAppItem(
-                    pkg = pkg,
-                    label = label,
-                    launchable = packageManager.getLaunchIntentForPackage(pkg) != null,
-                    icon = icon
-                )
+        val apps = packageManager.queryIntentActivities(launcherIntent, 0)
+            .mapNotNull { ri ->
+                val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
+                val label = ri.loadLabel(packageManager)?.toString() ?: pkg
+                pkg to label
             }
-            .sortedWith(
-                compareBy<MagicKeyAppItem> { it.label.lowercase() }
-                    .thenBy { it.pkg.lowercase() }
-            )
+            .distinctBy { it.first }
+            .sortedBy { it.second.lowercase() }
 
-        if (allApps.isEmpty()) {
-            Toast.makeText(this, "No installed apps found", Toast.LENGTH_SHORT).show()
+        if (apps.isEmpty()) {
+            Toast.makeText(this, "No launchable apps found", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val titleView = TextView(this).apply {
-            text = "Choose Magic Key app"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, 0, 0, dp(12))
-        }
+        val labels = apps.map { it.second }.toTypedArray()
 
-        val subtitleView = TextView(this).apply {
-            text = "Search by app name or package name. Lists user and system apps."
-            textSize = 12f
-            setTextColor(textSecondary)
-            setPadding(0, 0, 0, dp(12))
-        }
-
-        val searchInput = EditText(this).apply {
-            hint = "Search apps or package names"
-            setTextColor(textPrimary)
-            setHintTextColor(textSecondary)
-            textSize = 14f
-            setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = roundedBg(Color.parseColor("#121A27"), Color.parseColor("#263246"), 18)
-        }
-
-        val listView = android.widget.ListView(this).apply {
-            divider = android.graphics.drawable.ColorDrawable(Color.parseColor("#263246"))
-            dividerHeight = dp(1)
-            setBackgroundColor(Color.TRANSPARENT)
-            isVerticalScrollBarEnabled = true
-        }
-
-        val filteredApps = ArrayList(allApps)
-
-        val adapter = object : android.widget.BaseAdapter() {
-            override fun getCount(): Int = filteredApps.size
-            override fun getItem(position: Int): Any = filteredApps[position]
-            override fun getItemId(position: Int): Long = position.toLong()
-
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val item = filteredApps[position]
-
-                val row = LinearLayout(this@MainActivity).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                    setPadding(dp(14), dp(12), dp(14), dp(12))
-                    setBackgroundColor(Color.TRANSPARENT)
-                }
-
-                val iconView = ImageView(this@MainActivity).apply {
-                    layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
-                    setImageDrawable(item.icon)
-                }
-
-                val textWrap = LinearLayout(this@MainActivity).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setPadding(dp(12), 0, 0, 0)
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                }
-
-                val labelView = TextView(this@MainActivity).apply {
-                    text = item.label
-                    textSize = 14f
-                    setTextColor(textPrimary)
-                    setTypeface(typeface, Typeface.BOLD)
-                }
-
-                val pkgView = TextView(this@MainActivity).apply {
-                    text = if (item.launchable) item.pkg else "${item.pkg}  •  No launcher activity"
-                    textSize = 11f
-                    setTextColor(textSecondary)
-                    setLineSpacing(0f, 1.1f)
-                }
-
-                textWrap.addView(labelView)
-                textWrap.addView(pkgView)
-
-                row.addView(iconView)
-                row.addView(textWrap)
-
-                return row
+        AlertDialog.Builder(this)
+            .setTitle("Choose Magic Key app")
+            .setItems(labels) { _, which ->
+                val (pkg, label) = apps[which]
+                saveMagicKeyAppPackage(pkg)
+                HardwareController.setSliderLaunchApp(pkg)
+                targetButton.text = "MAGIC KEY APP: $label"
+                refreshStatus()
+                Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        fun applyFilter(query: String) {
-            val q = query.trim().lowercase()
-            filteredApps.clear()
-            if (q.isEmpty()) {
-                filteredApps.addAll(allApps)
-            } else {
-                filteredApps.addAll(
-                    allApps.filter {
-                        it.label.lowercase().contains(q) || it.pkg.lowercase().contains(q)
-                    }
-                )
-            }
-            adapter.notifyDataSetChanged()
-        }
-
-        listView.adapter = adapter
-
-        searchInput.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                applyFilter(s?.toString().orEmpty())
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
-
-        val cancelBtn = Button(this).apply {
-            text = "Cancel"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(Color.parseColor("#1E2633"), 14)
-            setPadding(dp(18), dp(10), dp(18), dp(10))
-        }
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(12))
-            background = roundedBg(panelColor, borderColor, 22)
-            addView(titleView)
-            addView(subtitleView)
-            addView(searchInput)
-            addView(space(dp(12)))
-            addView(
-                listView,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    dp(420)
-                )
-            )
-            addView(space(dp(12)))
-            addView(LinearLayout(this@MainActivity).apply {
-                gravity = Gravity.END
-                addView(cancelBtn)
-            })
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(
-            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
-        )
-
-        listView.setOnItemClickListener { _, _, which, _ ->
-            val item = filteredApps[which]
-            saveMagicKeyAppPackage(item.pkg)
-            HardwareController.setSliderLaunchApp(item.pkg)
-            targetButton.text = "MAGIC KEY APP: ${item.label}"
-            refreshStatus()
-
-            if (!item.launchable) {
-                Toast.makeText(
-                    this,
-                    "${item.label} saved, but it may not open because it has no launcher activity",
-                    Toast.LENGTH_LONG
-                ).show()
-            } else {
-                Toast.makeText(this, "Magic Key set to ${item.label}", Toast.LENGTH_SHORT).show()
-            }
-
-            dialog.dismiss()
-        }
-
-        cancelBtn.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun isFanLedEnabledSaved(): Boolean {
@@ -1717,92 +1524,25 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
-
-        val cameraBtn = smallActionButton("CAMERA") {
-            HardwareController.setSliderOpenCamera()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Camera"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Camera", Toast.LENGTH_SHORT).show()
-        }
-
-        val gameSpaceBtn = smallActionButton("GAMESPACE") {
-            HardwareController.setSliderOpenGameSpace()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: GameSpace"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to GameSpace", Toast.LENGTH_SHORT).show()
-        }
-
-        val soundModeBtn = smallActionButton("SOUND MODE") {
-            HardwareController.setSliderSoundMode()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Sound Mode"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Sound Mode", Toast.LENGTH_SHORT).show()
-        }
-
-        val flashlightBtn = smallActionButton("FLASHLIGHT") {
-            HardwareController.setSliderFlashlight()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Flashlight"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Flashlight", Toast.LENGTH_SHORT).show()
-        }
-
-        val recorderBtn = smallActionButton("VOICE RECORDER") {
-            HardwareController.setSliderVoiceRecorder()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Voice Recorder"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Voice Recorder", Toast.LENGTH_SHORT).show()
-        }
-
-        val stockFunctionsCard = sectionPanel().apply {
-            addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
-            addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
-            addView(magicKeyStatusLabel)
-            addView(space(dp(8)))
-            addView(singleRow(trigEnableBtn))
-            addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
-            addView(spacer(dp(8)))
-            addView(flowRow(flashlightBtn, recorderBtn))
-            addView(spacer(dp(8)))
-            
-            addView(spacer(dp(8)))
-            addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
-                HardwareController.disableSliderSystemHandling()
-                saveMagicKeyAppPackage(null)
-                magicKeyStatusLabel.text = "Current: Disabled"
-                refreshStatus()
-            }))
-        }
-
         val sliderAppBtn = actionButton(
             "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
         ) {}
         sliderAppBtn.setOnClickListener {
             showMagicKeyAppPicker(sliderAppBtn)
-            magicKeyStatusLabel.text = "Current: Launch App"
         }
 
-        val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
+        val sliderRawBtn = actionButton("DISABLE SLIDER ACTION", isDanger = true) {
+            HardwareController.disableSliderSystemHandling()
             saveMagicKeyAppPackage(null)
             sliderAppBtn.text = "MAGIC KEY APP: Choose App"
-            magicKeyStatusLabel.text = "Current: ${readMagicKeyModeLabel()}"
             refreshStatus()
         }
 
-        val sliderCard = sectionPanel().apply {
-            addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
-            addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
-            addView(space(dp(12)))
+        val controlsCard = sectionPanel().apply {
+            addView(sectionHeader("⌘", "TRIGGERS & SLIDER"))
+            addView(singleRow(trigEnableBtn))
             addView(singleRow(sliderAppBtn))
-            addView(space(dp(12)))
-            addView(singleRow(clearSliderAppBtn))
-            addView(space(dp(4)))
-            setPadding(dp(18), dp(18), dp(18), dp(26))
+            addView(singleRow(sliderRawBtn))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {
@@ -1815,8 +1555,7 @@ class MainActivity : Activity() {
         }
 
         container.addView(systemCard)
-        container.addView(stockFunctionsCard)
-        container.addView(sliderCard)
+        container.addView(controlsCard)
         
         val profilesCard = sectionPanel().apply {
             addView(sectionHeader("★", "PROFILES"))
@@ -3517,36 +3256,3 @@ class MainActivity : Activity() {
         return (value * resources.displayMetrics.density).toInt()
     }
 }
-
-    private fun smallActionButton(text: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
-        return Button(this).apply {
-            this.text = text
-            textSize = 12f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(
-                if (isDanger) Color.parseColor("#5A2A2A") else Color.parseColor("#1A2330"),
-                12
-            )
-            setPadding(dp(14), dp(8), dp(14), dp(8))
-            setOnClickListener { onClick() }
-        }
-    }
-
-
-
-    private fun flowRow(vararg views: View): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 0, 0, dp(6))
-            views.forEachIndexed { index, v ->
-                val params = LinearLayout.LayoutParams(
-                    0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
-                if (index > 0) params.marginStart = dp(6)
-                addView(v, params)
-            }
-        }
-    }

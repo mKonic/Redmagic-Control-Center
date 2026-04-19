@@ -192,20 +192,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun readMagicKeyModeLabel(): String {
-        val raw = RootShell.execForOutput("settings get system fourth_physical_key_function_value")?.trim().orEmpty()
-        return when (raw) {
-            "1" -> "Camera"
-            "2" -> "GameSpace"
-            "3" -> "Sound Mode"
-            "4" -> "Flashlight"
-            "5" -> "Voice Recorder"
-            "16" -> "Launch App"
-            "0" -> "Disabled"
-            else -> "Unknown"
-        }
-    }
-
     private fun showMagicKeyAppPicker(targetButton: Button) {
         data class MagicKeyAppItem(
             val pkg: String,
@@ -1717,44 +1703,37 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
-
-        val cameraBtn = smallActionButton("CAMERA") {
+        val cameraBtn = actionButton("CAMERA") {
             HardwareController.setSliderOpenCamera()
             saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Camera"
             refreshStatus()
             Toast.makeText(this, "Magic Key set to Camera", Toast.LENGTH_SHORT).show()
         }
 
-        val gameSpaceBtn = smallActionButton("GAMESPACE") {
+        val gameSpaceBtn = actionButton("GAMESPACE") {
             HardwareController.setSliderOpenGameSpace()
             saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: GameSpace"
             refreshStatus()
             Toast.makeText(this, "Magic Key set to GameSpace", Toast.LENGTH_SHORT).show()
         }
 
-        val soundModeBtn = smallActionButton("SOUND MODE") {
+        val soundModeBtn = actionButton("SOUND MODE") {
             HardwareController.setSliderSoundMode()
             saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Sound Mode"
             refreshStatus()
             Toast.makeText(this, "Magic Key set to Sound Mode", Toast.LENGTH_SHORT).show()
         }
 
-        val flashlightBtn = smallActionButton("FLASHLIGHT") {
+        val flashlightBtn = actionButton("FLASHLIGHT") {
             HardwareController.setSliderFlashlight()
             saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Flashlight"
             refreshStatus()
             Toast.makeText(this, "Magic Key set to Flashlight", Toast.LENGTH_SHORT).show()
         }
 
-        val recorderBtn = smallActionButton("VOICE RECORDER") {
+        val recorderBtn = actionButton("VOICE RECORDER") {
             HardwareController.setSliderVoiceRecorder()
             saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Voice Recorder"
             refreshStatus()
             Toast.makeText(this, "Magic Key set to Voice Recorder", Toast.LENGTH_SHORT).show()
         }
@@ -1762,19 +1741,16 @@ class MainActivity : Activity() {
         val stockFunctionsCard = sectionPanel().apply {
             addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
             addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
-            addView(magicKeyStatusLabel)
-            addView(space(dp(8)))
             addView(singleRow(trigEnableBtn))
-            addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
+            addView(row(cameraBtn, gameSpaceBtn))
             addView(spacer(dp(8)))
-            addView(flowRow(flashlightBtn, recorderBtn))
+            addView(row(soundModeBtn, flashlightBtn))
             addView(spacer(dp(8)))
-            
+            addView(singleRow(recorderBtn))
             addView(spacer(dp(8)))
             addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
                 HardwareController.disableSliderSystemHandling()
                 saveMagicKeyAppPackage(null)
-                magicKeyStatusLabel.text = "Current: Disabled"
                 refreshStatus()
             }))
         }
@@ -1784,25 +1760,17 @@ class MainActivity : Activity() {
         ) {}
         sliderAppBtn.setOnClickListener {
             showMagicKeyAppPicker(sliderAppBtn)
-            magicKeyStatusLabel.text = "Current: Launch App"
-        }
-
-        val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
-            saveMagicKeyAppPackage(null)
-            sliderAppBtn.text = "MAGIC KEY APP: Choose App"
-            magicKeyStatusLabel.text = "Current: ${readMagicKeyModeLabel()}"
-            refreshStatus()
         }
 
         val sliderCard = sectionPanel().apply {
             addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
             addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
-            addView(space(dp(12)))
             addView(singleRow(sliderAppBtn))
-            addView(space(dp(12)))
-            addView(singleRow(clearSliderAppBtn))
-            addView(space(dp(4)))
-            setPadding(dp(18), dp(18), dp(18), dp(26))
+            addView(singleRow(actionButton("CLEAR APP SELECTION", isDanger = true) {
+                saveMagicKeyAppPackage(null)
+                sliderAppBtn.text = "MAGIC KEY APP: Choose App"
+                refreshStatus()
+            }))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {
@@ -3517,36 +3485,3 @@ class MainActivity : Activity() {
         return (value * resources.displayMetrics.density).toInt()
     }
 }
-
-    private fun smallActionButton(text: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
-        return Button(this).apply {
-            this.text = text
-            textSize = 12f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(
-                if (isDanger) Color.parseColor("#5A2A2A") else Color.parseColor("#1A2330"),
-                12
-            )
-            setPadding(dp(14), dp(8), dp(14), dp(8))
-            setOnClickListener { onClick() }
-        }
-    }
-
-
-
-    private fun flowRow(vararg views: View): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 0, 0, dp(6))
-            views.forEachIndexed { index, v ->
-                val params = LinearLayout.LayoutParams(
-                    0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
-                if (index > 0) params.marginStart = dp(6)
-                addView(v, params)
-            }
-        }
-    }

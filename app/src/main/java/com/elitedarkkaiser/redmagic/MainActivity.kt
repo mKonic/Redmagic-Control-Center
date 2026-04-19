@@ -1906,6 +1906,7 @@ class MainActivity : Activity() {
         container.addView(effectsRow)
         container.addView(colorLabel)
         container.addView(colorRow)
+        container.addView(colorRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)
@@ -2240,9 +2241,17 @@ class MainActivity : Activity() {
             dialogRefreshFanLed?.invoke()
         }
 
+        val flashingBtn = filterChip("Flashing", fanLedEffect == "flashing") {
+            fanLedEffect = "flashing"
+            if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            dialogRefreshFanLed?.invoke()
+        }
+
         effectsRow.addView(steadyBtn)
         effectsRow.addView(space(dp(8)))
         effectsRow.addView(breatheBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(flashingBtn)
 
         val colorLabel = TextView(this).apply {
             text = "Color"
@@ -2253,14 +2262,54 @@ class MainActivity : Activity() {
 
         val colorRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
+            addView(colorDot(1, "#FF0000") {
+                fanLedColor = 1
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDot(3, "#FF8C00") {
+                fanLedColor = 3
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDot(4, "#FFD600") {
+                fanLedColor = 4
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+            addView(space(dp(10)))
             addView(colorDot(5, "#00E676") {
                 fanLedColor = 5
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+        }
+
+        val colorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(colorDot(6, "#00E5FF") {
+                fanLedColor = 6
                 if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(7, "#1565FF") {
                 fanLedColor = 7
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDot(8, "#A020F0") {
+                fanLedColor = 8
+                if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                dialogRefreshFanLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDot(9, "#FF69B4") {
+                fanLedColor = 9
                 if (fanLedEnabled) HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
                 dialogRefreshFanLed?.invoke()
             })

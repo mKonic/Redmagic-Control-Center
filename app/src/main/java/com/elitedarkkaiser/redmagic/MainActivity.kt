@@ -84,6 +84,7 @@ class MainActivity : Activity() {
     private val prefsName = "redmagic_hw_controls_prefs"
     private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
+    private val selectedCurveKey = "selected_curve"
     private val fanLedEnabledKey = "fan_led_enabled"
     private val fanLedEffectKey = "fan_led_effect"
     private val fanLedColorKey = "fan_led_color"
@@ -143,6 +144,15 @@ class MainActivity : Activity() {
     private fun setSkipSupportedDialog(skip: Boolean) {
         prefs().edit().putBoolean(skipSupportedDialogKey, skip).apply()
     }
+
+    private fun setSelectedCurveSaved(value: String) {
+        prefs().edit().putString(selectedCurveKey, value).apply()
+    }
+
+    private fun getSelectedCurveSaved(): String {
+        return prefs().getString(selectedCurveKey, "balanced") ?: "balanced"
+    }
+
 
     private fun isAutoFanEnabledSaved(): Boolean {
         return prefs().getBoolean(autoFanEnabledKey, false)
@@ -922,6 +932,7 @@ class MainActivity : Activity() {
             HardwareController.enablePump(false)
         }
 
+        selectedCurve = getSelectedCurveSaved()
         autoFanCurveEnabled = isAutoFanEnabledSaved()
         autoCurveCheck.isChecked = autoFanCurveEnabled
 
@@ -931,7 +942,11 @@ class MainActivity : Activity() {
             curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
         }
 
-        setActiveMode(balancedCardRef)
+        when (selectedCurve) {
+            "quiet" -> setActiveMode(quietCardRef)
+            "turbo" -> setActiveMode(turboCardRef)
+            else -> setActiveMode(balancedCardRef)
+        }
         updateManualCurveUiState()
         switchTab("home")
         refreshStatus()
@@ -1109,28 +1124,28 @@ class MainActivity : Activity() {
         val quietChip = segmentedChip("Quiet", selectedCurve == "quiet") {
             if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "quiet"
+            setSelectedCurveSaved(selectedCurve)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Quiet • Applied immediately"
-            recreate()
         }
 
         val balancedChip = segmentedChip("Balanced", selectedCurve == "balanced") {
             if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "balanced"
+            setSelectedCurveSaved(selectedCurve)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Balanced • Applied immediately"
-            recreate()
         }
 
         val turboChip = segmentedChip("Turbo", selectedCurve == "turbo") {
             if (autoFanCurveEnabled) return@segmentedChip
             selectedCurve = "turbo"
+            setSelectedCurveSaved(selectedCurve)
             val level = HardwareController.applyFanCurve(selectedCurve)
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Turbo • Applied immediately"
-            recreate()
         }
 
         modeRow.addView(quietChip)
@@ -1140,7 +1155,7 @@ class MainActivity : Activity() {
         modeRow.addView(turboChip)
 
         curveStatusText = TextView(this).apply {
-            text = "Selected curve: Balanced"
+            text = "Selected curve: ${selectedCurve.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(6), 0, dp(4))

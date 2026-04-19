@@ -1412,21 +1412,26 @@ class MainActivity : Activity() {
         return container
     }
 
-    private fun applyLedPreviewIfEnabled() {
+    private fun applyFanLedPreviewIfEnabled() {
         if (!realTimePreviewEnabled) return
-
         if (fanLedEnabled) {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
         } else {
             HardwareController.setFanLedEnabled(false)
         }
+    }
 
+    private fun applyLogoLedPreviewIfEnabled() {
+        if (!realTimePreviewEnabled) return
         if (logoLedEnabled) {
             HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
         } else {
             HardwareController.setLogoLedEnabled(false)
         }
+    }
 
+    private fun applyShoulderLedPreviewIfEnabled() {
+        if (!realTimePreviewEnabled) return
         if (shoulderLedEnabled) {
             HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
         } else {
@@ -1916,19 +1921,19 @@ class MainActivity : Activity() {
 
         val steadyBtn = filterChip("Steady", shoulderLedEffect == "steady") {
             shoulderLedEffect = "steady"
-            applyLedPreviewIfEnabled()
+            applyShoulderLedPreviewIfEnabled()
             dialogRefreshShoulderLed?.invoke()
         }
 
         val breatheBtn = filterChip("Breathe", shoulderLedEffect == "breathe") {
             shoulderLedEffect = "breathe"
-            applyLedPreviewIfEnabled()
+            applyShoulderLedPreviewIfEnabled()
             dialogRefreshShoulderLed?.invoke()
         }
 
         val flashingBtn = filterChip("Flashing", shoulderLedEffect == "flashing") {
             shoulderLedEffect = "flashing"
-            applyLedPreviewIfEnabled()
+            applyShoulderLedPreviewIfEnabled()
             dialogRefreshShoulderLed?.invoke()
         }
 
@@ -1949,25 +1954,25 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             addView(colorDotGeneric("#FF0000", shoulderLedColor == 1) {
                 shoulderLedColor = 1
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FF8C00", shoulderLedColor == 3) {
                 shoulderLedColor = 3
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FFD600", shoulderLedColor == 4) {
                 shoulderLedColor = 4
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#00E676", shoulderLedColor == 5) {
                 shoulderLedColor = 5
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
         }
@@ -1977,25 +1982,25 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, 0)
             addView(colorDotGeneric("#00E5FF", shoulderLedColor == 6) {
                 shoulderLedColor = 6
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#1565FF", shoulderLedColor == 7) {
                 shoulderLedColor = 7
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#A020F0", shoulderLedColor == 8) {
                 shoulderLedColor = 8
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FF69B4", shoulderLedColor == 9) {
                 shoulderLedColor = 9
-                applyLedPreviewIfEnabled()
+                applyShoulderLedPreviewIfEnabled()
                 dialogRefreshShoulderLed?.invoke()
             })
         }
@@ -2061,6 +2066,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveShoulderLedState()
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
             if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
                 startFanLedService()
             } else {
@@ -2209,25 +2219,25 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             addView(colorDotGeneric("#FF0000", logoLedColor == 1) {
                 logoLedColor = 1
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FF8C00", logoLedColor == 3) {
                 logoLedColor = 3
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FFD600", logoLedColor == 4) {
                 logoLedColor = 4
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#00E676", logoLedColor == 5) {
                 logoLedColor = 5
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
         }
@@ -2237,25 +2247,25 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, 0)
             addView(colorDotGeneric("#00E5FF", logoLedColor == 6) {
                 logoLedColor = 6
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#1565FF", logoLedColor == 7) {
                 logoLedColor = 7
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#A020F0", logoLedColor == 8) {
                 logoLedColor = 8
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDotGeneric("#FF69B4", logoLedColor == 9) {
                 logoLedColor = 9
-                applyLedPreviewIfEnabled()
+                applyLogoLedPreviewIfEnabled()
                 dialogRefreshLogoLed?.invoke()
             })
         }
@@ -2321,6 +2331,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveLogoLedState()
+            if (logoLedEnabled) {
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+            } else {
+                HardwareController.setLogoLedEnabled(false)
+            }
             if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
                 startFanLedService()
             } else {
@@ -2430,19 +2445,19 @@ class MainActivity : Activity() {
 
         val steadyBtn = filterChip("Steady", fanLedEffect == "steady") {
             fanLedEffect = "steady"
-            applyLedPreviewIfEnabled()
+            applyFanLedPreviewIfEnabled()
             dialogRefreshFanLed?.invoke()
         }
 
         val breatheBtn = filterChip("Breathe", fanLedEffect == "breathe") {
             fanLedEffect = "breathe"
-            applyLedPreviewIfEnabled()
+            applyFanLedPreviewIfEnabled()
             dialogRefreshFanLed?.invoke()
         }
 
         val flashingBtn = filterChip("Flashing", fanLedEffect == "flashing") {
             fanLedEffect = "flashing"
-            applyLedPreviewIfEnabled()
+            applyFanLedPreviewIfEnabled()
             dialogRefreshFanLed?.invoke()
         }
 
@@ -2463,25 +2478,25 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             addView(colorDot(1, "#FF0000") {
                 fanLedColor = 1
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(3, "#FF8C00") {
                 fanLedColor = 3
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(4, "#FFD600") {
                 fanLedColor = 4
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(5, "#00E676") {
                 fanLedColor = 5
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
         }
@@ -2491,25 +2506,25 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, 0)
             addView(colorDot(6, "#00E5FF") {
                 fanLedColor = 6
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(7, "#1565FF") {
                 fanLedColor = 7
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(8, "#A020F0") {
                 fanLedColor = 8
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(9, "#FF69B4") {
                 fanLedColor = 9
-                applyLedPreviewIfEnabled()
+                applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
         }
@@ -2575,6 +2590,11 @@ class MainActivity : Activity() {
 
         saveBtn.setOnClickListener {
             saveFanLedState()
+            if (fanLedEnabled) {
+                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            } else {
+                HardwareController.setFanLedEnabled(false)
+            }
             if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
                 startFanLedService()
             } else {

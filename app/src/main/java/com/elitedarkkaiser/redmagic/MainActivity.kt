@@ -3516,24 +3516,19 @@ class MainActivity : Activity() {
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
     }
-}
 
-    private fun smallActionButton(text: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
+    private fun smallActionButton(label: String, isDanger: Boolean = false, onClick: () -> Unit): Button {
         return Button(this).apply {
-            this.text = text
+            text = label
             textSize = 12f
             setAllCaps(false)
             setTextColor(textPrimary)
-            background = roundedFill(
-                if (isDanger) Color.parseColor("#5A2A2A") else Color.parseColor("#1A2330"),
-                12
-            )
-            setPadding(dp(14), dp(8), dp(14), dp(8))
+            background = roundedFill(if (isDanger) danger else panelPressed, 14)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             setOnClickListener { onClick() }
+            minHeight = dp(44)
         }
     }
-
-
 
     private fun flowRow(vararg views: View): LinearLayout {
         return LinearLayout(this).apply {
@@ -3550,3 +3545,5 @@ class MainActivity : Activity() {
             }
         }
     }
+
+}

@@ -103,6 +103,7 @@ class MainActivity : Activity() {
     private val pumpProfileKey = "pump_profile"
     private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
     private val autoPumpEnabledKey = "auto_pump_enabled"
+    private val magicKeyAppPackageKey = "magic_key_app_package"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -170,6 +171,59 @@ class MainActivity : Activity() {
 
     private fun saveRealTimePreviewEnabled(enabled: Boolean) {
         prefs().edit().putBoolean(realTimePreviewEnabledKey, enabled).apply()
+    }
+
+    private fun savedMagicKeyAppPackage(): String? {
+        return prefs().getString(magicKeyAppPackageKey, null)
+    }
+
+    private fun saveMagicKeyAppPackage(pkg: String?) {
+        prefs().edit().putString(magicKeyAppPackageKey, pkg).apply()
+    }
+
+    private fun resolveMagicKeyAppLabel(pkg: String?): String {
+        if (pkg.isNullOrBlank()) return "Choose App"
+        return try {
+            val appInfo = packageManager.getApplicationInfo(pkg, 0)
+            packageManager.getApplicationLabel(appInfo).toString()
+        } catch (_: Throwable) {
+            pkg
+        }
+    }
+
+    private fun showMagicKeyAppPicker(targetButton: Button) {
+        val launcherIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+
+        val apps = packageManager.queryIntentActivities(launcherIntent, 0)
+            .mapNotNull { ri ->
+                val pkg = ri.activityInfo?.packageName ?: return@mapNotNull null
+                val label = ri.loadLabel(packageManager)?.toString() ?: pkg
+                pkg to label
+            }
+            .distinctBy { it.first }
+            .sortedBy { it.second.lowercase() }
+
+        if (apps.isEmpty()) {
+            Toast.makeText(this, "No launchable apps found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val labels = apps.map { it.second }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Choose Magic Key app")
+            .setItems(labels) { _, which ->
+                val (pkg, label) = apps[which]
+                saveMagicKeyAppPackage(pkg)
+                HardwareController.setSliderLaunchApp(pkg)
+                targetButton.text = "MAGIC KEY APP: $label"
+                refreshStatus()
+                Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun isFanLedEnabledSaved(): Boolean {
@@ -1470,13 +1524,17 @@ class MainActivity : Activity() {
             refreshStatus()
         }
 
-        val sliderAppBtn = actionButton("SLIDER OPENS APP") {
-            HardwareController.setSliderLaunchApp(packageName)
-            refreshStatus()
+        val sliderAppBtn = actionButton(
+            "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
+        ) {}
+        sliderAppBtn.setOnClickListener {
+            showMagicKeyAppPicker(sliderAppBtn)
         }
 
         val sliderRawBtn = actionButton("DISABLE SLIDER ACTION", isDanger = true) {
             HardwareController.disableSliderSystemHandling()
+            saveMagicKeyAppPackage(null)
+            sliderAppBtn.text = "MAGIC KEY APP: Choose App"
             refreshStatus()
         }
 

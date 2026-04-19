@@ -2349,6 +2349,7 @@ class MainActivity : Activity() {
         container.addView(effectsRow)
         container.addView(colorLabel)
         container.addView(colorRow)
+        container.addView(colorRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)
@@ -2406,8 +2407,15 @@ class MainActivity : Activity() {
         }
 
         fun updateColorDots() {
-            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#00E676", fanLedColor == 5)
-            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#1565FF", fanLedColor == 7)
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#FF0000", fanLedColor == 1)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#FF8C00", fanLedColor == 3)
+            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#FFD600", fanLedColor == 4)
+            (colorRow.getChildAt(6) as View).background = colorDotDrawable("#00E676", fanLedColor == 5)
+
+            (colorRow2.getChildAt(0) as View).background = colorDotDrawable("#00E5FF", fanLedColor == 6)
+            (colorRow2.getChildAt(2) as View).background = colorDotDrawable("#1565FF", fanLedColor == 7)
+            (colorRow2.getChildAt(4) as View).background = colorDotDrawable("#A020F0", fanLedColor == 8)
+            (colorRow2.getChildAt(6) as View).background = colorDotDrawable("#FF69B4", fanLedColor == 9)
         }
 
         repaint()

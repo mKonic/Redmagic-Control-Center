@@ -1839,9 +1839,17 @@ class MainActivity : Activity() {
             dialogRefreshShoulderLed?.invoke()
         }
 
+        val flashingBtn = filterChip("Flashing", shoulderLedEffect == "flashing") {
+            shoulderLedEffect = "flashing"
+            if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            dialogRefreshShoulderLed?.invoke()
+        }
+
         effectsRow.addView(steadyBtn)
         effectsRow.addView(space(dp(8)))
         effectsRow.addView(breatheBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(flashingBtn)
 
         val colorLabel = TextView(this).apply {
             text = "Color"
@@ -1852,8 +1860,36 @@ class MainActivity : Activity() {
 
         val colorRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
+            addView(colorDotGeneric("#FF0000", shoulderLedColor == 1) {
+                shoulderLedColor = 1
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FF8C00", shoulderLedColor == 3) {
+                shoulderLedColor = 3
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FFD600", shoulderLedColor == 4) {
+                shoulderLedColor = 4
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
             addView(colorDotGeneric("#00E676", shoulderLedColor == 5) {
                 shoulderLedColor = 5
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+        }
+
+        val colorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(colorDotGeneric("#00E5FF", shoulderLedColor == 6) {
+                shoulderLedColor = 6
                 if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
                 dialogRefreshShoulderLed?.invoke()
             })
@@ -1864,8 +1900,14 @@ class MainActivity : Activity() {
                 dialogRefreshShoulderLed?.invoke()
             })
             addView(space(dp(10)))
-            addView(colorDotGeneric("#E100FF", shoulderLedColor == 8) {
+            addView(colorDotGeneric("#A020F0", shoulderLedColor == 8) {
                 shoulderLedColor = 8
+                if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FF69B4", shoulderLedColor == 9) {
+                shoulderLedColor = 9
                 if (shoulderLedEnabled) HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
                 dialogRefreshShoulderLed?.invoke()
             })
@@ -1906,6 +1948,7 @@ class MainActivity : Activity() {
         container.addView(effectsRow)
         container.addView(colorLabel)
         container.addView(colorRow)
+        container.addView(colorRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)
@@ -1958,9 +2001,15 @@ class MainActivity : Activity() {
         }
 
         fun updateColorDots() {
-            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#00E676", shoulderLedColor == 5)
-            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#1565FF", shoulderLedColor == 7)
-            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#E100FF", shoulderLedColor == 8)
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#FF0000", shoulderLedColor == 1)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#FF8C00", shoulderLedColor == 3)
+            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#FFD600", shoulderLedColor == 4)
+            (colorRow.getChildAt(6) as View).background = colorDotDrawable("#00E676", shoulderLedColor == 5)
+
+            (colorRow2.getChildAt(0) as View).background = colorDotDrawable("#00E5FF", shoulderLedColor == 6)
+            (colorRow2.getChildAt(2) as View).background = colorDotDrawable("#1565FF", shoulderLedColor == 7)
+            (colorRow2.getChildAt(4) as View).background = colorDotDrawable("#A020F0", shoulderLedColor == 8)
+            (colorRow2.getChildAt(6) as View).background = colorDotDrawable("#FF69B4", shoulderLedColor == 9)
         }
 
         fun refreshUi() {

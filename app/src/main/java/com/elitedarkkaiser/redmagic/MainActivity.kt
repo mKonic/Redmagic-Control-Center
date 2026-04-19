@@ -1798,8 +1798,43 @@ class MainActivity : Activity() {
             setPadding(dp(18), dp(18), dp(18), dp(26))
         }
 
+
+        return container
+    }
+
+    private fun createHardwareTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
+            HardwareController.enableTriggers()
+            refreshStatus()
+            Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
+        }
+
+        val triggerCard = sectionPanel().apply {
+            addView(sectionHeader("⌥", "TRIGGERS"))
+            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
+            addView(space(dp(10)))
+            addView(singleRow(trigEnableBtn))
+        }
+
+        val vibrateBtn = actionButton("TEST HAPTIC") {
+            HardwareController.vibrate(durationMs = 100, gain = 220)
+            Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()
+        }
+
+        val hapticsCard = sectionPanel().apply {
+            addView(sectionHeader("≈", "HAPTICS"))
+            addView(bodyText("Quick vibration test for hardware haptics."))
+            addView(space(dp(10)))
+            addView(singleRow(vibrateBtn))
+        }
+
+        container.addView(triggerCard)
+        container.addView(hapticsCard)
+
         val profilesCard = sectionPanel().apply {
-            addView(sectionHeader("★", "PROFILES"))
+            addView(sectionHeader("★", "HARDWARE PROFILES"))
             addView(bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
 
             val profileList = LinearLayout(this@MainActivity).apply {
@@ -1858,44 +1893,7 @@ class MainActivity : Activity() {
             addView(profileList)
         }
 
-        container.addView(systemCard)
-        container.addView(stockFunctionsCard)
-        container.addView(sliderCard)
         container.addView(profilesCard)
-
-        return container
-    }
-
-    private fun createHardwareTab(): LinearLayout {
-        val container = scrollTabContainer()
-
-        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
-            HardwareController.enableTriggers()
-            refreshStatus()
-            Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
-        }
-
-        val triggerCard = sectionPanel().apply {
-            addView(sectionHeader("⌥", "TRIGGERS"))
-            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
-            addView(space(dp(10)))
-            addView(singleRow(trigEnableBtn))
-        }
-
-        val vibrateBtn = actionButton("TEST HAPTIC") {
-            HardwareController.vibrate(durationMs = 100, gain = 220)
-            Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()
-        }
-
-        val hapticsCard = sectionPanel().apply {
-            addView(sectionHeader("≈", "HAPTICS"))
-            addView(bodyText("Quick vibration test for hardware haptics."))
-            addView(space(dp(10)))
-            addView(singleRow(vibrateBtn))
-        }
-
-        container.addView(triggerCard)
-        container.addView(hapticsCard)
 
         return container
     }

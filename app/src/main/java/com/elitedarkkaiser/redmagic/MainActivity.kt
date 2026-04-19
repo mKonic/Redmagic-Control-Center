@@ -2043,9 +2043,19 @@ class MainActivity : Activity() {
             dialogRefreshLogoLed?.invoke()
         }
 
+        val flashingBtn = filterChip("Flashing", logoLedEffect == "flashing") {
+            logoLedEffect = "flashing"
+            if (logoLedEnabled) {
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+            }
+            dialogRefreshLogoLed?.invoke()
+        }
+
         effectsRow.addView(steadyBtn)
         effectsRow.addView(space(dp(8)))
         effectsRow.addView(breatheBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(flashingBtn)
 
         val colorLabel = TextView(this).apply {
             text = "Color"
@@ -2064,8 +2074,60 @@ class MainActivity : Activity() {
                 dialogRefreshLogoLed?.invoke()
             })
             addView(space(dp(10)))
-            addView(colorDotGeneric("#E100FF", logoLedColor == 8) {
+            addView(colorDotGeneric("#FF8C00", logoLedColor == 3) {
+                logoLedColor = 3
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FFD600", logoLedColor == 4) {
+                logoLedColor = 4
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#00E676", logoLedColor == 5) {
+                logoLedColor = 5
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+        }
+
+        val colorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(colorDotGeneric("#00E5FF", logoLedColor == 6) {
+                logoLedColor = 6
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#1565FF", logoLedColor == 7) {
+                logoLedColor = 7
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#A020F0", logoLedColor == 8) {
                 logoLedColor = 8
+                if (logoLedEnabled) {
+                    HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+                }
+                dialogRefreshLogoLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FF69B4", logoLedColor == 9) {
+                logoLedColor = 9
                 if (logoLedEnabled) {
                     HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
                 }
@@ -2108,6 +2170,7 @@ class MainActivity : Activity() {
         container.addView(effectsRow)
         container.addView(colorLabel)
         container.addView(colorRow)
+        container.addView(colorRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)
@@ -2161,7 +2224,14 @@ class MainActivity : Activity() {
 
         fun updateColorDots() {
             (colorRow.getChildAt(0) as View).background = colorDotDrawable("#FF0000", logoLedColor == 1)
-            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#E100FF", logoLedColor == 8)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#FF8C00", logoLedColor == 3)
+            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#FFD600", logoLedColor == 4)
+            (colorRow.getChildAt(6) as View).background = colorDotDrawable("#00E676", logoLedColor == 5)
+
+            (colorRow2.getChildAt(0) as View).background = colorDotDrawable("#00E5FF", logoLedColor == 6)
+            (colorRow2.getChildAt(2) as View).background = colorDotDrawable("#1565FF", logoLedColor == 7)
+            (colorRow2.getChildAt(4) as View).background = colorDotDrawable("#A020F0", logoLedColor == 8)
+            (colorRow2.getChildAt(6) as View).background = colorDotDrawable("#FF69B4", logoLedColor == 9)
         }
 
         fun refreshUi() {

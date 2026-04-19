@@ -1779,40 +1779,30 @@ class MainActivity : Activity() {
             }))
         }
 
-        val sliderSelectedAppLabel = subtleLabel(
-            "Selected app: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
-        )
-
         val sliderAppBtn = actionButton(
             "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
         ) {}
         sliderAppBtn.setOnClickListener {
             showMagicKeyAppPicker(sliderAppBtn)
-            sliderSelectedAppLabel.text = "Selected app: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
             magicKeyStatusLabel.text = "Current: Launch App"
         }
 
         val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
             saveMagicKeyAppPackage(null)
             sliderAppBtn.text = "MAGIC KEY APP: Choose App"
-            sliderSelectedAppLabel.text = "Selected app: Choose App"
             magicKeyStatusLabel.text = "Current: ${readMagicKeyModeLabel()}"
             refreshStatus()
-        }.apply {
-            setPadding(dp(16), dp(12), dp(16), dp(12))
         }
 
         val sliderCard = sectionPanel().apply {
             addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
             addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
-            addView(space(dp(8)))
-            addView(sliderSelectedAppLabel)
-            addView(space(dp(10)))
+            addView(space(dp(12)))
             addView(singleRow(sliderAppBtn))
-            addView(space(dp(14)))
+            addView(space(dp(12)))
             addView(singleRow(clearSliderAppBtn))
-            addView(space(dp(6)))
-            setPadding(dp(18), dp(18), dp(18), dp(30))
+            addView(space(dp(4)))
+            setPadding(dp(18), dp(18), dp(18), dp(26))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {

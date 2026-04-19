@@ -1616,17 +1616,8 @@ class MainActivity : Activity() {
             val customizeFanBtn = actionButton("CUSTOMIZE FAN LED") {
                 showFanLedDialog()
             }
-
-            val fanLedOffBtn = actionButton("FAN LED OFF", isDanger = true) {
-                fanLedEnabled = false
-                saveFanLedState()
-                HardwareController.setFanLedEnabled(false)
-                stopFanLedService()
-            }
-
             addView(fanLedSummary)
             addView(singleRow(customizeFanBtn))
-            addView(singleRow(fanLedOffBtn))
         }
 
         val logoCard = sectionPanel().apply {
@@ -1643,18 +1634,8 @@ class MainActivity : Activity() {
                 showLogoLedDialog()
             }
 
-            val logoOffBtn = actionButton("LOGO LED OFF", isDanger = true) {
-                logoLedEnabled = false
-                saveLogoLedState()
-                HardwareController.setLogoLedEnabled(false)
-                if (!fanLedEnabled && !shoulderLedEnabled) {
-                    stopFanLedService()
-                }
-            }
-
             addView(logoSummary)
             addView(singleRow(customizeLogoBtn))
-            addView(singleRow(logoOffBtn))
         }
 
         val shoulderCard = sectionPanel().apply {
@@ -1671,18 +1652,8 @@ class MainActivity : Activity() {
                 showShoulderLedDialog()
             }
 
-            val shoulderOffBtn = actionButton("SHOULDER LEDS OFF", isDanger = true) {
-                shoulderLedEnabled = false
-                saveShoulderLedState()
-                HardwareController.setShoulderLedEnabled(false)
-                if (!fanLedEnabled && !logoLedEnabled) {
-                    stopFanLedService()
-                }
-            }
-
             addView(shoulderSummary)
             addView(singleRow(customizeShoulderBtn))
-            addView(singleRow(shoulderOffBtn))
         }
 
         container.addView(fanLedCard)

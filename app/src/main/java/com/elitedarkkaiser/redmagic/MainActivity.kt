@@ -192,7 +192,14 @@ class MainActivity : Activity() {
     }
 
     private fun showMagicKeyAppPicker(targetButton: Button) {
-        val apps = packageManager.getInstalledApplications(0)
+        data class MagicKeyAppItem(
+            val pkg: String,
+            val label: String,
+            val launchable: Boolean,
+            val icon: android.graphics.drawable.Drawable?
+        )
+
+        val allApps = packageManager.getInstalledApplications(0)
             .map { appInfo ->
                 val pkg = appInfo.packageName
                 val label = try {
@@ -200,14 +207,24 @@ class MainActivity : Activity() {
                 } catch (_: Throwable) {
                     pkg
                 }
-                Triple(pkg, label, packageManager.getLaunchIntentForPackage(pkg) != null)
+                val icon = try {
+                    packageManager.getApplicationIcon(appInfo)
+                } catch (_: Throwable) {
+                    null
+                }
+                MagicKeyAppItem(
+                    pkg = pkg,
+                    label = label,
+                    launchable = packageManager.getLaunchIntentForPackage(pkg) != null,
+                    icon = icon
+                )
             }
             .sortedWith(
-                compareBy<Triple<String, String, Boolean>> { it.second.lowercase() }
-                    .thenBy { it.first.lowercase() }
+                compareBy<MagicKeyAppItem> { it.label.lowercase() }
+                    .thenBy { it.pkg.lowercase() }
             )
 
-        if (apps.isEmpty()) {
+        if (allApps.isEmpty()) {
             Toast.makeText(this, "No installed apps found", Toast.LENGTH_SHORT).show()
             return
         }
@@ -221,10 +238,19 @@ class MainActivity : Activity() {
         }
 
         val subtitleView = TextView(this).apply {
-            text = "Lists user and system apps. Apps without a launcher activity may not open from the Magic Key."
+            text = "Search by app name or package name. Lists user and system apps."
             textSize = 12f
             setTextColor(textSecondary)
             setPadding(0, 0, 0, dp(12))
+        }
+
+        val searchInput = EditText(this).apply {
+            hint = "Search apps or package names"
+            setTextColor(textPrimary)
+            setHintTextColor(textSecondary)
+            textSize = 14f
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            background = roundedBg(Color.parseColor("#121A27"), Color.parseColor("#263246"), 18)
         }
 
         val listView = android.widget.ListView(this).apply {
@@ -234,27 +260,82 @@ class MainActivity : Activity() {
             isVerticalScrollBarEnabled = true
         }
 
-        val labels = apps.map { (pkg, label, launchable) ->
-            if (launchable) "$label\n$pkg" else "$label\n$pkg\n(No launcher activity)"
-        }
+        val filteredApps = ArrayList(allApps)
 
-        val adapter = object : android.widget.ArrayAdapter<String>(
-            this,
-            android.R.layout.simple_list_item_1,
-            labels
-        ) {
+        val adapter = object : android.widget.BaseAdapter() {
+            override fun getCount(): Int = filteredApps.size
+            override fun getItem(position: Int): Any = filteredApps[position]
+            override fun getItemId(position: Int): Long = position.toLong()
+
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val tv = super.getView(position, convertView, parent) as TextView
-                tv.setTextColor(textPrimary)
-                tv.textSize = 14f
-                tv.setPadding(dp(16), dp(14), dp(16), dp(14))
-                tv.setLineSpacing(0f, 1.15f)
-                tv.setBackgroundColor(Color.TRANSPARENT)
-                return tv
+                val item = filteredApps[position]
+
+                val row = LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(dp(14), dp(12), dp(14), dp(12))
+                    setBackgroundColor(Color.TRANSPARENT)
+                }
+
+                val iconView = ImageView(this@MainActivity).apply {
+                    layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+                    setImageDrawable(item.icon)
+                }
+
+                val textWrap = LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(12), 0, 0, 0)
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                }
+
+                val labelView = TextView(this@MainActivity).apply {
+                    text = item.label
+                    textSize = 14f
+                    setTextColor(textPrimary)
+                    setTypeface(typeface, Typeface.BOLD)
+                }
+
+                val pkgView = TextView(this@MainActivity).apply {
+                    text = if (item.launchable) item.pkg else "${item.pkg}  •  No launcher activity"
+                    textSize = 11f
+                    setTextColor(textSecondary)
+                    setLineSpacing(0f, 1.1f)
+                }
+
+                textWrap.addView(labelView)
+                textWrap.addView(pkgView)
+
+                row.addView(iconView)
+                row.addView(textWrap)
+
+                return row
             }
         }
 
+        fun applyFilter(query: String) {
+            val q = query.trim().lowercase()
+            filteredApps.clear()
+            if (q.isEmpty()) {
+                filteredApps.addAll(allApps)
+            } else {
+                filteredApps.addAll(
+                    allApps.filter {
+                        it.label.lowercase().contains(q) || it.pkg.lowercase().contains(q)
+                    }
+                )
+            }
+            adapter.notifyDataSetChanged()
+        }
+
         listView.adapter = adapter
+
+        searchInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                applyFilter(s?.toString().orEmpty())
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
 
         val cancelBtn = Button(this).apply {
             text = "Cancel"
@@ -271,6 +352,8 @@ class MainActivity : Activity() {
             background = roundedBg(panelColor, borderColor, 22)
             addView(titleView)
             addView(subtitleView)
+            addView(searchInput)
+            addView(space(dp(12)))
             addView(
                 listView,
                 LinearLayout.LayoutParams(
@@ -295,20 +378,20 @@ class MainActivity : Activity() {
         )
 
         listView.setOnItemClickListener { _, _, which, _ ->
-            val (pkg, label, launchable) = apps[which]
-            saveMagicKeyAppPackage(pkg)
-            HardwareController.setSliderLaunchApp(pkg)
-            targetButton.text = "MAGIC KEY APP: $label"
+            val item = filteredApps[which]
+            saveMagicKeyAppPackage(item.pkg)
+            HardwareController.setSliderLaunchApp(item.pkg)
+            targetButton.text = "MAGIC KEY APP: ${item.label}"
             refreshStatus()
 
-            if (!launchable) {
+            if (!item.launchable) {
                 Toast.makeText(
                     this,
-                    "$label saved, but it may not open because it has no launcher activity",
+                    "${item.label} saved, but it may not open because it has no launcher activity",
                     Toast.LENGTH_LONG
                 ).show()
             } else {
-                Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Magic Key set to ${item.label}", Toast.LENGTH_SHORT).show()
             }
 
             dialog.dismiss()

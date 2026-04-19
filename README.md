@@ -1,48 +1,121 @@
-# RedMagic Root Control
+# 🚀 RedMagic Hardware Control
 
-Starter Android Studio project for a root-only RedMagic hardware control app.
+Root-level hardware control app for RedMagic devices.
 
-## What it does
-- Fan on/off and fan level control
-- Fan RPM readout
-- Pump on/off
-- LED test actions
-- Trigger enable/disable
-- Slider behavior commands
-- Haptic test
+---
 
-## Build
-1. Open this folder in Android Studio.
-2. Let Gradle sync.
-3. Build `app`.
-4. Install the generated APK.
-5. Grant root on first launch.
-6. Enable the accessibility service if you want trigger key interception.
+## 🔧 Core Features
+- Full control over:
+  - Cooling fan
+  - RGB LEDs (Fan, Logo, Shoulder)
+  - Shoulder triggers
+  - Liquid cooling pump
+- Direct sysfs interaction using root
+- Instant hardware response via shell execution
 
-## Notes
-- This is based on sysfs/procfs/settings paths documented in the linked Red Magic hardware control guide.
-- Different RedMagic models or ROMs may expose different paths.
-- If a control does nothing, verify the node exists on-device with `su -c ls` and update the constants in `HardwareController.kt`.
-- The project intentionally does not include a signing config.
+---
 
-## Output APK location after local build
-- Debug: `app/build/outputs/apk/debug/app-debug.apk`
-- Release: `app/build/outputs/apk/release/app-release.apk`
+## 💡 Unified LED System
+- Fully rewritten LED control engine
+- Single unified pipeline for all LED zones:
+  - Fan
+  - Logo
+  - Shoulder
+- Shared logic for:
+  - Color mapping
+  - Effect mapping
+  - Command generation
 
-## Build on GitHub Actions
+### Supported Effects
+- Steady
+- Breathe
+- Flashing
 
-This repository includes `.github/workflows/android.yml` so GitHub can build a debug APK automatically.
+---
 
-### How to use it
+## 🎨 LED Customization
+- Per-zone LED control
+- Full color selection
+- Hardware-level enable/disable
+- Reliable effect application across all zones
 
-1. Create a new GitHub repository.
-2. Upload or push all files from this project.
-3. Open the **Actions** tab in GitHub.
-4. Run **Android CI** manually, or push to `main`.
-5. When the workflow finishes, open the run and download the artifact named `redmagic-root-control-debug-apk`.
+---
 
-### Notes
+## ⚡ Real-Time LED Preview
+- Toggleable live preview system
+- Instantly applies:
+  - Colors
+  - Effects
+- Can be disabled for performance or battery savings
 
-- This workflow builds a **debug APK**.
-- No signing secrets are needed for the debug build.
-- If you later want a **release APK**, you will need to add a keystore and GitHub secrets.
+---
+
+## 🧠 Smart Cooling System
+
+### 🌪️ Auto Fan Control
+- Temperature-based fan curves:
+  - Quiet
+  - Balanced
+  - Turbo
+- Automatically adjusts fan speed based on CPU temperature (°F)
+
+### 💧 Smart Pump Control
+- Automatic pump profiles:
+  - Slow
+  - Medium
+  - Quick
+
+### ⏱️ Dynamic Polling
+- Adaptive temperature checks:
+  - ≥95°F → every 5 seconds
+  - <95°F → every 10 seconds
+
+---
+
+## 📊 Temperature Monitoring
+- Reads multiple thermal zones
+- Automatic value normalization
+- Outputs in Fahrenheit for UI + logic
+
+---
+
+## 🎮 Shoulder Trigger Controls
+- Enable / disable triggers
+- Root-level SAR interaction
+- Tap injection support
+
+---
+
+## 🎚️ Background Services
+- Fan LED service maintains LED state
+- Prevents system overrides
+- Auto-start/stop logic based on usage
+
+---
+
+## 💾 Persistent Settings
+- Saves all hardware states:
+  - LED configs
+  - Fan curve
+  - Pump profile
+  - Preview toggle
+- Restores everything on launch
+
+---
+
+## 🧼 UI Improvements
+- Clean section-based layout
+- Removed redundant controls
+- Improved spacing and consistency
+- Dedicated preview controls
+
+---
+
+## ⚠️ Requirements
+- Root access required
+- Designed for RedMagic devices
+
+---
+
+## 🛠️ Notes
+This app directly interfaces with hardware nodes. Use responsibly.

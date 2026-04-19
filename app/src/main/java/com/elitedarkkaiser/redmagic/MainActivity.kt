@@ -1139,11 +1139,13 @@ class MainActivity : Activity() {
         homeTab = createHomeTab()
         coolingTab = createCoolingTab()
         controlsTab = createControlsTab()
+        val hardwareTab = createHardwareTab()
         lightingTab = createLightingTab()
 
         contentFrame.addView(homeTab)
         contentFrame.addView(coolingTab)
         contentFrame.addView(controlsTab)
+        contentFrame.addView(hardwareTab)
         contentFrame.addView(lightingTab)
 
         val navWrap = LinearLayout(this).apply {
@@ -1711,12 +1713,6 @@ class MainActivity : Activity() {
             addView(row(rootCheckBtn, refreshBtn))
         }
 
-
-        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
-            HardwareController.enableTriggers()
-            refreshStatus()
-        }
-
         val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
 
         val cameraBtn = smallActionButton("CAMERA") {
@@ -1764,12 +1760,9 @@ class MainActivity : Activity() {
             addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
             addView(magicKeyStatusLabel)
             addView(space(dp(8)))
-            addView(singleRow(trigEnableBtn))
             addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
             addView(spacer(dp(8)))
             addView(flowRow(flashlightBtn, recorderBtn))
-            addView(spacer(dp(8)))
-            
             addView(spacer(dp(8)))
             addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
                 HardwareController.disableSliderSystemHandling()
@@ -1805,19 +1798,6 @@ class MainActivity : Activity() {
             setPadding(dp(18), dp(18), dp(18), dp(26))
         }
 
-        val vibrateBtn = actionButton("TEST HAPTIC") {
-            HardwareController.vibrate(durationMs = 100, gain = 220)
-        }
-
-        val hapticsCard = sectionPanel().apply {
-            addView(sectionHeader("≈", "HAPTICS"))
-            addView(singleRow(vibrateBtn))
-        }
-
-        container.addView(systemCard)
-        container.addView(stockFunctionsCard)
-        container.addView(sliderCard)
-        
         val profilesCard = sectionPanel().apply {
             addView(sectionHeader("★", "PROFILES"))
             addView(bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
@@ -1874,13 +1854,47 @@ class MainActivity : Activity() {
             }
 
             addView(singleRow(saveBtn))
-
             renderProfiles()
             addView(profileList)
         }
 
+        container.addView(systemCard)
+        container.addView(stockFunctionsCard)
+        container.addView(sliderCard)
         container.addView(profilesCard)
 
+        return container
+    }
+
+    private fun createHardwareTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
+            HardwareController.enableTriggers()
+            refreshStatus()
+            Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
+        }
+
+        val triggerCard = sectionPanel().apply {
+            addView(sectionHeader("⌥", "TRIGGERS"))
+            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
+            addView(space(dp(10)))
+            addView(singleRow(trigEnableBtn))
+        }
+
+        val vibrateBtn = actionButton("TEST HAPTIC") {
+            HardwareController.vibrate(durationMs = 100, gain = 220)
+            Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()
+        }
+
+        val hapticsCard = sectionPanel().apply {
+            addView(sectionHeader("≈", "HAPTICS"))
+            addView(bodyText("Quick vibration test for hardware haptics."))
+            addView(space(dp(10)))
+            addView(singleRow(vibrateBtn))
+        }
+
+        container.addView(triggerCard)
         container.addView(hapticsCard)
 
         return container
@@ -2995,11 +3009,15 @@ class MainActivity : Activity() {
         homeTab.visibility = if (tab == "home") View.VISIBLE else View.GONE
         coolingTab.visibility = if (tab == "cooling") View.VISIBLE else View.GONE
         controlsTab.visibility = if (tab == "controls") View.VISIBLE else View.GONE
+        val hardwareTab = (controlsTab.parent as ViewGroup).getChildAt(3)
+        hardwareTab.visibility = if (tab == "hardware") View.VISIBLE else View.GONE
         lightingTab.visibility = if (tab == "lighting") View.VISIBLE else View.GONE
 
         setNavSelected(homeNav, tab == "home")
         setNavSelected(coolingNav, tab == "cooling")
         setNavSelected(controlsNav, tab == "controls")
+        val hardwareNav = (controlsNav.parent as LinearLayout).getChildAt(3) as LinearLayout
+        setNavSelected(hardwareNav, tab == "hardware")
         setNavSelected(lightingNav, tab == "lighting")
     }
 
@@ -3015,6 +3033,7 @@ class MainActivity : Activity() {
         homeNav = navItem("⌂", "Home") { switchTab("home") }
         coolingNav = navItem("❄", "Cooling") { switchTab("cooling") }
         controlsNav = navItem("⌘", "Controls") { switchTab("controls") }
+        val hardwareNav = navItem("⌥", "Hardware") { switchTab("hardware") }
         lightingNav = navItem("✦", "Lighting") { switchTab("lighting") }
 
         return LinearLayout(this).apply {
@@ -3030,6 +3049,7 @@ class MainActivity : Activity() {
             addView(homeNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(coolingNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(controlsNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(hardwareNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(lightingNav, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
     }

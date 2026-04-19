@@ -148,18 +148,25 @@ object HardwareController {
 
     fun setFanLedEffect(effectName: String, color: Int): Boolean {
         val colorCode = when (color) {
+            1 -> 1  // red
+            3 -> 3  // orange
+            4 -> 4  // yellow
             5 -> 5  // green
+            6 -> 6  // cyan
             7 -> 7  // blue
-            else -> 5
+            8 -> 8  // purple
+            9 -> 9  // pink
+            else -> 1
         }
 
         val effectValue = when (effectName.lowercase()) {
             "steady" -> "0x300200${Integer.toHexString(colorCode)}"
             "breathe" -> "0x300300${Integer.toHexString(colorCode)}"
+            "flashing" -> "0x300400${Integer.toHexString(colorCode)}"
             else -> "0x300200${Integer.toHexString(colorCode)}"
         }
 
-        val cmd = "echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
+        val cmd = "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
         return RootShell.exec(cmd)
     }
 

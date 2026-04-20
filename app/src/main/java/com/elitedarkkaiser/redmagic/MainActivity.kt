@@ -206,6 +206,55 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun applyStockMagicKeyMode(
+        label: String,
+        applyMode: () -> Boolean,
+        statusLabel: TextView,
+        sliderButton: Button? = null
+    ) {
+        val ok = applyMode()
+        if (ok) {
+            saveMagicKeyAppPackage(null)
+            sliderButton?.text = "MAGIC KEY APP: Choose App"
+            statusLabel.text = "Current: $label"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Failed to set Magic Key to $label", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun applyLaunchAppMagicKeyMode(
+        pkg: String,
+        label: String,
+        statusLabel: TextView,
+        sliderButton: Button
+    ) {
+        val ok = HardwareController.setSliderLaunchApp(pkg)
+        if (ok) {
+            saveMagicKeyAppPackage(pkg)
+            sliderButton.text = "MAGIC KEY APP: $label"
+            statusLabel.text = "Current: Launch App"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to launch $label", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Failed to set Magic Key app", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun disableMagicKeyMode(statusLabel: TextView, sliderButton: Button? = null) {
+        val ok = HardwareController.disableSliderSystemHandling()
+        if (ok) {
+            saveMagicKeyAppPackage(null)
+            sliderButton?.text = "MAGIC KEY APP: Choose App"
+            statusLabel.text = "Current: Disabled"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key disabled", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Failed to disable Magic Key", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showMagicKeyAppPicker(targetButton: Button) {
         data class MagicKeyAppItem(
             val pkg: String,
@@ -394,10 +443,12 @@ class MainActivity : Activity() {
 
         listView.setOnItemClickListener { _, _, which, _ ->
             val item = filteredApps[which]
-            saveMagicKeyAppPackage(item.pkg)
-            HardwareController.setSliderLaunchApp(item.pkg)
-            targetButton.text = "MAGIC KEY APP: ${item.label}"
-            refreshStatus()
+            applyLaunchAppMagicKeyMode(
+                pkg = item.pkg,
+                label = item.label,
+                statusLabel = magicKeyStatusLabelRef ?: return@setOnItemClickListener,
+                sliderButton = targetButton
+            )
 
             if (!item.launchable) {
                 Toast.makeText(
@@ -405,8 +456,6 @@ class MainActivity : Activity() {
                     "${item.label} saved, but it may not open because it has no launcher activity",
                     Toast.LENGTH_LONG
                 ).show()
-            } else {
-                Toast.makeText(this, "Magic Key set to ${item.label}", Toast.LENGTH_SHORT).show()
             }
 
             dialog.dismiss()
@@ -1714,50 +1763,33 @@ class MainActivity : Activity() {
         }
 
         val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
+        magicKeyStatusLabelRef = magicKeyStatusLabel
+
+        var sliderAppBtnRef: Button? = null
 
         val cameraBtn = smallActionButton("CAMERA") {
-            HardwareController.setSliderOpenCamera()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Camera"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Camera", Toast.LENGTH_SHORT).show()
+            applyStockMagicKeyMode("Camera", { HardwareController.setSliderOpenCamera() }, magicKeyStatusLabel, sliderAppBtnRef)
         }
 
         val gameSpaceBtn = smallActionButton("GAMESPACE") {
-            HardwareController.setSliderOpenGameSpace()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: GameSpace"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to GameSpace", Toast.LENGTH_SHORT).show()
+            applyStockMagicKeyMode("GameSpace", { HardwareController.setSliderOpenGameSpace() }, magicKeyStatusLabel, sliderAppBtnRef)
         }
 
         val soundModeBtn = smallActionButton("SOUND MODE") {
-            HardwareController.setSliderSoundMode()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Sound Mode"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Sound Mode", Toast.LENGTH_SHORT).show()
+            applyStockMagicKeyMode("Sound Mode", { HardwareController.setSliderSoundMode() }, magicKeyStatusLabel, sliderAppBtnRef)
         }
 
         val flashlightBtn = smallActionButton("FLASHLIGHT") {
-            HardwareController.setSliderFlashlight()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Flashlight"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Flashlight", Toast.LENGTH_SHORT).show()
+            applyStockMagicKeyMode("Flashlight", { HardwareController.setSliderFlashlight() }, magicKeyStatusLabel, sliderAppBtnRef)
         }
 
         val recorderBtn = smallActionButton("VOICE RECORDER") {
-            HardwareController.setSliderVoiceRecorder()
-            saveMagicKeyAppPackage(null)
-            magicKeyStatusLabel.text = "Current: Voice Recorder"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to Voice Recorder", Toast.LENGTH_SHORT).show()
+            applyStockMagicKeyMode("Voice Recorder", { HardwareController.setSliderVoiceRecorder() }, magicKeyStatusLabel, sliderAppBtnRef)
         }
 
         val stockFunctionsCard = sectionPanel().apply {
             addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
-            addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
+            addView(bodyText("Choose one stock Magic Key action. Selecting a stock action disables app launch mode."))
             addView(magicKeyStatusLabel)
             addView(space(dp(8)))
             addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
@@ -1765,31 +1797,25 @@ class MainActivity : Activity() {
             addView(flowRow(flashlightBtn, recorderBtn))
             addView(spacer(dp(8)))
             addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
-                HardwareController.disableSliderSystemHandling()
-                saveMagicKeyAppPackage(null)
-                magicKeyStatusLabel.text = "Current: Disabled"
-                refreshStatus()
+                disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtnRef)
             }))
         }
 
         val sliderAppBtn = actionButton(
             "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
         ) {}
+        sliderAppBtnRef = sliderAppBtn
         sliderAppBtn.setOnClickListener {
             showMagicKeyAppPicker(sliderAppBtn)
-            magicKeyStatusLabel.text = "Current: Launch App"
         }
 
         val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
-            saveMagicKeyAppPackage(null)
-            sliderAppBtn.text = "MAGIC KEY APP: Choose App"
-            magicKeyStatusLabel.text = "Current: ${readMagicKeyModeLabel()}"
-            refreshStatus()
+            disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtn)
         }
 
         val sliderCard = sectionPanel().apply {
             addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
-            addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
+            addView(bodyText("Choose one app for Magic Key launch mode. Selecting an app disables stock Magic Key functions."))
             addView(space(dp(12)))
             addView(singleRow(sliderAppBtn))
             addView(space(dp(12)))
@@ -2006,6 +2032,7 @@ class MainActivity : Activity() {
 
 
     private var dialogRefreshPump: (() -> Unit)? = null
+    private var magicKeyStatusLabelRef: TextView? = null
 
     private fun showPumpProfileDialog() {
         val originalEnabled = pumpEnabled

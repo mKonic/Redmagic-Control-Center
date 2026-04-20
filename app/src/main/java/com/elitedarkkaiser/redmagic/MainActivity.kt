@@ -1797,6 +1797,10 @@ class MainActivity : Activity() {
             addView(space(dp(4)))
             setPadding(dp(18), dp(18), dp(18), dp(26))
         }
+        container.addView(systemCard)
+        container.addView(stockFunctionsCard)
+        container.addView(sliderCard)
+
 
 
         return container

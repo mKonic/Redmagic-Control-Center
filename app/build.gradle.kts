@@ -3,6 +3,13 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val hasSigning = listOf(
+    "SIGNING_STORE_FILE",
+    "SIGNING_STORE_PASSWORD",
+    "SIGNING_KEY_ALIAS",
+    "SIGNING_KEY_PASSWORD"
+).all { !System.getenv(it).isNullOrBlank() }
+
 android {
     namespace = "com.elitedarkkaiser.redmagic"
     compileSdk = 35
@@ -15,9 +22,23 @@ android {
         versionName = "1.0.1rc1"
     }
 
+    signingConfigs {
+        if (hasSigning) {
+            create("release") {
+                storeFile = file(System.getenv("SIGNING_STORE_FILE")!!)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

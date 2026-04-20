@@ -1467,7 +1467,7 @@ class MainActivity : Activity() {
         val container = scrollTabContainer()
 
         tempText = TextView(this).apply {
-            text = "Current temp: --°F"
+            text = "Current temp: --"
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(6), 0, dp(4))
@@ -3275,9 +3275,9 @@ class MainActivity : Activity() {
         rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
-        tempChip.text = "TEMP ${tempF?.toInt() ?: "--"}°F"
+        tempChip.text = if (tempF != null) "TEMP ${formatDisplayTempFromF(tempF)}" else "TEMP --"
 
-        tempText.text = "Current temp: ${tempF?.toInt() ?: "--"}°F"
+        tempText.text = if (tempF != null) "Current temp: ${formatDisplayTempFromF(tempF)}" else "Current temp: --"
 
         setChipState(rootChip, rooted)
         setChipState(fanChip, fanEnabled)

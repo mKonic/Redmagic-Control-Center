@@ -4,6 +4,14 @@ Root-level hardware control app for RedMagic devices.
 
 ---
 
+
+## ✨ New UI Enhancements
+- 🔥 Animated LED-style title on welcome screen
+- 📱 Larger app icon integrated into header
+- 🧠 Improved tab structure (Hardware tab separation)
+- 🎮 Hardware Profiles moved to dedicated hardware section
+- ⚡ Cleaner Magic Key control logic (mutually exclusive modes)
+
 ## 🔧 Core Features
 - Full control over:
   - Cooling fan

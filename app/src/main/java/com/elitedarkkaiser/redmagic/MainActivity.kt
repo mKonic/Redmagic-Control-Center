@@ -27,6 +27,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
+import android.view.animation.LinearInterpolator
+import android.animation.ValueAnimator
+import android.animation.ArgbEvaluator
 import android.widget.Toast
 
 class MainActivity : Activity() {
@@ -1273,22 +1276,15 @@ class MainActivity : Activity() {
 
             val iconView = ImageView(this@MainActivity).apply {
                 setImageResource(R.mipmap.ic_launcher)
-                layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+                layoutParams = LinearLayout.LayoutParams(dp(60), dp(60))
             }
 
-            val titleView = TextView(this@MainActivity).apply {
-                text = "Redmagic Control Center"
-                textSize = 18f
-                setTextColor(textPrimary)
-                setTypeface(typeface, Typeface.BOLD)
-                setPadding(dp(12), 0, 0, 0)
-            }
+            val titleView = ledTitleText("Redmagic Control Center")
 
             headerRow.addView(iconView)
             headerRow.addView(titleView)
 
             addView(headerRow)
-
             addView(subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
         }
 
@@ -3230,6 +3226,36 @@ class MainActivity : Activity() {
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(4), 0, 0)
+        }
+    }
+
+    private fun ledTitleText(text: String): TextView {
+        return TextView(this).apply {
+            this.text = text
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(dp(14), 0, 0, 0)
+            setShadowLayer(dp(6).toFloat(), 0f, 0f, Color.parseColor("#5AA9FF"))
+
+            val animator = ValueAnimator.ofObject(
+                ArgbEvaluator(),
+                Color.parseColor("#7CC0FF"),
+                Color.parseColor("#E8EEF7"),
+                Color.parseColor("#7CC0FF")
+            ).apply {
+                duration = 1800L
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.RESTART
+                interpolator = LinearInterpolator()
+                addUpdateListener { anim ->
+                    val c = anim.animatedValue as Int
+                    setTextColor(c)
+                    setShadowLayer(dp(8).toFloat(), 0f, 0f, c)
+                }
+            }
+
+            post { animator.start() }
         }
     }
 

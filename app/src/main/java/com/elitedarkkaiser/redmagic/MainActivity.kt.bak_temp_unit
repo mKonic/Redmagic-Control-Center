@@ -34,27 +34,6 @@ import android.widget.Toast
 
 class MainActivity : Activity() {
 
-    private var useFahrenheit = true
-    private val tempUnitPrefKey = "temp_unit_fahrenheit"
-
-    private fun isUseFahrenheitSaved(): Boolean {
-        return prefs().getBoolean(tempUnitPrefKey, true)
-    }
-
-    private fun saveUseFahrenheit(useF: Boolean) {
-        prefs().edit().putBoolean(tempUnitPrefKey, useF).apply()
-    }
-
-    private fun formatDisplayTempFromF(tempF: Float?): String {
-        if (tempF == null) return "--"
-        return if (useFahrenheit) {
-            "${tempF.toInt()}°F"
-        } else {
-            "${((tempF - 32f) * 5f / 9f).toInt()}°C"
-        }
-    }
-
-
     private lateinit var rootChip: TextView
     private lateinit var fanChip: TextView
     private lateinit var rpmChip: TextView
@@ -632,7 +611,7 @@ class MainActivity : Activity() {
             else -> 40
         }
 
-        return "Pump Mode: AUTO • $profile (${formatDisplayTempFromF(tempF)})" to
+        return "Pump Mode: AUTO • $profile (${String.format("%.0f", tempF)}°F)" to
             "Speed: $speed • Freq: 4"
     }
 
@@ -1276,7 +1255,6 @@ class MainActivity : Activity() {
         applySavedShoulderLedStateOnLaunch()
         applySavedPumpStateOnLaunch()
         realTimePreviewEnabled = isRealTimePreviewEnabledSaved()
-        useFahrenheit = isUseFahrenheitSaved()
         autoPumpEnabled = isAutoPumpEnabledSaved()
 
         if (fanLedEnabled) {
@@ -1575,33 +1553,6 @@ class MainActivity : Activity() {
         val coolingCard = sectionPanel().apply {
             addView(sectionHeader("❄", "COOLING"))
             addView(tempText)
-
-            val tempUnitRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, dp(8), 0, dp(4))
-            }
-
-            val tempUnitLabel = TextView(this@MainActivity).apply {
-                text = "Use Fahrenheit"
-                textSize = 13f
-                setTextColor(textPrimary)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            }
-
-            val tempUnitSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = useFahrenheit
-                setOnCheckedChangeListener { _, checked ->
-                    useFahrenheit = checked
-                    saveUseFahrenheit(checked)
-                    recreate()
-                }
-            }
-
-            tempUnitRow.addView(tempUnitLabel)
-            tempUnitRow.addView(tempUnitSwitch)
-
-            addView(tempUnitRow)
             addView(subtleLabel("Fan level"))
             addView(fanSeek)
             addView(row(fanOnBtn, fanOffBtn))

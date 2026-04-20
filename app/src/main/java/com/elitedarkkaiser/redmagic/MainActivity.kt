@@ -1594,7 +1594,7 @@ class MainActivity : Activity() {
                 setOnCheckedChangeListener { _, checked ->
                     useFahrenheit = checked
                     saveUseFahrenheit(checked)
-                    recreate()
+                    refreshStatus()
                 }
             }
 

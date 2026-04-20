@@ -1213,18 +1213,9 @@ class MainActivity : Activity() {
             setPadding(dp(16), topInset + dp(10), dp(16), dp(96))
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        val contentScroll = ScrollView(this).apply {
-            isFillViewport = true
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
                 1f
             )
-            addView(contentFrame)
         }
 
         homeTab = createHomeTab()
@@ -1245,7 +1236,7 @@ class MainActivity : Activity() {
             addView(bottomNavBar())
         }
 
-        root.addView(contentScroll)
+        root.addView(contentFrame)
         root.addView(navWrap)
 
         setContentView(root)

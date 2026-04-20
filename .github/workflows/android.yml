@@ -5,11 +5,16 @@ on:
     branches:
       - main
       - sixteen
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
       - sixteen
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -40,11 +45,40 @@ jobs:
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Build debug APK
-        run: gradle assembleDebug
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-      - name: Upload APK artifact
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: redmagic-root-control-debug-apk
+          name: redmagic-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redmagic-release-apk
+          path: app/build/outputs/apk/release/*.apk
+
+      - name: Create GitHub Release from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Redmagic Control Center ${{ github.ref_name }}
+          body: |
+            Release ${{ github.ref_name }}
+
+            Included files:
+            - Debug APK
+            - Release APK
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+          generate_release_notes: true

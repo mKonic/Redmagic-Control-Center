@@ -27,9 +27,6 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
-import android.view.animation.LinearInterpolator
-import android.animation.ValueAnimator
-import android.animation.ArgbEvaluator
 import android.widget.Toast
 
 class MainActivity : Activity() {
@@ -206,55 +203,6 @@ class MainActivity : Activity() {
             "16" -> "Launch App"
             "0" -> "Disabled"
             else -> "Unknown"
-        }
-    }
-
-    private fun applyStockMagicKeyMode(
-        label: String,
-        applyMode: () -> Boolean,
-        statusLabel: TextView,
-        sliderButton: Button? = null
-    ) {
-        val ok = applyMode()
-        if (ok) {
-            saveMagicKeyAppPackage(null)
-            sliderButton?.text = "MAGIC KEY APP: Choose App"
-            statusLabel.text = "Current: $label"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed to set Magic Key to $label", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun applyLaunchAppMagicKeyMode(
-        pkg: String,
-        label: String,
-        statusLabel: TextView,
-        sliderButton: Button
-    ) {
-        val ok = HardwareController.setSliderLaunchApp(pkg)
-        if (ok) {
-            saveMagicKeyAppPackage(pkg)
-            sliderButton.text = "MAGIC KEY APP: $label"
-            statusLabel.text = "Current: Launch App"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to launch $label", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed to set Magic Key app", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun disableMagicKeyMode(statusLabel: TextView, sliderButton: Button? = null) {
-        val ok = HardwareController.disableSliderSystemHandling()
-        if (ok) {
-            saveMagicKeyAppPackage(null)
-            sliderButton?.text = "MAGIC KEY APP: Choose App"
-            statusLabel.text = "Current: Disabled"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key disabled", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed to disable Magic Key", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -446,12 +394,10 @@ class MainActivity : Activity() {
 
         listView.setOnItemClickListener { _, _, which, _ ->
             val item = filteredApps[which]
-            applyLaunchAppMagicKeyMode(
-                pkg = item.pkg,
-                label = item.label,
-                statusLabel = magicKeyStatusLabelRef ?: return@setOnItemClickListener,
-                sliderButton = targetButton
-            )
+            saveMagicKeyAppPackage(item.pkg)
+            HardwareController.setSliderLaunchApp(item.pkg)
+            targetButton.text = "MAGIC KEY APP: ${item.label}"
+            refreshStatus()
 
             if (!item.launchable) {
                 Toast.makeText(
@@ -459,6 +405,8 @@ class MainActivity : Activity() {
                     "${item.label} saved, but it may not open because it has no launcher activity",
                     Toast.LENGTH_LONG
                 ).show()
+            } else {
+                Toast.makeText(this, "Magic Key set to ${item.label}", Toast.LENGTH_SHORT).show()
             }
 
             dialog.dismiss()
@@ -469,11 +417,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun isFanLedEnabledSaved(): Boolean {
@@ -759,11 +702,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {
@@ -902,11 +840,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun startAutoFanService() {
@@ -1040,11 +973,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
 
@@ -1106,11 +1034,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showUnsupportedDeviceDialog() {
@@ -1179,11 +1102,6 @@ class MainActivity : Activity() {
         }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun isSupportedDevice(): Boolean {
@@ -1298,23 +1216,7 @@ class MainActivity : Activity() {
         val container = scrollTabContainer()
 
         val welcomeCard = sectionPanel().apply {
-
-            val headerRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-
-            val iconView = ImageView(this@MainActivity).apply {
-                setImageResource(R.mipmap.ic_launcher)
-                layoutParams = LinearLayout.LayoutParams(dp(60), dp(60))
-            }
-
-            val titleView = ledTitleText("Redmagic Control Center")
-
-            headerRow.addView(iconView)
-            headerRow.addView(titleView)
-
-            addView(headerRow)
+            addView(titleText("REDMAGIC HW CONTROLS"))
             addView(subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
         }
 
@@ -1812,33 +1714,50 @@ class MainActivity : Activity() {
         }
 
         val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
-        magicKeyStatusLabelRef = magicKeyStatusLabel
-
-        var sliderAppBtnRef: Button? = null
 
         val cameraBtn = smallActionButton("CAMERA") {
-            applyStockMagicKeyMode("Camera", { HardwareController.setSliderOpenCamera() }, magicKeyStatusLabel, sliderAppBtnRef)
+            HardwareController.setSliderOpenCamera()
+            saveMagicKeyAppPackage(null)
+            magicKeyStatusLabel.text = "Current: Camera"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Camera", Toast.LENGTH_SHORT).show()
         }
 
         val gameSpaceBtn = smallActionButton("GAMESPACE") {
-            applyStockMagicKeyMode("GameSpace", { HardwareController.setSliderOpenGameSpace() }, magicKeyStatusLabel, sliderAppBtnRef)
+            HardwareController.setSliderOpenGameSpace()
+            saveMagicKeyAppPackage(null)
+            magicKeyStatusLabel.text = "Current: GameSpace"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to GameSpace", Toast.LENGTH_SHORT).show()
         }
 
         val soundModeBtn = smallActionButton("SOUND MODE") {
-            applyStockMagicKeyMode("Sound Mode", { HardwareController.setSliderSoundMode() }, magicKeyStatusLabel, sliderAppBtnRef)
+            HardwareController.setSliderSoundMode()
+            saveMagicKeyAppPackage(null)
+            magicKeyStatusLabel.text = "Current: Sound Mode"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Sound Mode", Toast.LENGTH_SHORT).show()
         }
 
         val flashlightBtn = smallActionButton("FLASHLIGHT") {
-            applyStockMagicKeyMode("Flashlight", { HardwareController.setSliderFlashlight() }, magicKeyStatusLabel, sliderAppBtnRef)
+            HardwareController.setSliderFlashlight()
+            saveMagicKeyAppPackage(null)
+            magicKeyStatusLabel.text = "Current: Flashlight"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Flashlight", Toast.LENGTH_SHORT).show()
         }
 
         val recorderBtn = smallActionButton("VOICE RECORDER") {
-            applyStockMagicKeyMode("Voice Recorder", { HardwareController.setSliderVoiceRecorder() }, magicKeyStatusLabel, sliderAppBtnRef)
+            HardwareController.setSliderVoiceRecorder()
+            saveMagicKeyAppPackage(null)
+            magicKeyStatusLabel.text = "Current: Voice Recorder"
+            refreshStatus()
+            Toast.makeText(this, "Magic Key set to Voice Recorder", Toast.LENGTH_SHORT).show()
         }
 
         val stockFunctionsCard = sectionPanel().apply {
             addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
-            addView(bodyText("Choose one stock Magic Key action. Selecting a stock action disables app launch mode."))
+            addView(bodyText("Use confirmed stock Magic Key functions separately from custom app launch mode."))
             addView(magicKeyStatusLabel)
             addView(space(dp(8)))
             addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
@@ -1846,25 +1765,31 @@ class MainActivity : Activity() {
             addView(flowRow(flashlightBtn, recorderBtn))
             addView(spacer(dp(8)))
             addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
-                disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtnRef)
+                HardwareController.disableSliderSystemHandling()
+                saveMagicKeyAppPackage(null)
+                magicKeyStatusLabel.text = "Current: Disabled"
+                refreshStatus()
             }))
         }
 
         val sliderAppBtn = actionButton(
             "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
         ) {}
-        sliderAppBtnRef = sliderAppBtn
         sliderAppBtn.setOnClickListener {
             showMagicKeyAppPicker(sliderAppBtn)
+            magicKeyStatusLabel.text = "Current: Launch App"
         }
 
         val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
-            disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtn)
+            saveMagicKeyAppPackage(null)
+            sliderAppBtn.text = "MAGIC KEY APP: Choose App"
+            magicKeyStatusLabel.text = "Current: ${readMagicKeyModeLabel()}"
+            refreshStatus()
         }
 
         val sliderCard = sectionPanel().apply {
             addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
-            addView(bodyText("Choose one app for Magic Key launch mode. Selecting an app disables stock Magic Key functions."))
+            addView(bodyText("Choose an installed app for Magic Key launch-app mode. This is separate from stock function mode."))
             addView(space(dp(12)))
             addView(singleRow(sliderAppBtn))
             addView(space(dp(12)))
@@ -1872,48 +1797,9 @@ class MainActivity : Activity() {
             addView(space(dp(4)))
             setPadding(dp(18), dp(18), dp(18), dp(26))
         }
-        container.addView(systemCard)
-        container.addView(stockFunctionsCard)
-        container.addView(sliderCard)
-
-
-
-        return container
-    }
-
-    private fun createHardwareTab(): LinearLayout {
-        val container = scrollTabContainer()
-
-        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
-            HardwareController.enableTriggers()
-            refreshStatus()
-            Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
-        }
-
-        val triggerCard = sectionPanel().apply {
-            addView(sectionHeader("⌥", "TRIGGERS"))
-            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
-            addView(space(dp(10)))
-            addView(singleRow(trigEnableBtn))
-        }
-
-        val vibrateBtn = actionButton("TEST HAPTIC") {
-            HardwareController.vibrate(durationMs = 100, gain = 220)
-            Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()
-        }
-
-        val hapticsCard = sectionPanel().apply {
-            addView(sectionHeader("≈", "HAPTICS"))
-            addView(bodyText("Quick vibration test for hardware haptics."))
-            addView(space(dp(10)))
-            addView(singleRow(vibrateBtn))
-        }
-
-        container.addView(triggerCard)
-        container.addView(hapticsCard)
 
         val profilesCard = sectionPanel().apply {
-            addView(sectionHeader("★", "HARDWARE PROFILES"))
+            addView(sectionHeader("★", "PROFILES"))
             addView(bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
 
             val profileList = LinearLayout(this@MainActivity).apply {
@@ -1972,7 +1858,44 @@ class MainActivity : Activity() {
             addView(profileList)
         }
 
+        container.addView(systemCard)
+        container.addView(stockFunctionsCard)
+        container.addView(sliderCard)
         container.addView(profilesCard)
+
+        return container
+    }
+
+    private fun createHardwareTab(): LinearLayout {
+        val container = scrollTabContainer()
+
+        val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
+            HardwareController.enableTriggers()
+            refreshStatus()
+            Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
+        }
+
+        val triggerCard = sectionPanel().apply {
+            addView(sectionHeader("⌥", "TRIGGERS"))
+            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
+            addView(space(dp(10)))
+            addView(singleRow(trigEnableBtn))
+        }
+
+        val vibrateBtn = actionButton("TEST HAPTIC") {
+            HardwareController.vibrate(durationMs = 100, gain = 220)
+            Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()
+        }
+
+        val hapticsCard = sectionPanel().apply {
+            addView(sectionHeader("≈", "HAPTICS"))
+            addView(bodyText("Quick vibration test for hardware haptics."))
+            addView(space(dp(10)))
+            addView(singleRow(vibrateBtn))
+        }
+
+        container.addView(triggerCard)
+        container.addView(hapticsCard)
 
         return container
     }
@@ -2081,7 +2004,6 @@ class MainActivity : Activity() {
 
 
     private var dialogRefreshPump: (() -> Unit)? = null
-    private var magicKeyStatusLabelRef: TextView? = null
 
     private fun showPumpProfileDialog() {
         val originalEnabled = pumpEnabled
@@ -2246,11 +2168,6 @@ class MainActivity : Activity() {
         dialogRefreshPump = { repaint() }
         repaint()
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showShoulderLedDialog() {
@@ -2510,11 +2427,6 @@ class MainActivity : Activity() {
 
         refreshUi()
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showLogoLedDialog() {
@@ -2780,11 +2692,6 @@ class MainActivity : Activity() {
 
         refreshUi()
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showFanLedDialog() {
@@ -3046,11 +2953,6 @@ class MainActivity : Activity() {
         dialogRefreshFanLed = { refreshUi() }
 
         dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private var dialogRefreshFanLed: (() -> Unit)? = null
@@ -3276,36 +3178,6 @@ class MainActivity : Activity() {
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(4), 0, 0)
-        }
-    }
-
-    private fun ledTitleText(text: String): TextView {
-        return TextView(this).apply {
-            this.text = text
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(dp(14), 0, 0, 0)
-            setShadowLayer(dp(6).toFloat(), 0f, 0f, Color.parseColor("#5AA9FF"))
-
-            val animator = ValueAnimator.ofObject(
-                ArgbEvaluator(),
-                Color.parseColor("#7CC0FF"),
-                Color.parseColor("#E8EEF7"),
-                Color.parseColor("#7CC0FF")
-            ).apply {
-                duration = 1800L
-                repeatCount = ValueAnimator.INFINITE
-                repeatMode = ValueAnimator.RESTART
-                interpolator = LinearInterpolator()
-                addUpdateListener { anim ->
-                    val c = anim.animatedValue as Int
-                    setTextColor(c)
-                    setShadowLayer(dp(8).toFloat(), 0f, 0f, c)
-                }
-            }
-
-            post { animator.start() }
         }
     }
 

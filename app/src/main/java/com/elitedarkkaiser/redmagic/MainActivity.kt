@@ -1265,7 +1265,30 @@ class MainActivity : Activity() {
         val container = scrollTabContainer()
 
         val welcomeCard = sectionPanel().apply {
-            addView(titleText("REDMAGIC HW CONTROLS"))
+
+            val headerRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+
+            val iconView = ImageView(this@MainActivity).apply {
+                setImageResource(R.mipmap.ic_launcher)
+                layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+            }
+
+            val titleView = TextView(this@MainActivity).apply {
+                text = "Redmagic Control Center"
+                textSize = 18f
+                setTextColor(textPrimary)
+                setTypeface(typeface, Typeface.BOLD)
+                setPadding(dp(12), 0, 0, 0)
+            }
+
+            headerRow.addView(iconView)
+            headerRow.addView(titleView)
+
+            addView(headerRow)
+
             addView(subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
         }
 

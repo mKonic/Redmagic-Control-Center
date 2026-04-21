@@ -2430,26 +2430,37 @@ class MainActivity : Activity() {
             setPadding(0, dp(16), 0, dp(8))
         }
 
-        val presetRow = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-
-        fun presetBtn(name: String, code: String) = filterChip(name, false) {
+        fun applyFanPreset(code: String) {
             fanLedEffect = "steady"
             HardwareController.setFanLedStockPreset(code)
         }
 
-        presetRow.addView(presetBtn("Preset 1", "0x3002101"))
-        presetRow.addView(presetBtn("Preset 2", "0x3002102"))
-        presetRow.addView(presetBtn("Preset 3", "0x3002103"))
-        presetRow.addView(presetBtn("Preset 4", "0x3002104"))
-        presetRow.addView(presetBtn("Preset 5", "0x3002105"))
-        presetRow.addView(presetBtn("Preset 6", "0x3002106"))
-        presetRow.addView(presetBtn("Preset 7", "0x3002107"))
-        presetRow.addView(presetBtn("Preset 8", "0x3002108"))
+        val presetRow1 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00") { applyFanPreset("0x3002101") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4") { applyFanPreset("0x3002102") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4") { applyFanPreset("0x3002103") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE") { applyFanPreset("0x3002104") })
+        }
+
+        val presetRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4") { applyFanPreset("0x3002105") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000") { applyFanPreset("0x3002106") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0") { applyFanPreset("0x3002107") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676") { applyFanPreset("0x3002108") })
+        }
 
         container.addView(presetLabel)
-        container.addView(presetRow)
+        container.addView(presetRow1)
+        container.addView(presetRow2)
 
         val colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -3218,6 +3229,40 @@ class MainActivity : Activity() {
             setPadding(dp(10), dp(6), dp(10), dp(6))
             setOnClickListener { onClick() }
             applyPressEffect(this)
+        }
+    }
+
+
+    private fun fanPresetBubble(vararg hexes: String, onClick: () -> Unit): View {
+        return ImageView(this).apply {
+            val size = dp(42)
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bmp)
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+            val rect = android.graphics.RectF(0f, 0f, size.toFloat(), size.toFloat())
+
+            val colors = hexes.toList().take(4).let {
+                if (it.size == 4) it else listOf("#FF0000", "#FF8C00", "#FFD600", "#00E676")
+            }
+
+            paint.style = android.graphics.Paint.Style.FILL
+            paint.color = Color.parseColor(colors[0])
+            canvas.drawArc(rect, 180f, 90f, true, paint)   // TL
+            paint.color = Color.parseColor(colors[1])
+            canvas.drawArc(rect, 90f, 90f, true, paint)    // TR
+            paint.color = Color.parseColor(colors[2])
+            canvas.drawArc(rect, 270f, 90f, true, paint)   // BL
+            paint.color = Color.parseColor(colors[3])
+            canvas.drawArc(rect, 0f, 90f, true, paint)     // BR
+
+            paint.style = android.graphics.Paint.Style.STROKE
+            paint.strokeWidth = dp(2).toFloat()
+            paint.color = borderColor
+            canvas.drawCircle(size / 2f, size / 2f, size / 2f - dp(1).toFloat(), paint)
+
+            setImageBitmap(bmp)
+            setOnClickListener { onClick() }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.elitedarkkaiser.redmagic
 
 import android.app.Service
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -57,10 +58,33 @@ class GameModeService : Service() {
     private fun getForegroundPackageName(): String? {
         val usm = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val end = System.currentTimeMillis()
-        val start = end - 10_000L
-        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end)
-        val recent = stats.maxByOrNull { it.lastTimeUsed } ?: return null
-        return recent.packageName
+        val start = end - 15_000L
+
+        val events = usm.queryEvents(start, end)
+        val event = UsageEvents.Event()
+        var lastForeground: String? = null
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (
+                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED ||
+                event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
+            ) {
+                val pkg = event.packageName
+                if (!pkg.isNullOrBlank() && !shouldIgnorePackage(pkg)) {
+                    lastForeground = pkg
+                }
+            }
+        }
+
+        return lastForeground
+    }
+
+    private fun shouldIgnorePackage(pkg: String): Boolean {
+        if (pkg == packageName) return true
+        if (pkg == "com.android.systemui") return true
+        if (pkg.contains("launcher", ignoreCase = true)) return true
+        return false
     }
 
     private fun applyGameModeProfile() {

@@ -95,12 +95,6 @@ object HardwareController {
 
 
     fun setFanLedEnabled(enabled: Boolean): Boolean {
-
-    fun setFanLedStockPreset(effect: String): Boolean {
-        val cmd = "echo 1 > $FAN_ENABLE; echo $effect > $LED_EFFECT; echo 1 > $LED_CFG"
-        return RootShell.exec(cmd)
-    }
-
         return if (enabled) {
             RootShell.exec("echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
@@ -108,6 +102,9 @@ object HardwareController {
         }
     }
 
+    fun setFanLedStockPreset(effectValue: String): Boolean {
+        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+    }
 
     fun setLogoLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {

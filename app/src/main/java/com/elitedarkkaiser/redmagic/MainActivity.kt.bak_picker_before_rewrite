@@ -4399,34 +4399,99 @@ class MainActivity : Activity() {
 
 
     private fun showGamePickerDialog() {
-        showGamePickerDialogUI(this) {
-            updateGameModeStatusUI(magicKeyStatusLabelRef ?: return@showGamePickerDialogUI)
-        }
-    }
+        val pm = packageManager
+        val apps = pm.getInstalledApplications(0)
+            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+            .sortedBy { it.loadLabel(pm).toString().lowercase() }
 
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val selected = prefs.getStringSet("game_mode_packages", emptySet())?.toMutableSet() ?: mutableSetOf()
+
+        val labels = apps.map {
+            val checked = if (selected.contains(it.packageName)) "✓ " else ""
+            checked + it.loadLabel(pm).toString()
+        }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Select Games")
+            .setItems(labels) { _, which ->
+                val app = apps[which]
+                val pkg = app.packageName
+                val name = app.loadLabel(pm).toString()
+
+                val already = selected.contains(pkg)
+
+                AlertDialog.Builder(this)
+                    .setTitle(name)
+                    .setMessage(
+                        if (already)
+                            "This app is already tracked for Game Mode. You can remove it or save the current hardware settings as its profile."
+                        else
+                            "Add this app to Game Mode, and optionally save the current hardware settings as its profile."
+                    )
+                    .setPositiveButton(if (already) "Save Profile" else "Add + Save Profile") { _, _ ->
+                        selected.add(pkg)
+                        prefs.edit().putStringSet("game_mode_packages", selected).apply()
+                        saveProfileForPackage(pkg)
+                        android.widget.Toast.makeText(this, "Saved profile for $name", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    .setNeutralButton(if (already) "Remove" else "Add Only") { _, _ ->
+                        if (already) {
+                            selected.remove(pkg)
+                            prefs.edit()
+                                .putStringSet("game_mode_packages", selected)
+                                .remove("game_profile_$pkg")
+                                .apply()
+                            android.widget.Toast.makeText(this, "Removed $name", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            selected.add(pkg)
+                            prefs.edit().putStringSet("game_mode_packages", selected).apply()
+                            android.widget.Toast.makeText(this, "Added $name", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
 
 
 
     private fun saveProfileForPackage(pkg: String) {
-        saveProfileForPackageStorage(
-            context = this,
-            pkg = pkg,
-            fanEnabled = HardwareController.isFanEnabled(),
-            fanLevel = fanSeek.progress,
-            fanLedEnabled = fanLedEnabled,
-            fanLedEffect = fanLedEffect,
-            fanLedColor = fanLedColor
-        )
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+
+        val obj = org.json.JSONObject().apply {
+            put("fanEnabled", HardwareController.isFanEnabled())
+            put("fanLevel", fanSeek.progress)
+            put("fanLedEnabled", fanLedEnabled)
+            put("fanLedEffect", fanLedEffect)
+            put("fanLedColor", fanLedColor)
+        }
+
+        prefs.edit().putString("game_profile_$pkg", obj.toString()).apply()
     }
 
     private fun getSavedGamePackages(): MutableSet<String> {
-        return getSavedGamePackagesStorage(this)
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        return (prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()).toMutableSet()
     }
 
 
 
     private fun updateGameModeStatusUI(textView: TextView) {
-        textView.text = getGameModeStatusTextStorage(this)
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
+
+        val serviceRunning = true // simple indicator for now
+
+        val text = if (tracked.isEmpty()) {
+            "Game Mode: No apps selected"
+        } else {
+            "Game Mode: ${tracked.size} apps tracked"
+        }
+
+        textView.text = text
     }
 
 

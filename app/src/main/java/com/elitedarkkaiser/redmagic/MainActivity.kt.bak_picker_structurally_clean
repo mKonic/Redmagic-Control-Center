@@ -4399,34 +4399,130 @@ class MainActivity : Activity() {
 
 
     private fun showGamePickerDialog() {
-        showGamePickerDialogUI(this) {
-            updateGameModeStatusUI(magicKeyStatusLabelRef ?: return@showGamePickerDialogUI)
+        val pm = packageManager
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val selected = prefs.getStringSet("game_mode_packages", emptySet())?.toMutableSet() ?: mutableSetOf()
+
+        val apps = pm.getInstalledApplications(0)
+            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+            .sortedBy { it.loadLabel(pm).toString().lowercase() }
+
+        val listView = ListView(this)
+
+        val adapter = object : BaseAdapter() {
+            override fun getCount() = apps.size
+            override fun getItem(position: Int) = apps[position]
+            override fun getItemId(position: Int) = position.toLong()
+
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val app = apps[position]
+
+                val row = LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(dp(14), dp(10), dp(14), dp(10))
+                }
+
+                val check = CheckBox(this@MainActivity).apply {
+                    isChecked = selected.contains(app.packageName)
+                }
+
+                val icon = ImageView(this@MainActivity).apply {
+                    val size = dp(40)
+                    layoutParams = LinearLayout.LayoutParams(size, size)
+                    setImageDrawable(app.loadIcon(pm))
+                }
+
+                val textWrap = LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(dp(12), 0, 0, 0)
+                }
+
+                val label = TextView(this@MainActivity).apply {
+                    text = app.loadLabel(pm)
+                    textSize = 14f
+                    setTextColor(textPrimary)
+                }
+
+                val pkg = TextView(this@MainActivity).apply {
+                    text = app.packageName
+                    textSize = 11f
+                    setTextColor(textSecondary)
+                }
+
+                textWrap.addView(label)
+                textWrap.addView(pkg)
+
+                row.addView(check)
+                row.addView(icon)
+                row.addView(textWrap)
+
+                row.setOnClickListener {
+                    if (selected.contains(app.packageName)) {
+                        selected.remove(app.packageName)
+                        check.isChecked = false
+                    } else {
+                        selected.add(app.packageName)
+                        check.isChecked = true
+                    }
+                }
+
+                return row
+            }
         }
+
+        listView.adapter = adapter
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Choose Games / Apps")
+            .setView(listView)
+            .setPositiveButton("Save") { _, _ ->
+                prefs.edit().putStringSet("game_mode_packages", selected).apply()
+                Toast.makeText(this, "Saved ${selected.size} apps", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.show()
     }
 
 
 
 
     private fun saveProfileForPackage(pkg: String) {
-        saveProfileForPackageStorage(
-            context = this,
-            pkg = pkg,
-            fanEnabled = HardwareController.isFanEnabled(),
-            fanLevel = fanSeek.progress,
-            fanLedEnabled = fanLedEnabled,
-            fanLedEffect = fanLedEffect,
-            fanLedColor = fanLedColor
-        )
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+
+        val obj = org.json.JSONObject().apply {
+            put("fanEnabled", HardwareController.isFanEnabled())
+            put("fanLevel", fanSeek.progress)
+            put("fanLedEnabled", fanLedEnabled)
+            put("fanLedEffect", fanLedEffect)
+            put("fanLedColor", fanLedColor)
+        }
+
+        prefs.edit().putString("game_profile_$pkg", obj.toString()).apply()
     }
 
     private fun getSavedGamePackages(): MutableSet<String> {
-        return getSavedGamePackagesStorage(this)
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        return (prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()).toMutableSet()
     }
 
 
 
     private fun updateGameModeStatusUI(textView: TextView) {
-        textView.text = getGameModeStatusTextStorage(this)
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
+
+        val serviceRunning = true // simple indicator for now
+
+        val text = if (tracked.isEmpty()) {
+            "Game Mode: No apps selected"
+        } else {
+            "Game Mode: ${tracked.size} apps tracked"
+        }
+
+        textView.text = text
     }
 
 

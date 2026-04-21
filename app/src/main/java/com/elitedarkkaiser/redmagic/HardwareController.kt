@@ -105,8 +105,7 @@ object HardwareController {
     fun setFanLedStockPreset(effectValue: String): Boolean {
         return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
-
-    fun setLogoLedEnabled(enabled: Boolean): Boolean {
+fun setLogoLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
             RootShell.exec("echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {

@@ -126,6 +126,13 @@ class MainActivity : Activity() {
     private val shoulderLedColorKey = "shoulder_led_color"
 
     private val gameModePackagesKey = "game_mode_packages"
+    private val gameModeFanEnabledKey = "game_mode_fan_enabled"
+    private val gameModeFanLevelKey = "game_mode_fan_level"
+    private val gameModePumpEnabledKey = "game_mode_pump_enabled"
+    private val gameModePumpProfileKey = "game_mode_pump_profile"
+    private val gameModeFanLedEnabledKey = "game_mode_fan_led_enabled"
+    private val gameModeFanLedEffectKey = "game_mode_fan_led_effect"
+    private val gameModeFanLedColorKey = "game_mode_fan_led_color"
 
     private fun getGameModePackagesSaved(): Set<String> {
         return prefs().getStringSet(gameModePackagesKey, emptySet()) ?: emptySet()
@@ -142,6 +149,49 @@ class MainActivity : Activity() {
             count == 1 -> "1 game selected"
             else -> "$count games selected"
         }
+    }
+
+
+    private data class GameModeProfile(
+        val fanEnabled: Boolean,
+        val fanLevel: Int,
+        val pumpEnabled: Boolean,
+        val pumpProfile: String,
+        val fanLedEnabled: Boolean,
+        val fanLedEffect: String,
+        val fanLedColor: Int
+    )
+
+    private fun getSavedGameModeProfile(): GameModeProfile {
+        return GameModeProfile(
+            fanEnabled = prefs().getBoolean(gameModeFanEnabledKey, true),
+            fanLevel = prefs().getInt(gameModeFanLevelKey, 3),
+            pumpEnabled = prefs().getBoolean(gameModePumpEnabledKey, false),
+            pumpProfile = prefs().getString(gameModePumpProfileKey, "quick") ?: "quick",
+            fanLedEnabled = prefs().getBoolean(gameModeFanLedEnabledKey, true),
+            fanLedEffect = prefs().getString(gameModeFanLedEffectKey, "steady") ?: "steady",
+            fanLedColor = prefs().getInt(gameModeFanLedColorKey, 5)
+        )
+    }
+
+    private fun saveGameModeProfile(profile: GameModeProfile) {
+        prefs().edit()
+            .putBoolean(gameModeFanEnabledKey, profile.fanEnabled)
+            .putInt(gameModeFanLevelKey, profile.fanLevel)
+            .putBoolean(gameModePumpEnabledKey, profile.pumpEnabled)
+            .putString(gameModePumpProfileKey, profile.pumpProfile)
+            .putBoolean(gameModeFanLedEnabledKey, profile.fanLedEnabled)
+            .putString(gameModeFanLedEffectKey, profile.fanLedEffect)
+            .putInt(gameModeFanLedColorKey, profile.fanLedColor)
+            .apply()
+    }
+
+    private fun gameModeProfileSummary(): String {
+        val p = getSavedGameModeProfile()
+        val fanText = if (p.fanEnabled) "Fan ${p.fanLevel}" else "Fan Off"
+        val pumpText = if (p.pumpEnabled) "Pump ${p.pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}" else "Pump Off"
+        val ledText = if (p.fanLedEnabled) "Fan LED ${p.fanLedEffect}" else "Fan LED Off"
+        return "$fanText • $pumpText • $ledText"
     }
 
     private data class GameAppEntry(
@@ -2225,11 +2275,7 @@ class MainActivity : Activity() {
         }
 
         val editGameProfileBtn = actionButton("EDIT GAME PROFILE") {
-            Toast.makeText(
-                this,
-                "Game profile editor is next. This card is ready.",
-                Toast.LENGTH_SHORT
-            ).show()
+            showGameModeProfileDialog()
         }
 
         val gameModeCard = sectionPanel().apply {
@@ -2255,6 +2301,275 @@ class MainActivity : Activity() {
 
     private var dialogRefreshPump: (() -> Unit)? = null
     private var magicKeyStatusLabelRef: TextView? = null
+
+
+    private fun showGameModeProfileDialog() {
+        val current = getSavedGameModeProfile()
+
+        var gmFanEnabled = current.fanEnabled
+        var gmFanLevel = current.fanLevel
+        var gmPumpEnabled = current.pumpEnabled
+        var gmPumpProfile = current.pumpProfile
+        var gmFanLedEnabled = current.fanLedEnabled
+        var gmFanLedEffect = current.fanLedEffect
+        var gmFanLedColor = current.fanLedColor
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Edit Game Profile"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "These settings will apply automatically when a selected game launches."
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, dp(10))
+        }
+
+        val fanEnableCheck = CheckBox(this).apply {
+            text = "Enable fan override"
+            isChecked = gmFanEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setOnCheckedChangeListener { _, checked -> gmFanEnabled = checked }
+        }
+
+        val fanLevelLabel = TextView(this).apply {
+            text = "Fan level: $gmFanLevel"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(10), 0, dp(4))
+        }
+
+        val fanLevelSeek = SeekBar(this).apply {
+            max = 5
+            progress = gmFanLevel
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    gmFanLevel = progress
+                    fanLevelLabel.text = "Fan level: $gmFanLevel"
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+        }
+
+        val pumpEnableCheck = CheckBox(this).apply {
+            text = "Enable pump override"
+            isChecked = gmPumpEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setPadding(0, dp(10), 0, 0)
+            setOnCheckedChangeListener { _, checked -> gmPumpEnabled = checked }
+        }
+
+        val pumpLabel = TextView(this).apply {
+            text = "Pump profile"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(10), 0, dp(6))
+        }
+
+        val pumpRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        fun gmPumpBtn(label: String, value: String): Button {
+            return filterChip(label, gmPumpProfile == value) {
+                gmPumpProfile = value
+                slowBtn.background = roundedFill(if (gmPumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"), 999)
+                mediumBtn.background = roundedFill(if (gmPumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"), 999)
+                quickBtn.background = roundedFill(if (gmPumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"), 999)
+            }
+        }
+
+        lateinit var slowBtn: Button
+        lateinit var mediumBtn: Button
+        lateinit var quickBtn: Button
+
+        slowBtn = gmPumpBtn("Slow", "slow")
+        mediumBtn = gmPumpBtn("Medium", "medium")
+        quickBtn = gmPumpBtn("Quick", "quick")
+
+        pumpRow.addView(slowBtn)
+        pumpRow.addView(space(dp(8)))
+        pumpRow.addView(mediumBtn)
+        pumpRow.addView(space(dp(8)))
+        pumpRow.addView(quickBtn)
+
+        val ledEnableCheck = CheckBox(this).apply {
+            text = "Enable fan LED override"
+            isChecked = gmFanLedEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setPadding(0, dp(10), 0, 0)
+            setOnCheckedChangeListener { _, checked -> gmFanLedEnabled = checked }
+        }
+
+        val ledEffectLabel = TextView(this).apply {
+            text = "Fan LED effect"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(10), 0, dp(6))
+        }
+
+        val ledEffectRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        fun gmLedEffectBtn(label: String, value: String): Button {
+            return filterChip(label, gmFanLedEffect == value) {
+                gmFanLedEffect = value
+                ledSteadyBtn.background = roundedFill(if (gmFanLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"), 999)
+                ledBreatheBtn.background = roundedFill(if (gmFanLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"), 999)
+                ledFlashingBtn.background = roundedFill(if (gmFanLedEffect == "flashing") panelPressed else Color.parseColor("#1E2633"), 999)
+            }
+        }
+
+        lateinit var ledSteadyBtn: Button
+        lateinit var ledBreatheBtn: Button
+        lateinit var ledFlashingBtn: Button
+
+        ledSteadyBtn = gmLedEffectBtn("Steady", "steady")
+        ledBreatheBtn = gmLedEffectBtn("Breathe", "breathe")
+        ledFlashingBtn = gmLedEffectBtn("Flashing", "flashing")
+
+        ledEffectRow.addView(ledSteadyBtn)
+        ledEffectRow.addView(space(dp(8)))
+        ledEffectRow.addView(ledBreatheBtn)
+        ledEffectRow.addView(space(dp(8)))
+        ledEffectRow.addView(ledFlashingBtn)
+
+        val ledColorLabel = TextView(this).apply {
+            text = "Fan LED color"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(10), 0, dp(6))
+        }
+
+        fun gmColorDot(id: Int, hex: String): View {
+            return colorDotGeneric(hex, gmFanLedColor == id) {
+                gmFanLedColor = id
+                colorRow.getChildAt(0).background = colorDotDrawable("#FF0000", gmFanLedColor == 1)
+                colorRow.getChildAt(2).background = colorDotDrawable("#FF8C00", gmFanLedColor == 3)
+                colorRow.getChildAt(4).background = colorDotDrawable("#FFD600", gmFanLedColor == 4)
+                colorRow.getChildAt(6).background = colorDotDrawable("#00E676", gmFanLedColor == 5)
+                colorRow2.getChildAt(0).background = colorDotDrawable("#00E5FF", gmFanLedColor == 6)
+                colorRow2.getChildAt(2).background = colorDotDrawable("#1565FF", gmFanLedColor == 7)
+                colorRow2.getChildAt(4).background = colorDotDrawable("#A020F0", gmFanLedColor == 8)
+                colorRow2.getChildAt(6).background = colorDotDrawable("#FF69B4", gmFanLedColor == 9)
+            }
+        }
+
+        val colorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(gmColorDot(1, "#FF0000"))
+            addView(space(dp(10)))
+            addView(gmColorDot(3, "#FF8C00"))
+            addView(space(dp(10)))
+            addView(gmColorDot(4, "#FFD600"))
+            addView(space(dp(10)))
+            addView(gmColorDot(5, "#00E676"))
+        }
+
+        val colorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(gmColorDot(6, "#00E5FF"))
+            addView(space(dp(10)))
+            addView(gmColorDot(7, "#1565FF"))
+            addView(space(dp(10)))
+            addView(gmColorDot(8, "#A020F0"))
+            addView(space(dp(10)))
+            addView(gmColorDot(9, "#FF69B4"))
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(fanEnableCheck)
+        container.addView(fanLevelLabel)
+        container.addView(fanLevelSeek)
+        container.addView(pumpEnableCheck)
+        container.addView(pumpLabel)
+        container.addView(pumpRow)
+        container.addView(ledEnableCheck)
+        container.addView(ledEffectLabel)
+        container.addView(ledEffectRow)
+        container.addView(ledColorLabel)
+        container.addView(colorRow)
+        container.addView(colorRow2)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener { dialog.dismiss() }
+
+        saveBtn.setOnClickListener {
+            saveGameModeProfile(
+                GameModeProfile(
+                    fanEnabled = gmFanEnabled,
+                    fanLevel = gmFanLevel,
+                    pumpEnabled = gmPumpEnabled,
+                    pumpProfile = gmPumpProfile,
+                    fanLedEnabled = gmFanLedEnabled,
+                    fanLedEffect = gmFanLedEffect,
+                    fanLedColor = gmFanLedColor
+                )
+            )
+            Toast.makeText(this, "Game profile saved", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
+    }
 
     private fun showPumpProfileDialog() {
         val originalEnabled = pumpEnabled

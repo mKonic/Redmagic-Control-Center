@@ -87,16 +87,40 @@ class GameModeService : Service() {
         return false
     }
 
-    private fun applyGameModeProfile() {
+    
+
+    private fun getProfileForPackage(pkg: String): Map<String, Any> {
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val json = prefs.getString("game_profile_$pkg", null) ?: return emptyMap()
+
+        return try {
+            val obj = org.json.JSONObject(json)
+            mapOf(
+                "fanEnabled" to obj.optBoolean("fanEnabled", true),
+                "fanLevel" to obj.optInt("fanLevel", 3),
+                "fanLedEnabled" to obj.optBoolean("fanLedEnabled", true),
+                "fanLedEffect" to obj.optString("fanLedEffect", "steady"),
+                "fanLedColor" to obj.optInt("fanLedColor", 5)
+            )
+        } catch (_: Throwable) {
+            emptyMap()
+        }
+    }
+
+
+private fun applyGameModeProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
-        val fanEnabled = prefs.getBoolean("game_mode_fan_enabled", true)
-        val fanLevel = prefs.getInt("game_mode_fan_level", 3)
+        val pkg = gameModeActiveFor ?: return
+        val profile = getProfileForPackage(pkg)
+
+        val fanEnabled = profile["fanEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_fan_enabled", true)
+        val fanLevel = profile["fanLevel"] as? Int ?: prefs.getInt("game_mode_fan_level", 3)
         val pumpEnabled = prefs.getBoolean("game_mode_pump_enabled", false)
         val pumpProfile = prefs.getString("game_mode_pump_profile", "quick") ?: "quick"
-        val fanLedEnabled = prefs.getBoolean("game_mode_fan_led_enabled", true)
-        val fanLedEffect = prefs.getString("game_mode_fan_led_effect", "steady") ?: "steady"
-        val fanLedColor = prefs.getInt("game_mode_fan_led_color", 5)
+        val fanLedEnabled = profile["fanLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_fan_led_enabled", true)
+        val fanLedEffect = profile["fanLedEffect"] as? String ?: prefs.getString("game_mode_fan_led_effect", "steady") ?: "steady"
+        val fanLedColor = profile["fanLedColor"] as? Int ?: prefs.getInt("game_mode_fan_led_color", 5)
 
         if (fanEnabled) {
             HardwareController.setFanLevel(fanLevel)

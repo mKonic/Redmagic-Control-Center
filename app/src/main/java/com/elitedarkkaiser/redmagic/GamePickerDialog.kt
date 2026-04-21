@@ -2,11 +2,41 @@ package com.elitedarkkaiser.redmagic
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
-import android.content.pm.PackageManager
+import android.widget.BaseAdapter
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.Toast
+
+private fun gpDp(context: Context, value: Int): Int {
+    return (value * context.resources.displayMetrics.density).toInt()
+}
+
+private fun gpRoundedFill(fill: Int, radiusDp: Int, context: Context): GradientDrawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        cornerRadius = gpDp(context, radiusDp).toFloat()
+        setColor(fill)
+    }
+}
+
+private fun gpRoundedStroke(fill: Int, stroke: Int, radiusDp: Int, context: Context): GradientDrawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        cornerRadius = gpDp(context, radiusDp).toFloat()
+        setColor(fill)
+        setStroke(gpDp(context, 1), stroke)
+    }
+}
 
 fun showGamePickerDialogUI(
     context: Context,
@@ -14,13 +44,31 @@ fun showGamePickerDialogUI(
 ) {
     val pm = context.packageManager
 
+    val bgColor = Color.parseColor("#070B12")
+    val panelColor = Color.parseColor("#101722")
+    val panelStroke = Color.parseColor("#243041")
+    val rowNormal = Color.parseColor("#121A27")
+    val rowSelected = Color.parseColor("#1E2A3D")
+    val textPrimary = Color.parseColor("#EAF1FF")
+    val textSecondary = Color.parseColor("#9AA8BC")
+    val accent = Color.parseColor("#4EA1FF")
+    val btnSecondary = Color.parseColor("#1E2633")
+
     val apps = pm.getInstalledApplications(0)
         .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
         .sortedBy { it.loadLabel(pm).toString().lowercase() }
 
     val selected = getSavedGamePackagesStorage(context)
 
-    val listView = ListView(context)
+    val listView = ListView(context).apply {
+        divider = null
+        dividerHeight = 0
+        setPadding(0, 0, 0, 0)
+        clipToPadding = false
+        isVerticalScrollBarEnabled = true
+        overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+        background = null
+    }
 
     val adapter = object : BaseAdapter() {
         override fun getCount() = apps.size
@@ -29,36 +77,68 @@ fun showGamePickerDialogUI(
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val app = apps[position]
+            val isSelected = selected.contains(app.packageName)
 
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(24, 18, 24, 18)
+                setPadding(gpDp(context, 14), gpDp(context, 10), gpDp(context, 14), gpDp(context, 10))
+                background = gpRoundedStroke(
+                    if (isSelected) rowSelected else rowNormal,
+                    panelStroke,
+                    16,
+                    context
+                )
+
+                val lp = AbsListView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                layoutParams = lp
             }
 
             val check = CheckBox(context).apply {
-                isChecked = selected.contains(app.packageName)
+                isChecked = isSelected
+                isClickable = false
+                isFocusable = false
+                buttonTintList = android.content.res.ColorStateList.valueOf(accent)
             }
 
             val icon = ImageView(context).apply {
-                val size = 100
-                layoutParams = LinearLayout.LayoutParams(size, size)
+                val size = gpDp(context, 40)
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    marginStart = gpDp(context, 8)
+                }
                 setImageDrawable(app.loadIcon(pm))
             }
 
             val textWrap = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(24, 0, 0, 0)
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+                ).apply {
+                    marginStart = gpDp(context, 12)
+                }
             }
 
             val label = TextView(context).apply {
                 text = app.loadLabel(pm)
                 textSize = 15f
+                setTextColor(textPrimary)
+                setTypeface(typeface, Typeface.BOLD)
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
             }
 
             val pkg = TextView(context).apply {
                 text = app.packageName
                 textSize = 11f
+                setTextColor(textSecondary)
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setPadding(0, gpDp(context, 2), 0, 0)
             }
 
             textWrap.addView(label)
@@ -71,11 +151,10 @@ fun showGamePickerDialogUI(
             row.setOnClickListener {
                 if (selected.contains(app.packageName)) {
                     selected.remove(app.packageName)
-                    check.isChecked = false
                 } else {
                     selected.add(app.packageName)
-                    check.isChecked = true
                 }
+                notifyDataSetChanged()
             }
 
             return row
@@ -84,16 +163,30 @@ fun showGamePickerDialogUI(
 
     listView.adapter = adapter
 
+    var dialogRef: AlertDialog? = null
+
     val title = TextView(context).apply {
         text = "Choose Games / Apps"
         textSize = 18f
-        setPadding(24, 24, 24, 12)
+        setTextColor(textPrimary)
+        setTypeface(typeface, Typeface.BOLD)
+        setPadding(gpDp(context, 4), gpDp(context, 2), gpDp(context, 4), gpDp(context, 12))
     }
 
-    var dialogRef: AlertDialog? = null
+    val subtitle = TextView(context).apply {
+        text = "Pick which launchable apps should trigger Game Mode"
+        textSize = 12f
+        setTextColor(textSecondary)
+        setPadding(gpDp(context, 4), 0, gpDp(context, 4), gpDp(context, 12))
+    }
 
     val saveBtn = Button(context).apply {
         text = "Save"
+        textSize = 13f
+        setAllCaps(false)
+        setTextColor(textPrimary)
+        background = gpRoundedFill(accent, 14, context)
+        setPadding(gpDp(context, 18), gpDp(context, 10), gpDp(context, 18), gpDp(context, 10))
         setOnClickListener {
             setSavedGamePackagesStorage(context, selected)
             onSave(selected)
@@ -104,29 +197,64 @@ fun showGamePickerDialogUI(
 
     val cancelBtn = Button(context).apply {
         text = "Cancel"
+        textSize = 13f
+        setAllCaps(false)
+        setTextColor(textPrimary)
+        background = gpRoundedFill(btnSecondary, 14, context)
+        setPadding(gpDp(context, 18), gpDp(context, 10), gpDp(context, 18), gpDp(context, 10))
         setOnClickListener { dialogRef?.dismiss() }
     }
 
     val buttonRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        gravity = android.view.Gravity.END
-        setPadding(16, 12, 16, 16)
+        gravity = Gravity.END
+        setPadding(0, gpDp(context, 14), 0, 0)
         addView(cancelBtn)
+        addView(TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(gpDp(context, 10), 1)
+        })
         addView(saveBtn)
+    }
+
+    val listHolder = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        background = gpRoundedStroke(rowNormal, panelStroke, 18, context)
+        setPadding(gpDp(context, 8), gpDp(context, 8), gpDp(context, 8), gpDp(context, 8))
+        addView(
+            listView,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                gpDp(context, 420)
+            )
+        )
     }
 
     val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(12, 12, 12, 12)
+        setPadding(gpDp(context, 18), gpDp(context, 18), gpDp(context, 18), gpDp(context, 18))
+        background = gpRoundedStroke(panelColor, panelStroke, 22, context)
         addView(title)
-        addView(listView)
+        addView(subtitle)
+        addView(listHolder)
         addView(buttonRow)
     }
 
+    val root = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(gpDp(context, 12), gpDp(context, 12), gpDp(context, 12), gpDp(context, 12))
+        setBackgroundColor(bgColor)
+        addView(container)
+    }
+
     val dialog = AlertDialog.Builder(context)
-        .setView(container)
+        .setView(root)
+        .setCancelable(true)
         .create()
 
     dialogRef = dialog
     dialog.show()
+
+    dialog.window?.setBackgroundDrawable(
+        android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)
+    )
 }

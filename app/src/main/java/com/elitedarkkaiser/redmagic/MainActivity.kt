@@ -3219,6 +3219,12 @@ class MainActivity : Activity() {
     }
 
 
+    private fun applyFanPreset(effectValue: String) {
+        fanLedEffect = "steady"
+        HardwareController.setFanLedStockPreset(effectValue)
+        dialogRefreshFanLed?.invoke()
+    }
+
     private fun fanPresetBubble(vararg hexes: String, onClick: () -> Unit): View {
         return ImageView(this).apply {
             val size = dp(42)

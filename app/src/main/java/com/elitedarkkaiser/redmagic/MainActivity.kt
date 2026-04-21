@@ -2422,46 +2422,6 @@ class MainActivity : Activity() {
             })
         }
 
-
-        val presetLabel = TextView(this).apply {
-            text = "Stock Fan Presets"
-            textSize = 12f
-            setTextColor(textSecondary)
-            setPadding(0, dp(16), 0, dp(8))
-        }
-
-        fun applyFanPreset(code: String) {
-            fanLedEffect = "steady"
-            HardwareController.setFanLedStockPreset(code)
-        }
-
-        val presetRow1 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            addView(fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00") { applyFanPreset("0x3002101") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4") { applyFanPreset("0x3002102") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4") { applyFanPreset("0x3002103") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE") { applyFanPreset("0x3002104") })
-        }
-
-        val presetRow2 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
-            addView(fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4") { applyFanPreset("0x3002105") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000") { applyFanPreset("0x3002106") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0") { applyFanPreset("0x3002107") })
-            addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676") { applyFanPreset("0x3002108") })
-        }
-
-        container.addView(presetLabel)
-        container.addView(presetRow1)
-        container.addView(presetRow2)
-
         val colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
@@ -2523,9 +2483,35 @@ class MainActivity : Activity() {
         container.addView(enableCheck)
         container.addView(effectLabel)
         container.addView(effectsRow)
+        val presetBubbleRow1 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00") { applyFanPreset("0x3002101") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4") { applyFanPreset("0x3002102") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4") { applyFanPreset("0x3002103") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE") { applyFanPreset("0x3002104") })
+        }
+
+        val presetBubbleRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4") { applyFanPreset("0x3002105") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000") { applyFanPreset("0x3002106") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0") { applyFanPreset("0x3002107") })
+            addView(space(dp(10)))
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676") { applyFanPreset("0x3002108") })
+        }
+
         container.addView(colorLabel)
         container.addView(colorRow)
         container.addView(colorRow2)
+        container.addView(presetBubbleRow1)
+        container.addView(presetBubbleRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)

@@ -78,6 +78,7 @@ class MainActivity : Activity() {
     private lateinit var coolingTab: LinearLayout
     private lateinit var controlsTab: LinearLayout
     private lateinit var lightingTab: LinearLayout
+    private var gameModeAppsTextRef: TextView? = null
 
     private var smartPumpStatusView: TextView? = null
     private var smartPumpSpeedView: TextView? = null
@@ -142,6 +143,62 @@ class MainActivity : Activity() {
             else -> "$count games selected"
         }
     }
+
+    private data class GameAppEntry(
+        val label: String,
+        val packageName: String
+    )
+
+    private fun getLaunchableApps(): List<GameAppEntry> {
+        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
+            addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+        }
+
+        return packageManager.queryIntentActivities(intent, 0)
+            .mapNotNull { resolveInfo ->
+                val pkg = resolveInfo.activityInfo?.packageName ?: return@mapNotNull null
+                val label = resolveInfo.loadLabel(packageManager)?.toString()?.trim().orEmpty()
+                if (label.isBlank()) return@mapNotNull null
+                GameAppEntry(label, pkg)
+            }
+            .distinctBy { it.packageName }
+            .sortedBy { it.label.lowercase() }
+    }
+
+    private fun refreshGameModeCardUi() {
+        gameModeAppsTextRef?.text = gameModeAppsSummary()
+    }
+
+    private fun showGameModeAppPicker() {
+        val apps = getLaunchableApps()
+        if (apps.isEmpty()) {
+            Toast.makeText(this, "No launchable apps found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val saved = getGameModePackagesSaved().toMutableSet()
+        val checked = apps.map { it.packageName in saved }.toBooleanArray()
+        val labels = apps.map { "${it.label}\n${it.packageName}" }.toTypedArray()
+
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Choose Games / Apps")
+            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                val pkg = apps[which].packageName
+                if (isChecked) {
+                    saved.add(pkg)
+                } else {
+                    saved.remove(pkg)
+                }
+            }
+            .setPositiveButton("Save") { _, _ ->
+                saveGameModePackages(saved)
+                refreshGameModeCardUi()
+                Toast.makeText(this, "Saved ${saved.size} app(s)", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 
 
     private val pumpEnabledKey = "pump_enabled"
@@ -2161,14 +2218,10 @@ class MainActivity : Activity() {
             textSize = 13f
             setTextColor(textSecondary)
             setPadding(0, dp(2), 0, dp(10))
-        }
+        }.also { gameModeAppsTextRef = it }
 
         val chooseGamesBtn = actionButton("CHOOSE GAMES") {
-            Toast.makeText(
-                this,
-                "App picker UI is next. This card is ready.",
-                Toast.LENGTH_SHORT
-            ).show()
+            showGameModeAppPicker()
         }
 
         val editGameProfileBtn = actionButton("EDIT GAME PROFILE") {

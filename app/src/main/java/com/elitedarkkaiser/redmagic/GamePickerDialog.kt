@@ -2,7 +2,6 @@ package com.elitedarkkaiser.redmagic
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -56,19 +55,12 @@ fun showGamePickerDialogUI(
     val accent = Color.parseColor("#4EA1FF")
     val btnSecondary = Color.parseColor("#1E2633")
 
-    val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
-        addCategory(Intent.CATEGORY_LAUNCHER)
-    }
-
-    val apps = pm.queryIntentActivities(launcherIntent, 0)
-        .mapNotNull { it.activityInfo?.applicationInfo }
-        .distinctBy { it.packageName }
+    val apps = pm.getInstalledApplications(0)
         .filter { app ->
             app.packageName != context.packageName &&
-            (
-                (app.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 ||
-                (app.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-            )
+            app.enabled &&
+            (app.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 &&
+            app.loadLabel(pm).toString().trim().isNotEmpty()
         }
         .sortedBy { it.loadLabel(pm).toString().lowercase() }
 

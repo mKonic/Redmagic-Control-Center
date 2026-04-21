@@ -2380,22 +2380,26 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, dp(6))
         }
 
-        val pumpRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+        lateinit var slowBtn: Button
+        lateinit var mediumBtn: Button
+        lateinit var quickBtn: Button
+
+        fun refreshPumpButtons() {
+            slowBtn.background = roundedFill(if (gmPumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"), 999)
+            mediumBtn.background = roundedFill(if (gmPumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"), 999)
+            quickBtn.background = roundedFill(if (gmPumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"), 999)
         }
 
         fun gmPumpBtn(label: String, value: String): Button {
             return filterChip(label, gmPumpProfile == value) {
                 gmPumpProfile = value
-                slowBtn.background = roundedFill(if (gmPumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"), 999)
-                mediumBtn.background = roundedFill(if (gmPumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"), 999)
-                quickBtn.background = roundedFill(if (gmPumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"), 999)
+                refreshPumpButtons()
             }
         }
 
-        lateinit var slowBtn: Button
-        lateinit var mediumBtn: Button
-        lateinit var quickBtn: Button
+        val pumpRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
 
         slowBtn = gmPumpBtn("Slow", "slow")
         mediumBtn = gmPumpBtn("Medium", "medium")
@@ -2424,22 +2428,26 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, dp(6))
         }
 
-        val ledEffectRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+        lateinit var ledSteadyBtn: Button
+        lateinit var ledBreatheBtn: Button
+        lateinit var ledFlashingBtn: Button
+
+        fun refreshLedEffectButtons() {
+            ledSteadyBtn.background = roundedFill(if (gmFanLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"), 999)
+            ledBreatheBtn.background = roundedFill(if (gmFanLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"), 999)
+            ledFlashingBtn.background = roundedFill(if (gmFanLedEffect == "flashing") panelPressed else Color.parseColor("#1E2633"), 999)
         }
 
         fun gmLedEffectBtn(label: String, value: String): Button {
             return filterChip(label, gmFanLedEffect == value) {
                 gmFanLedEffect = value
-                ledSteadyBtn.background = roundedFill(if (gmFanLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"), 999)
-                ledBreatheBtn.background = roundedFill(if (gmFanLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"), 999)
-                ledFlashingBtn.background = roundedFill(if (gmFanLedEffect == "flashing") panelPressed else Color.parseColor("#1E2633"), 999)
+                refreshLedEffectButtons()
             }
         }
 
-        lateinit var ledSteadyBtn: Button
-        lateinit var ledBreatheBtn: Button
-        lateinit var ledFlashingBtn: Button
+        val ledEffectRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
 
         ledSteadyBtn = gmLedEffectBtn("Steady", "steady")
         ledBreatheBtn = gmLedEffectBtn("Breathe", "breathe")
@@ -2458,21 +2466,28 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, dp(6))
         }
 
+        lateinit var colorRow: LinearLayout
+        lateinit var colorRow2: LinearLayout
+
+        fun refreshLedColorDots() {
+            colorRow.getChildAt(0).background = colorDotDrawable("#FF0000", gmFanLedColor == 1)
+            colorRow.getChildAt(2).background = colorDotDrawable("#FF8C00", gmFanLedColor == 3)
+            colorRow.getChildAt(4).background = colorDotDrawable("#FFD600", gmFanLedColor == 4)
+            colorRow.getChildAt(6).background = colorDotDrawable("#00E676", gmFanLedColor == 5)
+            colorRow2.getChildAt(0).background = colorDotDrawable("#00E5FF", gmFanLedColor == 6)
+            colorRow2.getChildAt(2).background = colorDotDrawable("#1565FF", gmFanLedColor == 7)
+            colorRow2.getChildAt(4).background = colorDotDrawable("#A020F0", gmFanLedColor == 8)
+            colorRow2.getChildAt(6).background = colorDotDrawable("#FF69B4", gmFanLedColor == 9)
+        }
+
         fun gmColorDot(id: Int, hex: String): View {
             return colorDotGeneric(hex, gmFanLedColor == id) {
                 gmFanLedColor = id
-                colorRow.getChildAt(0).background = colorDotDrawable("#FF0000", gmFanLedColor == 1)
-                colorRow.getChildAt(2).background = colorDotDrawable("#FF8C00", gmFanLedColor == 3)
-                colorRow.getChildAt(4).background = colorDotDrawable("#FFD600", gmFanLedColor == 4)
-                colorRow.getChildAt(6).background = colorDotDrawable("#00E676", gmFanLedColor == 5)
-                colorRow2.getChildAt(0).background = colorDotDrawable("#00E5FF", gmFanLedColor == 6)
-                colorRow2.getChildAt(2).background = colorDotDrawable("#1565FF", gmFanLedColor == 7)
-                colorRow2.getChildAt(4).background = colorDotDrawable("#A020F0", gmFanLedColor == 8)
-                colorRow2.getChildAt(6).background = colorDotDrawable("#FF69B4", gmFanLedColor == 9)
+                refreshLedColorDots()
             }
         }
 
-        val colorRow = LinearLayout(this).apply {
+        colorRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             addView(gmColorDot(1, "#FF0000"))
             addView(space(dp(10)))
@@ -2483,7 +2498,7 @@ class MainActivity : Activity() {
             addView(gmColorDot(5, "#00E676"))
         }
 
-        val colorRow2 = LinearLayout(this).apply {
+        colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
             addView(gmColorDot(6, "#00E5FF"))
@@ -2538,6 +2553,10 @@ class MainActivity : Activity() {
         container.addView(colorRow)
         container.addView(colorRow2)
         container.addView(buttonRow)
+
+        refreshPumpButtons()
+        refreshLedEffectButtons()
+        refreshLedColorDots()
 
         val dialog = AlertDialog.Builder(this)
             .setView(container)

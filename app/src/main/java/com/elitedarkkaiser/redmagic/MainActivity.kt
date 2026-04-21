@@ -124,6 +124,26 @@ class MainActivity : Activity() {
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
 
+    private val gameModePackagesKey = "game_mode_packages"
+
+    private fun getGameModePackagesSaved(): Set<String> {
+        return prefs().getStringSet(gameModePackagesKey, emptySet()) ?: emptySet()
+    }
+
+    private fun saveGameModePackages(packages: Set<String>) {
+        prefs().edit().putStringSet(gameModePackagesKey, packages).apply()
+    }
+
+    private fun gameModeAppsSummary(): String {
+        val count = getGameModePackagesSaved().size
+        return when {
+            count <= 0 -> "No games selected"
+            count == 1 -> "1 game selected"
+            else -> "$count games selected"
+        }
+    }
+
+
     private val pumpEnabledKey = "pump_enabled"
     private val pumpProfileKey = "pump_profile"
     private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
@@ -2127,6 +2147,48 @@ class MainActivity : Activity() {
         container.addView(fanLedCard)
         container.addView(logoCard)
         container.addView(shoulderCard)
+
+
+        val gameModeStatusText = TextView(this).apply {
+            text = "Status: Inactive"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(6), 0, dp(4))
+        }
+
+        val gameModeAppsText = TextView(this).apply {
+            text = gameModeAppsSummary()
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(2), 0, dp(10))
+        }
+
+        val chooseGamesBtn = actionButton("CHOOSE GAMES") {
+            Toast.makeText(
+                this,
+                "App picker UI is next. This card is ready.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        val editGameProfileBtn = actionButton("EDIT GAME PROFILE") {
+            Toast.makeText(
+                this,
+                "Game profile editor is next. This card is ready.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        val gameModeCard = sectionPanel().apply {
+            addView(sectionHeader("🎮", "GAME MODE"))
+            addView(bodyText("Automatically applies a separate hardware profile when a selected game is launched. When the game closes or goes to background, your normal profile remains in control."))
+            addView(gameModeStatusText)
+            addView(infoRow("Apps", gameModeAppsText))
+            addView(row(chooseGamesBtn, editGameProfileBtn))
+            addView(subtleLabel("This is automatic behavior only. There is no manual toggle here."))
+        }
+
+        container.addView(gameModeCard)
         return container
     }
 

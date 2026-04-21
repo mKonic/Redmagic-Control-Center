@@ -1528,6 +1528,43 @@ class MainActivity : Activity() {
 
     private fun createHomeTab(): LinearLayout {
         val container = scrollTabContainer()
+        // Usage Access Permission Card
+        if (!hasUsageStatsPermission()) {
+            val usageCard = sectionPanel().apply {
+
+                val title = TextView(this@MainActivity).apply {
+                    text = "Game Mode Permission Required"
+                    textSize = 16f
+                    setTextColor(textPrimary)
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                }
+
+                val desc = TextView(this@MainActivity).apply {
+                    text = "Grant Usage Access so Game Mode can detect running games."
+                    textSize = 13f
+                    setTextColor(textSecondary)
+                    setPadding(0, dp(6), 0, dp(10))
+                }
+
+                val btn = Button(this@MainActivity).apply {
+                    text = "Grant Usage Access"
+                    textSize = 13f
+                    setAllCaps(false)
+                    setTextColor(textPrimary)
+                    background = roundedFill(panelPressed, 14)
+                    setOnClickListener {
+                        openUsageStatsAccessSettings()
+                    }
+                }
+
+                addView(title)
+                addView(desc)
+                addView(btn)
+            }
+
+            container.addView(usageCard)
+        }
+
 
         val welcomeCard = sectionPanel().apply {
 

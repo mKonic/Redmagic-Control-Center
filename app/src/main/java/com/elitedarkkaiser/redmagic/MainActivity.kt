@@ -1575,6 +1575,15 @@ class MainActivity : Activity() {
         }
 
         container.addView(gameSelectBtn)
+        val gameStatus = TextView(this@MainActivity).apply {
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, dp(8))
+        }
+
+        updateGameModeStatusUI(gameStatus)
+        container.addView(gameStatus)
+
 
         }
 
@@ -4466,6 +4475,23 @@ class MainActivity : Activity() {
     private fun getSavedGamePackages(): MutableSet<String> {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
         return (prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()).toMutableSet()
+    }
+
+
+
+    private fun updateGameModeStatusUI(textView: TextView) {
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
+
+        val serviceRunning = true // simple indicator for now
+
+        val text = if (tracked.isEmpty()) {
+            "Game Mode: No apps selected"
+        } else {
+            "Game Mode: ${tracked.size} apps tracked"
+        }
+
+        textView.text = text
     }
 
 

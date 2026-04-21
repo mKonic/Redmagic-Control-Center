@@ -2422,6 +2422,35 @@ class MainActivity : Activity() {
             })
         }
 
+
+        val presetLabel = TextView(this).apply {
+            text = "Stock Fan Presets"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val presetRow = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        fun presetBtn(name: String, code: String) = filterChip(name, false) {
+            fanLedEffect = "steady"
+            HardwareController.setFanLedStockPreset(code)
+        }
+
+        presetRow.addView(presetBtn("Preset 1", "0x3002101"))
+        presetRow.addView(presetBtn("Preset 2", "0x3002102"))
+        presetRow.addView(presetBtn("Preset 3", "0x3002103"))
+        presetRow.addView(presetBtn("Preset 4", "0x3002104"))
+        presetRow.addView(presetBtn("Preset 5", "0x3002105"))
+        presetRow.addView(presetBtn("Preset 6", "0x3002106"))
+        presetRow.addView(presetBtn("Preset 7", "0x3002107"))
+        presetRow.addView(presetBtn("Preset 8", "0x3002108"))
+
+        container.addView(presetLabel)
+        container.addView(presetRow)
+
         val colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
@@ -2692,6 +2721,35 @@ class MainActivity : Activity() {
             })
         }
 
+
+        val presetLabel = TextView(this).apply {
+            text = "Stock Fan Presets"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val presetRow = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        fun presetBtn(name: String, code: String) = filterChip(name, false) {
+            fanLedEffect = "steady"
+            HardwareController.setFanLedStockPreset(code)
+        }
+
+        presetRow.addView(presetBtn("Preset 1", "0x3002101"))
+        presetRow.addView(presetBtn("Preset 2", "0x3002102"))
+        presetRow.addView(presetBtn("Preset 3", "0x3002103"))
+        presetRow.addView(presetBtn("Preset 4", "0x3002104"))
+        presetRow.addView(presetBtn("Preset 5", "0x3002105"))
+        presetRow.addView(presetBtn("Preset 6", "0x3002106"))
+        presetRow.addView(presetBtn("Preset 7", "0x3002107"))
+        presetRow.addView(presetBtn("Preset 8", "0x3002108"))
+
+        container.addView(presetLabel)
+        container.addView(presetRow)
+
         val colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
@@ -2955,6 +3013,35 @@ class MainActivity : Activity() {
                 dialogRefreshFanLed?.invoke()
             })
         }
+
+
+        val presetLabel = TextView(this).apply {
+            text = "Stock Fan Presets"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val presetRow = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        fun presetBtn(name: String, code: String) = filterChip(name, false) {
+            fanLedEffect = "steady"
+            HardwareController.setFanLedStockPreset(code)
+        }
+
+        presetRow.addView(presetBtn("Preset 1", "0x3002101"))
+        presetRow.addView(presetBtn("Preset 2", "0x3002102"))
+        presetRow.addView(presetBtn("Preset 3", "0x3002103"))
+        presetRow.addView(presetBtn("Preset 4", "0x3002104"))
+        presetRow.addView(presetBtn("Preset 5", "0x3002105"))
+        presetRow.addView(presetBtn("Preset 6", "0x3002106"))
+        presetRow.addView(presetBtn("Preset 7", "0x3002107"))
+        presetRow.addView(presetBtn("Preset 8", "0x3002108"))
+
+        container.addView(presetLabel)
+        container.addView(presetRow)
 
         val colorRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL

@@ -56,7 +56,14 @@ fun showGamePickerDialogUI(
     val btnSecondary = Color.parseColor("#1E2633")
 
     val apps = pm.getInstalledApplications(0)
-        .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+        .filter { app ->
+            app.packageName != context.packageName &&
+            pm.getLaunchIntentForPackage(app.packageName) != null &&
+            (
+                (app.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 ||
+                (app.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+            )
+        }
         .sortedBy { it.loadLabel(pm).toString().lowercase() }
 
     val selected = getSavedGamePackagesStorage(context)

@@ -23,8 +23,8 @@ class GameModeService : Service() {
 
                 if (!currentPkg.isNullOrBlank() && tracked.contains(currentPkg)) {
                     if (gameModeActiveFor != currentPkg) {
-                        applyGameModeProfile()
                         gameModeActiveFor = currentPkg
+                        applyGameModeProfile()
                     }
                 } else {
                     if (gameModeActiveFor != null) {

@@ -332,7 +332,35 @@ class MainActivity : Activity() {
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = getSystemService(android.app.AppOpsManager::class.java)
+        val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow("android:get_usage_stats", android.os.Process.myUid(), packageName)
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow("android:get_usage_stats", android.os.Process.myUid(), packageName)
+        }
+        return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun openUsageStatsAccessSettings() {
+        startActivity(
+            android.content.Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
+    }
+
+
     private fun startGameModeService() {
+        if (!hasUsageStatsPermission()) {
+            android.widget.Toast.makeText(
+                this,
+                "Grant Usage Access to enable Game Mode",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            return
+        }
         startService(Intent(this, GameModeService::class.java))
     }
 

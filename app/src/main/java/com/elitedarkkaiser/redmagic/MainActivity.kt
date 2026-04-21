@@ -260,33 +260,9 @@ class MainActivity : Activity() {
     }
 
     private fun showGameModeAppPicker() {
-        val apps = getLaunchableApps()
-        if (apps.isEmpty()) {
-            Toast.makeText(this, "No launchable apps found", Toast.LENGTH_SHORT).show()
-            return
+        showGamePickerDialogUI(this) {
+            refreshGameModeCardUi()
         }
-
-        val saved = getGameModePackagesSaved().toMutableSet()
-        val checked = apps.map { it.packageName in saved }.toBooleanArray()
-        val labels = apps.map { "${it.label}\n${it.packageName}" }.toTypedArray()
-
-        android.app.AlertDialog.Builder(this)
-            .setTitle("Choose Games / Apps")
-            .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
-                val pkg = apps[which].packageName
-                if (isChecked) {
-                    saved.add(pkg)
-                } else {
-                    saved.remove(pkg)
-                }
-            }
-            .setPositiveButton("Save") { _, _ ->
-                saveGameModePackages(saved)
-                refreshGameModeCardUi()
-                Toast.makeText(this, "Saved ${saved.size} app(s)", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
 

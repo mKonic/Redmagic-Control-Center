@@ -186,6 +186,49 @@ class MainActivity : Activity() {
             .apply()
     }
 
+    private fun applySavedGameModeProfileNow() {
+        val p = getSavedGameModeProfile()
+
+        if (p.fanEnabled) {
+            HardwareController.setFanLevel(p.fanLevel)
+        } else {
+            HardwareController.enableFan(false)
+        }
+
+        if (p.pumpEnabled) {
+            HardwareController.setPumpProfile(p.pumpProfile)
+        } else {
+            HardwareController.enablePump(false)
+        }
+
+        if (p.fanLedEnabled) {
+            HardwareController.setFanLedEffect(p.fanLedEffect, p.fanLedColor)
+        } else {
+            HardwareController.setFanLedEnabled(false)
+        }
+    }
+
+    private fun restoreNormalProfileNow() {
+        if (fanEnabled) {
+            HardwareController.setFanLevel(fanSeek.progress)
+        } else {
+            HardwareController.enableFan(false)
+        }
+
+        if (pumpEnabled) {
+            HardwareController.setPumpProfile(pumpProfile)
+        } else {
+            HardwareController.enablePump(false)
+        }
+
+        if (fanLedEnabled) {
+            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+        } else {
+            HardwareController.setFanLedEnabled(false)
+        }
+    }
+
+
     private fun gameModeProfileSummary(): String {
         val p = getSavedGameModeProfile()
         val fanText = if (p.fanEnabled) "Fan ${p.fanLevel}" else "Fan Off"
@@ -200,14 +243,11 @@ class MainActivity : Activity() {
     )
 
     private fun getLaunchableApps(): List<GameAppEntry> {
-        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
-            addCategory(android.content.Intent.CATEGORY_LAUNCHER)
-        }
-
-        return packageManager.queryIntentActivities(intent, 0)
-            .mapNotNull { resolveInfo ->
-                val pkg = resolveInfo.activityInfo?.packageName ?: return@mapNotNull null
-                val label = resolveInfo.loadLabel(packageManager)?.toString()?.trim().orEmpty()
+        return packageManager.getInstalledApplications(0)
+            .mapNotNull { appInfo ->
+                val pkg = appInfo.packageName ?: return@mapNotNull null
+                if (pkg == packageName) return@mapNotNull null
+                val label = packageManager.getApplicationLabel(appInfo)?.toString()?.trim().orEmpty()
                 if (label.isBlank()) return@mapNotNull null
                 GameAppEntry(label, pkg)
             }
@@ -1450,6 +1490,7 @@ class MainActivity : Activity() {
         updateManualCurveUiState()
         switchTab("home")
         refreshStatus()
+        startGameModeService()
     }
 
     private fun createHomeTab(): LinearLayout {

@@ -209,7 +209,7 @@ class MainActivity : Activity() {
     }
 
     private fun restoreNormalProfileNow() {
-        if (fanEnabled) {
+        if (HardwareController.isFanEnabled()) {
             HardwareController.setFanLevel(fanSeek.progress)
         } else {
             HardwareController.enableFan(false)
@@ -331,6 +331,11 @@ class MainActivity : Activity() {
     }
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+
+    private fun startGameModeService() {
+        startService(Intent(this, GameModeService::class.java))
+    }
+
 
     private fun shouldSkipSupportedDialog(): Boolean {
         return prefs().getBoolean(skipSupportedDialogKey, false)

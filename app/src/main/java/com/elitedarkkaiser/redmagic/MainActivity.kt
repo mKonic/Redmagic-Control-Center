@@ -4396,22 +4396,76 @@ class MainActivity : Activity() {
             .sortedBy { it.loadLabel(pm).toString().lowercase() }
 
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-        val selected = prefs.getStringSet("game_mode_packages", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        val selected = prefs.getStringSet("game_mode_packages", emptySet())?.toMutableSet() ?: mutableSetOf()
 
-        val names = apps.map { it.loadLabel(pm).toString() }.toTypedArray()
-        val checked = apps.map { selected.contains(it.packageName) }.toBooleanArray()
+        val labels = apps.map {
+            val checked = if (selected.contains(it.packageName)) "✓ " else ""
+            checked + it.loadLabel(pm).toString()
+        }.toTypedArray()
 
         AlertDialog.Builder(this)
             .setTitle("Select Games")
-            .setMultiChoiceItems(names, checked) { _, which, isChecked ->
-                val pkg = apps[which].packageName
-                if (isChecked) selected.add(pkg) else selected.remove(pkg)
+            .setItems(labels) { _, which ->
+                val app = apps[which]
+                val pkg = app.packageName
+                val name = app.loadLabel(pm).toString()
+
+                val already = selected.contains(pkg)
+
+                AlertDialog.Builder(this)
+                    .setTitle(name)
+                    .setMessage(
+                        if (already)
+                            "This app is already tracked for Game Mode. You can remove it or save the current hardware settings as its profile."
+                        else
+                            "Add this app to Game Mode, and optionally save the current hardware settings as its profile."
+                    )
+                    .setPositiveButton(if (already) "Save Profile" else "Add + Save Profile") { _, _ ->
+                        selected.add(pkg)
+                        prefs.edit().putStringSet("game_mode_packages", selected).apply()
+                        saveProfileForPackage(pkg)
+                        android.widget.Toast.makeText(this, "Saved profile for $name", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    .setNeutralButton(if (already) "Remove" else "Add Only") { _, _ ->
+                        if (already) {
+                            selected.remove(pkg)
+                            prefs.edit()
+                                .putStringSet("game_mode_packages", selected)
+                                .remove("game_profile_$pkg")
+                                .apply()
+                            android.widget.Toast.makeText(this, "Removed $name", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            selected.add(pkg)
+                            prefs.edit().putStringSet("game_mode_packages", selected).apply()
+                            android.widget.Toast.makeText(this, "Added $name", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
-            .setPositiveButton("Save") { _, _ ->
-                prefs.edit().putStringSet("game_mode_packages", selected).apply()
-            }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Close", null)
             .show()
+    }
+
+
+
+    private fun saveProfileForPackage(pkg: String) {
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+
+        val obj = org.json.JSONObject().apply {
+            put("fanEnabled", HardwareController.isFanEnabled())
+            put("fanLevel", fanSeek.progress)
+            put("fanLedEnabled", fanLedEnabled)
+            put("fanLedEffect", fanLedEffect)
+            put("fanLedColor", fanLedColor)
+        }
+
+        prefs.edit().putString("game_profile_$pkg", obj.toString()).apply()
+    }
+
+    private fun getSavedGamePackages(): MutableSet<String> {
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        return (prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()).toMutableSet()
     }
 
 

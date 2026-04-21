@@ -1563,6 +1563,19 @@ class MainActivity : Activity() {
             }
 
             container.addView(usageCard)
+        val gameSelectBtn = Button(this@MainActivity).apply {
+            text = "Select Games for Game Mode"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setOnClickListener {
+                showGamePickerDialog()
+            }
+        }
+
+        container.addView(gameSelectBtn)
+
         }
 
 
@@ -4374,5 +4387,32 @@ class MainActivity : Activity() {
             }
         }
     }
+
+
+    private fun showGamePickerDialog() {
+        val pm = packageManager
+        val apps = pm.getInstalledApplications(0)
+            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+            .sortedBy { it.loadLabel(pm).toString().lowercase() }
+
+        val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
+        val selected = prefs.getStringSet("game_mode_packages", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+
+        val names = apps.map { it.loadLabel(pm).toString() }.toTypedArray()
+        val checked = apps.map { selected.contains(it.packageName) }.toBooleanArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Select Games")
+            .setMultiChoiceItems(names, checked) { _, which, isChecked ->
+                val pkg = apps[which].packageName
+                if (isChecked) selected.add(pkg) else selected.remove(pkg)
+            }
+            .setPositiveButton("Save") { _, _ ->
+                prefs.edit().putStringSet("game_mode_packages", selected).apply()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 
 }

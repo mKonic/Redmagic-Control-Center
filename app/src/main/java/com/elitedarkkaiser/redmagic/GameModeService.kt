@@ -141,6 +141,8 @@ private fun applyGameModeProfile() {
         if (fanLedEnabled) {
             if (fanLedModeType == "preset" && fanLedPresetValue.isNotBlank()) {
                 HardwareController.setFanLedStockPreset(fanLedPresetValue)
+            } else if (fanLedEffect.startsWith("preset:")) {
+                HardwareController.setFanLedStockPreset(fanLedEffect.removePrefix("preset:"))
             } else {
                 HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
             }

@@ -2633,28 +2633,31 @@ class MainActivity : Activity() {
         lateinit var preset8: View
 
         fun refreshPresetBubbles() {
-            val selectedAlpha = 1f
-            val normalAlpha = 0.72f
-            val selectedBg = roundedFill(panelPressed, 16)
-            val normalBg = roundedFill(Color.TRANSPARENT, 16)
+            fun presetRing(selected: Boolean): GradientDrawable {
+                return GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(Color.TRANSPARENT)
+                    setStroke(dp(3), if (selected) Color.WHITE else Color.TRANSPARENT)
+                }
+            }
 
-            preset1.alpha = if (gmFanLedEffect == "preset:0x3002101") selectedAlpha else normalAlpha
-            preset2.alpha = if (gmFanLedEffect == "preset:0x3002102") selectedAlpha else normalAlpha
-            preset3.alpha = if (gmFanLedEffect == "preset:0x3002103") selectedAlpha else normalAlpha
-            preset4.alpha = if (gmFanLedEffect == "preset:0x3002104") selectedAlpha else normalAlpha
-            preset5.alpha = if (gmFanLedEffect == "preset:0x3002105") selectedAlpha else normalAlpha
-            preset6.alpha = if (gmFanLedEffect == "preset:0x3002106") selectedAlpha else normalAlpha
-            preset7.alpha = if (gmFanLedEffect == "preset:0x3002107") selectedAlpha else normalAlpha
-            preset8.alpha = if (gmFanLedEffect == "preset:0x3002108") selectedAlpha else normalAlpha
+            preset1.alpha = 1f
+            preset2.alpha = 1f
+            preset3.alpha = 1f
+            preset4.alpha = 1f
+            preset5.alpha = 1f
+            preset6.alpha = 1f
+            preset7.alpha = 1f
+            preset8.alpha = 1f
 
-            preset1.background = if (gmFanLedEffect == "preset:0x3002101") selectedBg else normalBg
-            preset2.background = if (gmFanLedEffect == "preset:0x3002102") selectedBg else normalBg
-            preset3.background = if (gmFanLedEffect == "preset:0x3002103") selectedBg else normalBg
-            preset4.background = if (gmFanLedEffect == "preset:0x3002104") selectedBg else normalBg
-            preset5.background = if (gmFanLedEffect == "preset:0x3002105") selectedBg else normalBg
-            preset6.background = if (gmFanLedEffect == "preset:0x3002106") selectedBg else normalBg
-            preset7.background = if (gmFanLedEffect == "preset:0x3002107") selectedBg else normalBg
-            preset8.background = if (gmFanLedEffect == "preset:0x3002108") selectedBg else normalBg
+            preset1.background = presetRing(gmFanLedEffect == "preset:0x3002101")
+            preset2.background = presetRing(gmFanLedEffect == "preset:0x3002102")
+            preset3.background = presetRing(gmFanLedEffect == "preset:0x3002103")
+            preset4.background = presetRing(gmFanLedEffect == "preset:0x3002104")
+            preset5.background = presetRing(gmFanLedEffect == "preset:0x3002105")
+            preset6.background = presetRing(gmFanLedEffect == "preset:0x3002106")
+            preset7.background = presetRing(gmFanLedEffect == "preset:0x3002107")
+            preset8.background = presetRing(gmFanLedEffect == "preset:0x3002108")
         }
 
         fun gmPresetBubble(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {

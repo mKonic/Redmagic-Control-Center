@@ -2422,7 +2422,6 @@ class MainActivity : Activity() {
         var gmFanLedEnabled = current.fanLedEnabled
         var gmFanLedEffect = current.fanLedEffect
         var gmFanLedColor = current.fanLedColor
-        var gmFanLedPreset: String? = if (current.fanLedEffect.startsWith("preset:")) current.fanLedEffect else null
 
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -2591,13 +2590,10 @@ class MainActivity : Activity() {
         }
 
         fun gmColorDot(id: Int, hex: String): View {
-            return colorDotGeneric(hex, gmFanLedColor == id && gmFanLedPreset == null) {
+            return colorDotGeneric(hex, gmFanLedColor == id) {
                 gmFanLedColor = id
-                gmFanLedPreset = null
-                gmFanLedEffect = "steady"
                 refreshLedColorDots()
             }
-        }
         }
 
         colorRow = LinearLayout(this).apply {
@@ -2648,65 +2644,121 @@ class MainActivity : Activity() {
         }
 
         buttonRow.addView(cancelBtn)
-        buttonRow.addView(space(dp(10)))
-        buttonRow.addView(saveBtn)
+        lateinit var preset1: View
+        lateinit var preset2: View
+        lateinit var preset3: View
+        lateinit var preset4: View
+        lateinit var preset5: View
+        lateinit var preset6: View
+        lateinit var preset7: View
+        lateinit var preset8: View
 
-        container.addView(titleView)
-        container.addView(subtitleView)
-        container.addView(fanEnableCheck)
-        container.addView(fanLevelLabel)
-        container.addView(fanLevelSeek)
-        container.addView(pumpEnableCheck)
-        container.addView(pumpLabel)
-        container.addView(pumpRow)
-        container.addView(ledEnableCheck)
-        container.addView(ledEffectLabel)
-        container.addView(ledEffectRow)
-        container.addView(ledColorLabel)
-        container.addView(colorRow)
-        container.addView(colorRow2)
-        val presetRow = LinearLayout(this).apply {
+        fun refreshPresetBubbles() {
+            val selectedBg = roundedFill(panelPressed, 16)
+            val normalBg = roundedFill(Color.TRANSPARENT, 16)
+
+            preset1.background = if (gmFanLedEffect == "preset:0x3002101") selectedBg else normalBg
+            preset2.background = if (gmFanLedEffect == "preset:0x3002102") selectedBg else normalBg
+            preset3.background = if (gmFanLedEffect == "preset:0x3002103") selectedBg else normalBg
+            preset4.background = if (gmFanLedEffect == "preset:0x3002104") selectedBg else normalBg
+            preset5.background = if (gmFanLedEffect == "preset:0x3002105") selectedBg else normalBg
+            preset6.background = if (gmFanLedEffect == "preset:0x3002106") selectedBg else normalBg
+            preset7.background = if (gmFanLedEffect == "preset:0x3002107") selectedBg else normalBg
+            preset8.background = if (gmFanLedEffect == "preset:0x3002108") selectedBg else normalBg
+
+            preset1.alpha = if (gmFanLedEffect == "preset:0x3002101") 1f else 0.78f
+            preset2.alpha = if (gmFanLedEffect == "preset:0x3002102") 1f else 0.78f
+            preset3.alpha = if (gmFanLedEffect == "preset:0x3002103") 1f else 0.78f
+            preset4.alpha = if (gmFanLedEffect == "preset:0x3002104") 1f else 0.78f
+            preset5.alpha = if (gmFanLedEffect == "preset:0x3002105") 1f else 0.78f
+            preset6.alpha = if (gmFanLedEffect == "preset:0x3002106") 1f else 0.78f
+            preset7.alpha = if (gmFanLedEffect == "preset:0x3002107") 1f else 0.78f
+            preset8.alpha = if (gmFanLedEffect == "preset:0x3002108") 1f else 0.78f
+        }
+
+        preset1 = fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00") {
+            gmFanLedEffect = "preset:0x3002101"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset2 = fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4") {
+            gmFanLedEffect = "preset:0x3002102"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset3 = fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4") {
+            gmFanLedEffect = "preset:0x3002103"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset4 = fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE") {
+            gmFanLedEffect = "preset:0x3002104"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset5 = fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4") {
+            gmFanLedEffect = "preset:0x3002105"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset6 = fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000") {
+            gmFanLedEffect = "preset:0x3002106"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset7 = fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0") {
+            gmFanLedEffect = "preset:0x3002107"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        preset8 = fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676") {
+            gmFanLedEffect = "preset:0x3002108"
+            refreshLedEffectButtons()
+            refreshPresetBubbles()
+        }.apply { setPadding(dp(4), dp(4), dp(4), dp(4)) }
+
+        val presetRow1 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-
-            fun preset(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
-                return fanPresetBubble(hex1, hex2, hex3, hex4) {
-                    gmFanLedPreset = "preset:$value"
-                    gmFanLedEffect = "preset:$value"
-                    refreshLedColorDots()
-                }.apply {
-                    alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.7f
-                }
-            }
-
-            addView(preset("#FF69B4","#FF0000","#FF8C00","#FF8C00","0x3002101"))
+            addView(preset1)
             addView(space(dp(10)))
-            addView(preset("#1565FF","#00E676","#22D3EE","#FF69B4","0x3002102"))
+            addView(preset2)
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FFD600","#FF69B4","0x3002103"))
+            addView(preset3)
             addView(space(dp(10)))
-            addView(preset("#00E676","#FF69B4","#FF8C00","#22D3EE","0x3002104"))
+            addView(preset4)
         }
 
         val presetRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-
-            addView(preset("#00E676","#A020F0","#FF8C00","#FF69B4","0x3002105"))
+            addView(preset5)
             addView(space(dp(10)))
-            addView(preset("#FF0000","#FF0000","#FF0000","#FF0000","0x3002106"))
+            addView(preset6)
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF8C00","#22D3EE","#A020F0","0x3002107"))
+            addView(preset7)
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FF8C00","#00E676","0x3002108"))
+            addView(preset8)
         }
 
-        container.addView(presetRow)
+        container.addView(ledColorLabel)
+        container.addView(colorRow)
+        container.addView(colorRow2)
+        container.addView(presetRow1)
         container.addView(presetRow2)
         container.addView(buttonRow)
 
         refreshPumpButtons()
         refreshLedEffectButtons()
+        refreshLedColorDots()
+        refreshPresetBubbles()
         refreshLedColorDots()
 
         val dialog = AlertDialog.Builder(this)
@@ -3353,44 +3405,6 @@ class MainActivity : Activity() {
         container.addView(colorLabel)
         container.addView(colorRow)
         container.addView(colorRow2)
-        val presetRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
-
-            fun preset(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
-                return fanPresetBubble(hex1, hex2, hex3, hex4) {
-                    gmFanLedPreset = "preset:$value"
-                    gmFanLedEffect = "preset:$value"
-                    refreshLedColorDots()
-                }.apply {
-                    alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.7f
-                }
-            }
-
-            addView(preset("#FF69B4","#FF0000","#FF8C00","#FF8C00","0x3002101"))
-            addView(space(dp(10)))
-            addView(preset("#1565FF","#00E676","#22D3EE","#FF69B4","0x3002102"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FFD600","#FF69B4","0x3002103"))
-            addView(space(dp(10)))
-            addView(preset("#00E676","#FF69B4","#FF8C00","#22D3EE","0x3002104"))
-        }
-
-        val presetRow2 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
-
-            addView(preset("#00E676","#A020F0","#FF8C00","#FF69B4","0x3002105"))
-            addView(space(dp(10)))
-            addView(preset("#FF0000","#FF0000","#FF0000","#FF0000","0x3002106"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF8C00","#22D3EE","#A020F0","0x3002107"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FF8C00","#00E676","0x3002108"))
-        }
-
-        container.addView(presetRow)
-        container.addView(presetRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)
@@ -3679,44 +3693,6 @@ class MainActivity : Activity() {
         container.addView(colorLabel)
         container.addView(colorRow)
         container.addView(colorRow2)
-        val presetRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
-
-            fun preset(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
-                return fanPresetBubble(hex1, hex2, hex3, hex4) {
-                    gmFanLedPreset = "preset:$value"
-                    gmFanLedEffect = "preset:$value"
-                    refreshLedColorDots()
-                }.apply {
-                    alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.7f
-                }
-            }
-
-            addView(preset("#FF69B4","#FF0000","#FF8C00","#FF8C00","0x3002101"))
-            addView(space(dp(10)))
-            addView(preset("#1565FF","#00E676","#22D3EE","#FF69B4","0x3002102"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FFD600","#FF69B4","0x3002103"))
-            addView(space(dp(10)))
-            addView(preset("#00E676","#FF69B4","#FF8C00","#22D3EE","0x3002104"))
-        }
-
-        val presetRow2 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
-
-            addView(preset("#00E676","#A020F0","#FF8C00","#FF69B4","0x3002105"))
-            addView(space(dp(10)))
-            addView(preset("#FF0000","#FF0000","#FF0000","#FF0000","0x3002106"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF8C00","#22D3EE","#A020F0","0x3002107"))
-            addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FF8C00","#00E676","0x3002108"))
-        }
-
-        container.addView(presetRow)
-        container.addView(presetRow2)
         container.addView(presetBubbleRow1)
         container.addView(presetBubbleRow2)
         container.addView(buttonRow)

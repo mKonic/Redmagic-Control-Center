@@ -2665,45 +2665,40 @@ class MainActivity : Activity() {
         container.addView(ledColorLabel)
         container.addView(colorRow)
         container.addView(colorRow2)
+        fun preset(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
+            return fanPresetBubble(hex1, hex2, hex3, hex4) {
+                gmFanLedEffect = "preset:$value"
+            }.apply {
+                alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.7f
+            }
+        }
+
         val presetRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-
-            fun preset(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
-                return fanPresetBubble(hex1, hex2, hex3, hex4) {
-                    gmFanLedPreset = "preset:$value"
-                    gmFanLedEffect = "preset:$value"
-                    refreshLedColorDots()
-                }.apply {
-                    alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.7f
-                }
-            }
-
-            addView(preset("#FF69B4","#FF0000","#FF8C00","#FF8C00","0x3002101"))
+            addView(preset("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", "0x3002101"))
             addView(space(dp(10)))
-            addView(preset("#1565FF","#00E676","#22D3EE","#FF69B4","0x3002102"))
+            addView(preset("#1565FF", "#00E676", "#22D3EE", "#FF69B4", "0x3002102"))
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FFD600","#FF69B4","0x3002103"))
+            addView(preset("#22D3EE", "#FF0000", "#FFD600", "#FF69B4", "0x3002103"))
             addView(space(dp(10)))
-            addView(preset("#00E676","#FF69B4","#FF8C00","#22D3EE","0x3002104"))
+            addView(preset("#00E676", "#FF69B4", "#FF8C00", "#22D3EE", "0x3002104"))
         }
 
         val presetRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-
-            addView(preset("#00E676","#A020F0","#FF8C00","#FF69B4","0x3002105"))
+            addView(preset("#00E676", "#A020F0", "#FF8C00", "#FF69B4", "0x3002105"))
             addView(space(dp(10)))
-            addView(preset("#FF0000","#FF0000","#FF0000","#FF0000","0x3002106"))
+            addView(preset("#FF0000", "#FF0000", "#FF0000", "#FF0000", "0x3002106"))
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF8C00","#22D3EE","#A020F0","0x3002107"))
+            addView(preset("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0", "0x3002107"))
             addView(space(dp(10)))
-            addView(preset("#22D3EE","#FF0000","#FF8C00","#00E676","0x3002108"))
+            addView(preset("#22D3EE", "#FF0000", "#FF8C00", "#00E676", "0x3002108"))
         }
 
         container.addView(presetRow)
         container.addView(presetRow2)
-        container.addView(buttonRow)
 
         refreshPumpButtons()
         refreshLedEffectButtons()
@@ -4526,4 +4521,3 @@ class MainActivity : Activity() {
     }
 
 
-}

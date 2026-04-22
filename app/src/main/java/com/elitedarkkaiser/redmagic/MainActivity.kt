@@ -2812,29 +2812,56 @@ class MainActivity : Activity() {
         logoEffectRow.addView(space(dp(8)))
         logoEffectRow.addView(logoBtn("Flashing", "flashing"))
 
-        val logoColorRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(10), 0, 0)
+        lateinit var logoColorRow: LinearLayout
+        lateinit var logoColorRow2: LinearLayout
+
+        fun refreshLogoColorDots() {
+            logoColorRow.getChildAt(0).background = colorDotDrawable("#FF0000", gmLogoLedColor == 1)
+            logoColorRow.getChildAt(2).background = colorDotDrawable("#FF8C00", gmLogoLedColor == 3)
+            logoColorRow.getChildAt(4).background = colorDotDrawable("#FFD600", gmLogoLedColor == 4)
+            logoColorRow.getChildAt(6).background = colorDotDrawable("#00E676", gmLogoLedColor == 5)
+            logoColorRow2.getChildAt(0).background = colorDotDrawable("#00E5FF", gmLogoLedColor == 6)
+            logoColorRow2.getChildAt(2).background = colorDotDrawable("#1565FF", gmLogoLedColor == 7)
+            logoColorRow2.getChildAt(4).background = colorDotDrawable("#A020F0", gmLogoLedColor == 8)
+            logoColorRow2.getChildAt(6).background = colorDotDrawable("#FF69B4", gmLogoLedColor == 9)
         }
 
         fun logoDot(id: Int, hex: String): View {
             return colorDotGeneric(hex, gmLogoLedColor == id) {
                 gmLogoLedColor = id
+                refreshLogoColorDots()
             }
         }
 
-        logoColorRow.addView(logoDot(1, "#FF0000"))
-        logoColorRow.addView(space(dp(10)))
-        logoColorRow.addView(logoDot(3, "#FF8C00"))
-        logoColorRow.addView(space(dp(10)))
-        logoColorRow.addView(logoDot(4, "#FFD600"))
-        logoColorRow.addView(space(dp(10)))
-        logoColorRow.addView(logoDot(5, "#00E676"))
+        logoColorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(logoDot(1, "#FF0000"))
+            addView(space(dp(10)))
+            addView(logoDot(3, "#FF8C00"))
+            addView(space(dp(10)))
+            addView(logoDot(4, "#FFD600"))
+            addView(space(dp(10)))
+            addView(logoDot(5, "#00E676"))
+        }
+
+        logoColorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(logoDot(6, "#00E5FF"))
+            addView(space(dp(10)))
+            addView(logoDot(7, "#1565FF"))
+            addView(space(dp(10)))
+            addView(logoDot(8, "#A020F0"))
+            addView(space(dp(10)))
+            addView(logoDot(9, "#FF69B4"))
+        }
 
         container.addView(logoLabel)
         container.addView(logoEnable)
         container.addView(logoEffectRow)
         container.addView(logoColorRow)
+        container.addView(logoColorRow2)
 
         container.addView(buttonRow)
 
@@ -2842,6 +2869,8 @@ class MainActivity : Activity() {
         refreshLedEffectButtons()
         refreshLedColorDots()
         refreshPresetBubbles()
+        refreshLogoEffectButtons()
+        refreshLogoColorDots()
 
         val dialog = AlertDialog.Builder(this)
             .setView(scroll)

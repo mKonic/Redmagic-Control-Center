@@ -2551,7 +2551,6 @@ class MainActivity : Activity() {
             return filterChip(label, gmFanLedEffect == value) {
                 gmFanLedEffect = value
                 refreshLedEffectButtons()
-                refreshPresetBubbles()
             }
         }
 
@@ -2598,7 +2597,6 @@ class MainActivity : Activity() {
                 }
                 refreshLedColorDots()
                 refreshLedEffectButtons()
-                refreshPresetBubbles()
             }
         }
 

@@ -2635,6 +2635,8 @@ class MainActivity : Activity() {
         fun refreshPresetBubbles() {
             val selectedAlpha = 1f
             val normalAlpha = 0.72f
+            val selectedBg = roundedFill(panelPressed, 16)
+            val normalBg = roundedFill(Color.TRANSPARENT, 16)
 
             preset1.alpha = if (gmFanLedEffect == "preset:0x3002101") selectedAlpha else normalAlpha
             preset2.alpha = if (gmFanLedEffect == "preset:0x3002102") selectedAlpha else normalAlpha
@@ -2644,15 +2646,26 @@ class MainActivity : Activity() {
             preset6.alpha = if (gmFanLedEffect == "preset:0x3002106") selectedAlpha else normalAlpha
             preset7.alpha = if (gmFanLedEffect == "preset:0x3002107") selectedAlpha else normalAlpha
             preset8.alpha = if (gmFanLedEffect == "preset:0x3002108") selectedAlpha else normalAlpha
+
+            preset1.background = if (gmFanLedEffect == "preset:0x3002101") selectedBg else normalBg
+            preset2.background = if (gmFanLedEffect == "preset:0x3002102") selectedBg else normalBg
+            preset3.background = if (gmFanLedEffect == "preset:0x3002103") selectedBg else normalBg
+            preset4.background = if (gmFanLedEffect == "preset:0x3002104") selectedBg else normalBg
+            preset5.background = if (gmFanLedEffect == "preset:0x3002105") selectedBg else normalBg
+            preset6.background = if (gmFanLedEffect == "preset:0x3002106") selectedBg else normalBg
+            preset7.background = if (gmFanLedEffect == "preset:0x3002107") selectedBg else normalBg
+            preset8.background = if (gmFanLedEffect == "preset:0x3002108") selectedBg else normalBg
         }
 
         fun gmPresetBubble(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
             return fanPresetBubble(hex1, hex2, hex3, hex4) {
                 gmFanLedEffect = "preset:$value"
+                gmFanLedColor = -1
                 refreshLedEffectButtons()
                 refreshLedColorDots()
                 refreshPresetBubbles()
             }.apply {
+                setPadding(dp(4), dp(4), dp(4), dp(4))
                 alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.72f
             }
         }

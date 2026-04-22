@@ -159,7 +159,10 @@ class MainActivity : Activity() {
         val pumpProfile: String,
         val fanLedEnabled: Boolean,
         val fanLedEffect: String,
-        val fanLedColor: Int
+        val fanLedColor: Int,
+        val logoLedEnabled: Boolean,
+        val logoLedEffect: String,
+        val logoLedColor: Int
     )
 
     private fun getSavedGameModeProfile(): GameModeProfile {
@@ -170,7 +173,10 @@ class MainActivity : Activity() {
             pumpProfile = prefs().getString(gameModePumpProfileKey, "quick") ?: "quick",
             fanLedEnabled = prefs().getBoolean(gameModeFanLedEnabledKey, true),
             fanLedEffect = prefs().getString(gameModeFanLedEffectKey, "steady") ?: "steady",
-            fanLedColor = prefs().getInt(gameModeFanLedColorKey, 5)
+            fanLedColor = prefs().getInt(gameModeFanLedColorKey, 5),
+            logoLedEnabled = prefs().getBoolean("game_mode_logo_led_enabled", true),
+            logoLedEffect = prefs().getString("game_mode_logo_led_effect", "steady") ?: "steady",
+            logoLedColor = prefs().getInt("game_mode_logo_led_color", 1)
         )
     }
 
@@ -183,6 +189,9 @@ class MainActivity : Activity() {
             .putBoolean(gameModeFanLedEnabledKey, profile.fanLedEnabled)
             .putString(gameModeFanLedEffectKey, profile.fanLedEffect)
             .putInt(gameModeFanLedColorKey, profile.fanLedColor)
+            .putBoolean("game_mode_logo_led_enabled", profile.logoLedEnabled)
+            .putString("game_mode_logo_led_effect", profile.logoLedEffect)
+            .putInt("game_mode_logo_led_color", profile.logoLedColor)
             .apply()
     }
 
@@ -2761,6 +2770,63 @@ class MainActivity : Activity() {
         container.addView(colorRow2)
         container.addView(presetRow1)
         container.addView(presetRow2)
+
+        val logoLabel = TextView(this).apply {
+            text = "Logo LED"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(12), 0, dp(6))
+        }
+
+        val logoEnable = CheckBox(this).apply {
+            text = "Enable logo LED"
+            isChecked = logoLedEnabled
+            setTextColor(textPrimary)
+            setOnCheckedChangeListener { _, checked ->
+                logoLedEnabled = checked
+            }
+        }
+
+        val logoEffectRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        fun logoBtn(label: String, value: String): Button {
+            return filterChip(label, logoLedEffect == value) {
+                logoLedEffect = value
+            }
+        }
+
+        logoEffectRow.addView(logoBtn("Steady", "steady"))
+        logoEffectRow.addView(space(dp(8)))
+        logoEffectRow.addView(logoBtn("Breathe", "breathe"))
+        logoEffectRow.addView(space(dp(8)))
+        logoEffectRow.addView(logoBtn("Flashing", "flashing"))
+
+        val logoColorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+        }
+
+        fun logoDot(id: Int, hex: String): View {
+            return colorDotGeneric(hex, logoLedColor == id) {
+                logoLedColor = id
+            }
+        }
+
+        logoColorRow.addView(logoDot(1, "#FF0000"))
+        logoColorRow.addView(space(dp(10)))
+        logoColorRow.addView(logoDot(3, "#FF8C00"))
+        logoColorRow.addView(space(dp(10)))
+        logoColorRow.addView(logoDot(4, "#FFD600"))
+        logoColorRow.addView(space(dp(10)))
+        logoColorRow.addView(logoDot(5, "#00E676"))
+
+        container.addView(logoLabel)
+        container.addView(logoEnable)
+        container.addView(logoEffectRow)
+        container.addView(logoColorRow)
+
         container.addView(buttonRow)
 
         refreshPumpButtons()

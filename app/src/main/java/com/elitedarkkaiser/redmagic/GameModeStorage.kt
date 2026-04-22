@@ -13,7 +13,9 @@ fun saveProfileForPackageStorage(
     fanLevel: Int,
     fanLedEnabled: Boolean,
     fanLedEffect: String,
-    fanLedColor: Int
+    fanLedColor: Int,
+    fanLedModeType: String,
+    fanLedPresetValue: String
 ) {
     val prefs = context.getSharedPreferences(GAME_PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -23,6 +25,8 @@ fun saveProfileForPackageStorage(
         put("fanLedEnabled", fanLedEnabled)
         put("fanLedEffect", fanLedEffect)
         put("fanLedColor", fanLedColor)
+        put("fanLedModeType", fanLedModeType)
+        put("fanLedPresetValue", fanLedPresetValue)
     }
 
     prefs.edit().putString("game_profile_$pkg", obj.toString()).apply()

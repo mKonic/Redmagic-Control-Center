@@ -4391,7 +4391,9 @@ class MainActivity : Activity() {
             fanLevel = fanSeek.progress,
             fanLedEnabled = fanLedEnabled,
             fanLedEffect = fanLedEffect,
-            fanLedColor = fanLedColor
+            fanLedColor = fanLedColor,
+            fanLedModeType = if (fanLedEffect.startsWith("preset:")) "preset" else "basic",
+            fanLedPresetValue = if (fanLedEffect.startsWith("preset:")) fanLedEffect.removePrefix("preset:") else ""
         )
     }
 

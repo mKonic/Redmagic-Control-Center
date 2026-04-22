@@ -2429,6 +2429,17 @@ class MainActivity : Activity() {
             background = roundedBg(panelColor, borderColor, 22)
         }
 
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(
+                container,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+
         val titleView = TextView(this).apply {
             text = "Edit Game Profile"
             textSize = 20f
@@ -2758,7 +2769,7 @@ class MainActivity : Activity() {
         refreshPresetBubbles()
 
         val dialog = AlertDialog.Builder(this)
-            .setView(container)
+            .setView(scroll)
             .setCancelable(true)
             .create()
 

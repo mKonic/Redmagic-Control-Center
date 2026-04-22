@@ -105,7 +105,10 @@ class GameModeService : Service() {
                 "fanLedPresetValue" to obj.optString("fanLedPresetValue", ""),
                 "logoLedEnabled" to obj.optBoolean("logoLedEnabled", true),
                 "logoLedEffect" to obj.optString("logoLedEffect", "steady"),
-                "logoLedColor" to obj.optInt("logoLedColor", 1)
+                "logoLedColor" to obj.optInt("logoLedColor", 1),
+                "shoulderLedEnabled" to obj.optBoolean("shoulderLedEnabled", true),
+                "shoulderLedEffect" to obj.optString("shoulderLedEffect", "breathe"),
+                "shoulderLedColor" to obj.optInt("shoulderLedColor", 8)
             )
         } catch (_: Throwable) {
             emptyMap()
@@ -131,6 +134,9 @@ private fun applyGameModeProfile() {
         val logoLedEnabled = profile["logoLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_logo_led_enabled", true)
         val logoLedEffect = profile["logoLedEffect"] as? String ?: prefs.getString("game_mode_logo_led_effect", "steady") ?: "steady"
         val logoLedColor = profile["logoLedColor"] as? Int ?: prefs.getInt("game_mode_logo_led_color", 1)
+        val shoulderLedEnabled = profile["shoulderLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_shoulder_led_enabled", true)
+        val shoulderLedEffect = profile["shoulderLedEffect"] as? String ?: prefs.getString("game_mode_shoulder_led_effect", "breathe") ?: "breathe"
+        val shoulderLedColor = profile["shoulderLedColor"] as? Int ?: prefs.getInt("game_mode_shoulder_led_color", 8)
 
         if (fanEnabled) {
             HardwareController.setFanLevel(fanLevel)
@@ -160,6 +166,12 @@ private fun applyGameModeProfile() {
             HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
         } else {
             HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (shoulderLedEnabled) {
+            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
         }
     }
 

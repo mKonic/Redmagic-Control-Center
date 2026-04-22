@@ -215,6 +215,10 @@ class MainActivity : Activity() {
         } else {
             HardwareController.setFanLedEnabled(false)
         }
+
+        if (p.logoLedEnabled) {
+            HardwareController.setLogoLedEffect(p.logoLedEffect, p.logoLedColor)
+        }
     }
 
     private fun restoreNormalProfileNow() {
@@ -2852,7 +2856,10 @@ class MainActivity : Activity() {
                     pumpProfile = gmPumpProfile,
                     fanLedEnabled = gmFanLedEnabled,
                     fanLedEffect = gmFanLedEffect,
-                    fanLedColor = gmFanLedColor
+                    fanLedColor = gmFanLedColor,
+                    logoLedEnabled = logoLedEnabled,
+                    logoLedEffect = logoLedEffect,
+                    logoLedColor = logoLedColor
                 )
             )
             Toast.makeText(this, "Game profile saved", Toast.LENGTH_SHORT).show()

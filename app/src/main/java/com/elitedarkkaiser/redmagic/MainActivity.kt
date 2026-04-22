@@ -2775,6 +2775,10 @@ class MainActivity : Activity() {
         container.addView(presetRow1)
         container.addView(presetRow2)
 
+        var gmLogoLedEnabled = current.logoLedEnabled
+        var gmLogoLedEffect = current.logoLedEffect
+        var gmLogoLedColor = current.logoLedColor
+
         val logoLabel = TextView(this).apply {
             text = "Logo LED"
             textSize = 13f
@@ -2784,10 +2788,11 @@ class MainActivity : Activity() {
 
         val logoEnable = CheckBox(this).apply {
             text = "Enable logo LED"
-            isChecked = logoLedEnabled
+            isChecked = gmLogoLedEnabled
             setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
             setOnCheckedChangeListener { _, checked ->
-                logoLedEnabled = checked
+                gmLogoLedEnabled = checked
             }
         }
 
@@ -2796,8 +2801,8 @@ class MainActivity : Activity() {
         }
 
         fun logoBtn(label: String, value: String): Button {
-            return filterChip(label, logoLedEffect == value) {
-                logoLedEffect = value
+            return filterChip(label, gmLogoLedEffect == value) {
+                gmLogoLedEffect = value
             }
         }
 
@@ -2813,8 +2818,8 @@ class MainActivity : Activity() {
         }
 
         fun logoDot(id: Int, hex: String): View {
-            return colorDotGeneric(hex, logoLedColor == id) {
-                logoLedColor = id
+            return colorDotGeneric(hex, gmLogoLedColor == id) {
+                gmLogoLedColor = id
             }
         }
 
@@ -2857,9 +2862,9 @@ class MainActivity : Activity() {
                     fanLedEnabled = gmFanLedEnabled,
                     fanLedEffect = gmFanLedEffect,
                     fanLedColor = gmFanLedColor,
-                    logoLedEnabled = logoLedEnabled,
-                    logoLedEffect = logoLedEffect,
-                    logoLedColor = logoLedColor
+                    logoLedEnabled = gmLogoLedEnabled,
+                    logoLedEffect = gmLogoLedEffect,
+                    logoLedColor = gmLogoLedColor
                 )
             )
             Toast.makeText(this, "Game profile saved", Toast.LENGTH_SHORT).show()

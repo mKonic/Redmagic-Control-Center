@@ -3248,6 +3248,11 @@ class MainActivity : Activity() {
         container.addView(enableCheck)
         container.addView(effectLabel)
         container.addView(effectsRow)
+
+        container.addView(colorLabel)
+        container.addView(colorRow)
+        container.addView(colorRow2)
+
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(this)

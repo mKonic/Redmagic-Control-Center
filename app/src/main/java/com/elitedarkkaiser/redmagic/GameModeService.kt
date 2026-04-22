@@ -102,7 +102,10 @@ class GameModeService : Service() {
                 "fanLedEffect" to obj.optString("fanLedEffect", "steady"),
                 "fanLedColor" to obj.optInt("fanLedColor", 5),
                 "fanLedModeType" to obj.optString("fanLedModeType", "basic"),
-                "fanLedPresetValue" to obj.optString("fanLedPresetValue", "")
+                "fanLedPresetValue" to obj.optString("fanLedPresetValue", ""),
+                "logoLedEnabled" to obj.optBoolean("logoLedEnabled", true),
+                "logoLedEffect" to obj.optString("logoLedEffect", "steady"),
+                "logoLedColor" to obj.optInt("logoLedColor", 1)
             )
         } catch (_: Throwable) {
             emptyMap()
@@ -125,6 +128,9 @@ private fun applyGameModeProfile() {
         val fanLedColor = profile["fanLedColor"] as? Int ?: prefs.getInt("game_mode_fan_led_color", 5)
         val fanLedModeType = profile["fanLedModeType"] as? String ?: "basic"
         val fanLedPresetValue = profile["fanLedPresetValue"] as? String ?: ""
+        val logoLedEnabled = profile["logoLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_logo_led_enabled", true)
+        val logoLedEffect = profile["logoLedEffect"] as? String ?: prefs.getString("game_mode_logo_led_effect", "steady") ?: "steady"
+        val logoLedColor = profile["logoLedColor"] as? Int ?: prefs.getInt("game_mode_logo_led_color", 1)
 
         if (fanEnabled) {
             HardwareController.setFanLevel(fanLevel)
@@ -148,6 +154,12 @@ private fun applyGameModeProfile() {
             }
         } else {
             HardwareController.setFanLedEnabled(false)
+        }
+
+        if (logoLedEnabled) {
+            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+        } else {
+            HardwareController.setLogoLedEnabled(false)
         }
     }
 

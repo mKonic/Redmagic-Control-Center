@@ -2869,7 +2869,6 @@ class MainActivity : Activity() {
         refreshLedEffectButtons()
         refreshLedColorDots()
         refreshPresetBubbles()
-        refreshLogoEffectButtons()
         refreshLogoColorDots()
 
         val dialog = AlertDialog.Builder(this)

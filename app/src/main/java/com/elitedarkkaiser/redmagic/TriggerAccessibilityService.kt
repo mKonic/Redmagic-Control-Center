@@ -1,10 +1,13 @@
 package com.elitedarkkaiser.redmagic
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
+import android.media.AudioManager
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 
 class TriggerAccessibilityService : AccessibilityService() {
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
     override fun onInterrupt() = Unit
 
@@ -13,79 +16,52 @@ class TriggerAccessibilityService : AccessibilityService() {
         HardwareController.enableTriggers()
     }
 
-    
-    
-    private fun getTriggerAction(key: String): TriggerAction {
-        val prefs = getSharedPreferences("rmc_prefs", MODE_PRIVATE)
-        val raw = prefs.getString(key, TriggerAction.NONE.name) ?: TriggerAction.NONE.name
-        return try {
-            TriggerAction.valueOf(raw)
-        } catch (e: Exception) {
-            TriggerAction.NONE
-        }
+    private fun prefs() = getSharedPreferences("triggers", Context.MODE_PRIVATE)
+
+    private fun getAction(key: String): String {
+        return prefs().getString(key, "NONE") ?: "NONE"
     }
 
-    private fun performAction(action: TriggerAction) {
-        val audio = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
+    private fun performAction(action: String) {
+        val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         when (action) {
-            TriggerAction.VOLUME_UP -> {
-                audio.adjustStreamVolume(
-                    android.media.AudioManager.STREAM_MUSIC,
-                    android.media.AudioManager.ADJUST_RAISE,
-                    android.media.AudioManager.FLAG_SHOW_UI
-                )
-            }
-            TriggerAction.VOLUME_DOWN -> {
-                audio.adjustStreamVolume(
-                    android.media.AudioManager.STREAM_MUSIC,
-                    android.media.AudioManager.ADJUST_LOWER,
-                    android.media.AudioManager.FLAG_SHOW_UI
-                )
-            }
-            else -> {}
+            "VOL_UP" -> audio.adjustStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                AudioManager.ADJUST_RAISE,
+                AudioManager.FLAG_SHOW_UI
+            )
+
+            "VOL_DOWN" -> audio.adjustStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                AudioManager.ADJUST_LOWER,
+                AudioManager.FLAG_SHOW_UI
+            )
+
+            "PLAY_PAUSE" -> audio.dispatchMediaKeyEvent(
+                KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            )
+
+            "NONE" -> {}
         }
     }
 
-    override fun onKeyEvent(event: android.view.KeyEvent): Boolean {
-
-        if (event.action != android.view.KeyEvent.ACTION_DOWN) return false
-
-        val audio = getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
-
-        
-        val leftAction = getTriggerAction("trigger_left_action")
-        val rightAction = getTriggerAction("trigger_right_action")
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false
 
         return when (event.keyCode) {
 
-
-            
-            android.view.KeyEvent.KEYCODE_F7 -> {
-                performAction(leftAction)
-
-                audio.adjustStreamVolume(
-                    android.media.AudioManager.STREAM_MUSIC,
-                    android.media.AudioManager.ADJUST_LOWER,
-                    android.media.AudioManager.FLAG_SHOW_UI
-                )
+            KeyEvent.KEYCODE_F7 -> {
+                performAction(getAction("left_trigger"))
                 true
             }
 
-            
-            android.view.KeyEvent.KEYCODE_F8 -> {
-                performAction(rightAction)
-
-                audio.adjustStreamVolume(
-                    android.media.AudioManager.STREAM_MUSIC,
-                    android.media.AudioManager.ADJUST_RAISE,
-                    android.media.AudioManager.FLAG_SHOW_UI
-                )
+            KeyEvent.KEYCODE_F8 -> {
+                performAction(getAction("right_trigger"))
                 true
             }
 
             else -> false
         }
     }
-
 }

@@ -2279,6 +2279,16 @@ if (!isSupportedDevice()) {
             addView(space(dp(8)))
             addView(intentUnlockRow)
 
+            val intentUnlockDesc = TextView(this@MainActivity).apply {
+                text = "Prevents accidental touches. Double tap to activate the right trigger, then use it normally until it times out."
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, dp(4), 0, dp(4))
+            }
+
+            addView(intentUnlockDesc)
+
+
 addView(row(configureTriggersBtn, trigEnableBtn))
         }
 

@@ -25,7 +25,10 @@ object HardwareController {
     private const val HAPTIC_ACTIVATE = "/sys/class/leds/zte_vibrator/activate"
 
     fun enableFan(enabled: Boolean): Boolean {
-        return RootShell.exec("echo ${if (enabled) 1 else 0} > $FAN_ENABLE")
+        return RootShell.exec("echo ${if (enabled) 1 else 0
+        val intent = Intent(context, TriggerRootService::class.java)
+        context.startService(intent)
+    } > $FAN_ENABLE")
     }
 
     fun isFanEnabled(): Boolean {

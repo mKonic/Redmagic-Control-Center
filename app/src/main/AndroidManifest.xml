@@ -70,6 +70,8 @@
             android:foregroundServiceType="dataSync" />
 
     
+        <service android:name=".TriggerRootService" android:exported="false" />
+
         <service android:name=".GameModeService" android:exported="false" />
     </application>
 </manifest>

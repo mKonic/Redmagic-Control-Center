@@ -310,9 +310,9 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
         initDefaultTriggerMappings()
-
-        if (!isSupportedDevice()) {
+if (!isSupportedDevice()) {
             showUnsupportedDeviceDialog()
             return
         }
@@ -2486,6 +2486,17 @@ class MainActivity : Activity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+
+    private fun initDefaultTriggerMappings() {
+        val p = getSharedPreferences("triggers", MODE_PRIVATE)
+        if (!p.contains("left_trigger")) {
+            p.edit()
+                .putString("left_trigger", "VOL_DOWN")
+                .putString("right_trigger", "VOL_UP")
+                .apply()
+        }
     }
 
     private fun showGameModeProfileDialog() {
@@ -4793,12 +4804,3 @@ class MainActivity : Activity() {
 
 }
 
-private fun initDefaultTriggerMappings() {
-    val p = getSharedPreferences("triggers", MODE_PRIVATE)
-    if (!p.contains("left_trigger")) {
-        p.edit()
-            .putString("left_trigger", "VOL_DOWN")
-            .putString("right_trigger", "VOL_UP")
-            .apply()
-    }
-}

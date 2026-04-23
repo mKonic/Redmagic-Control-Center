@@ -14,6 +14,14 @@ class TriggerRootService : Service() {
     private val held = ConcurrentHashMap<String, AtomicBoolean>()
     private val repeatThreads = ConcurrentHashMap<String, Thread>()
 
+    private var rightUnlockArmedAt = 0L
+    private var rightUnlockedUntil = 0L
+
+    private val RIGHT_UNLOCK_TAP_WINDOW_MS = 450L
+    private val RIGHT_UNLOCK_ACTIVE_MS = 2500L
+    private val HOLD_REPEAT_START_MS = 350L
+    private val HOLD_REPEAT_INTERVAL_MS = 110L
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -31,6 +39,10 @@ class TriggerRootService : Service() {
         return value
     }
 
+    private fun hapticsEnabled(): Boolean {
+        return prefs().getBoolean("haptics_enabled", true)
+    }
+
     private fun runRoot(cmd: String) {
         try {
             android.util.Log.d("TRIGGER", "runRoot=" + cmd)
@@ -41,8 +53,7 @@ class TriggerRootService : Service() {
     }
 
     private fun hapticTap() {
-        val enabled = prefs().getBoolean("haptics_enabled", true)
-        if (!enabled) return
+        if (!hapticsEnabled()) return
         try {
             HardwareController.vibrate(durationMs = 20, gain = 180)
         } catch (t: Throwable) {
@@ -50,9 +61,17 @@ class TriggerRootService : Service() {
         }
     }
 
+    private fun hapticUnlock() {
+        if (!hapticsEnabled()) return
+        try {
+            HardwareController.vibrate(durationMs = 40, gain = 255)
+        } catch (t: Throwable) {
+            android.util.Log.e("TRIGGER", "hapticUnlock failed: " + t)
+        }
+    }
+
     private fun hapticHoldStart() {
-        val enabled = prefs().getBoolean("haptics_enabled", true)
-        if (!enabled) return
+        if (!hapticsEnabled()) return
         try {
             HardwareController.vibrate(durationMs = 35, gain = 255)
         } catch (t: Throwable) {
@@ -69,7 +88,7 @@ class TriggerRootService : Service() {
             "PLAY_PAUSE" -> runRoot("input keyevent 85")
             "NEXT" -> runRoot("input keyevent 87")
             "PREVIOUS" -> runRoot("input keyevent 88")
-                                    "NONE" -> Unit
+            "NONE" -> Unit
             else -> Unit
         }
     }
@@ -92,15 +111,21 @@ class TriggerRootService : Service() {
 
         val thread = Thread {
             try {
-                Thread.sleep(350)
+                Thread.sleep(HOLD_REPEAT_START_MS)
 
                 if (running && flag.get()) {
                     hapticHoldStart()
                 }
 
                 while (running && flag.get()) {
+                    if (prefKey == "right_trigger" && !isRightUnlocked()) {
+                        break
+                    }
                     performAction(getAction(prefKey))
-                    Thread.sleep(110)
+                    if (prefKey == "right_trigger") {
+                        extendRightUnlock()
+                    }
+                    Thread.sleep(HOLD_REPEAT_INTERVAL_MS)
                 }
             } catch (_: InterruptedException) {
             } catch (t: Throwable) {
@@ -120,12 +145,65 @@ class TriggerRootService : Service() {
         repeatThreads.remove(prefKey)
     }
 
-    private fun handleDown(prefKey: String, device: String, line: String) {
-        android.util.Log.d("TRIGGER", "DOWN device=" + device + " key=" + prefKey + " line=" + line)
+    private fun now() = System.currentTimeMillis()
+
+    private fun isRightUnlocked(): Boolean {
+        val unlocked = now() <= rightUnlockedUntil
+        if (!unlocked && rightUnlockedUntil != 0L) {
+            android.util.Log.d("TRIGGER", "right trigger locked by timeout")
+        }
+        return unlocked
+    }
+
+    private fun extendRightUnlock() {
+        rightUnlockedUntil = now() + RIGHT_UNLOCK_ACTIVE_MS
+        android.util.Log.d("TRIGGER", "right unlock extended until=" + rightUnlockedUntil)
+    }
+
+    private fun handleRightIntentUnlock(): Boolean {
+        if (!prefs().getBoolean("intent_unlock_right_trigger", true)) {
+            return true
+        }
+
+        val current = now()
+
+        if (current <= rightUnlockedUntil) {
+            extendRightUnlock()
+            return true
+        }
+
+        if (rightUnlockArmedAt != 0L && (current - rightUnlockArmedAt) <= RIGHT_UNLOCK_TAP_WINDOW_MS) {
+            rightUnlockArmedAt = 0L
+            rightUnlockedUntil = current + RIGHT_UNLOCK_ACTIVE_MS
+            android.util.Log.d("TRIGGER", "right trigger UNLOCKED")
+            hapticUnlock()
+            return true
+        }
+
+        rightUnlockArmedAt = current
+        android.util.Log.d("TRIGGER", "right trigger first tap ignored, armedAt=" + rightUnlockArmedAt)
+        hapticTap()
+        return false
+    }
+
+    private fun handleLeftDown(device: String, line: String) {
+        android.util.Log.d("TRIGGER", "LEFT DOWN device=" + device + " line=" + line)
+        hapticTap()
+        performAction(getAction("left_trigger"))
+        startRepeater("left_trigger")
+    }
+
+    private fun handleRightDown(device: String, line: String) {
+        android.util.Log.d("TRIGGER", "RIGHT DOWN device=" + device + " line=" + line)
+
+        if (!handleRightIntentUnlock()) {
+            stopRepeater("right_trigger")
+            return
+        }
 
         hapticTap()
-        performAction(getAction(prefKey))
-        startRepeater(prefKey)
+        performAction(getAction("right_trigger"))
+        startRepeater("right_trigger")
     }
 
     private fun handleUp(prefKey: String, device: String, line: String) {
@@ -144,7 +222,11 @@ class TriggerRootService : Service() {
                     val line = reader.readLine() ?: break
 
                     if (line.contains(" DOWN")) {
-                        handleDown(prefKey, device, line)
+                        if (prefKey == "left_trigger") {
+                            handleLeftDown(device, line)
+                        } else {
+                            handleRightDown(device, line)
+                        }
                     } else if (line.contains(" UP")) {
                         handleUp(prefKey, device, line)
                     }

@@ -2247,6 +2247,38 @@ if (!isSupportedDevice()) {
             addView(space(dp(8)))
             addView(hapticRow)
 
+
+            val intentUnlockSwitch = android.widget.Switch(this@MainActivity).apply {
+                val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
+                isChecked = prefs.getBoolean("intent_unlock_right_trigger", true)
+
+                setOnCheckedChangeListener { _, checked ->
+                    prefs.edit().putBoolean("intent_unlock_right_trigger", checked).apply()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Intent Unlock Trigger " + (if (checked) "enabled" else "disabled"),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            val intentUnlockRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(8), 0, 0)
+
+                addView(TextView(this@MainActivity).apply {
+                    text = "Intent Unlock Trigger"
+                    textSize = 14f
+                    setTextColor(textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+
+                addView(intentUnlockSwitch)
+            }
+
+            addView(space(dp(8)))
+            addView(intentUnlockRow)
+
 addView(row(configureTriggersBtn, trigEnableBtn))
         }
 

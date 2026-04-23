@@ -41,6 +41,8 @@ class TriggerRootService : Service() {
     }
 
     private fun hapticTap() {
+        val enabled = prefs().getBoolean("haptics_enabled", true)
+        if (!enabled) return
         try {
             HardwareController.vibrate(durationMs = 20, gain = 180)
         } catch (t: Throwable) {
@@ -49,6 +51,8 @@ class TriggerRootService : Service() {
     }
 
     private fun hapticHoldStart() {
+        val enabled = prefs().getBoolean("haptics_enabled", true)
+        if (!enabled) return
         try {
             HardwareController.vibrate(durationMs = 35, gain = 255)
         } catch (t: Throwable) {
@@ -65,16 +69,14 @@ class TriggerRootService : Service() {
             "PLAY_PAUSE" -> runRoot("input keyevent 85")
             "NEXT" -> runRoot("input keyevent 87")
             "PREVIOUS" -> runRoot("input keyevent 88")
-            "REWIND" -> runRoot("input keyevent 89")
-            "FAST_FORWARD" -> runRoot("input keyevent 90")
-            "NONE" -> Unit
+                                    "NONE" -> Unit
             else -> Unit
         }
     }
 
     private fun isRepeatable(action: String): Boolean {
         return when (action) {
-            "VOL_UP", "VOL_DOWN", "REWIND", "FAST_FORWARD" -> true
+            "VOL_UP", "VOL_DOWN" -> true
             else -> false
         }
     }

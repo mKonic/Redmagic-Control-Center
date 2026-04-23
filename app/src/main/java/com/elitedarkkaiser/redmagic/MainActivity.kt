@@ -2216,7 +2216,38 @@ if (!isSupportedDevice()) {
             addView(sectionHeader("⌥", "TRIGGERS"))
             addView(bodyText("Map shoulder triggers to quick actions or re-enable them if the system has disabled them."))
             addView(space(dp(10)))
-            addView(row(configureTriggersBtn, trigEnableBtn))
+            
+            val hapticSwitch = android.widget.Switch(this@MainActivity).apply {
+                val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
+                isChecked = prefs.getBoolean("haptics_enabled", true)
+
+                setOnCheckedChangeListener { _, checked ->
+                    prefs.edit().putBoolean("haptics_enabled", checked).apply()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Haptics " + (if (checked) "enabled" else "disabled"),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            val hapticRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+
+                addView(TextView(this@MainActivity).apply {
+                    text = "Haptic feedback"
+                    textSize = 14f
+                    setTextColor(textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+
+                addView(hapticSwitch)
+            }
+
+            addView(space(dp(8)))
+            addView(hapticRow)
+
+addView(row(configureTriggersBtn, trigEnableBtn))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {
@@ -2450,9 +2481,7 @@ if (!isSupportedDevice()) {
             "Volume Down",
             "Play / Pause",
             "Next Track",
-            "Previous Track",
-            "Rewind",
-            "Fast Forward"
+            "Previous Track"
         )
         val values = arrayOf(
             "NONE",
@@ -2460,9 +2489,7 @@ if (!isSupportedDevice()) {
             "VOL_DOWN",
             "PLAY_PAUSE",
             "NEXT",
-            "PREVIOUS",
-            "REWIND",
-            "FAST_FORWARD"
+            "PREVIOUS"
         )
 
         fun indexOfValue(value: String): Int {

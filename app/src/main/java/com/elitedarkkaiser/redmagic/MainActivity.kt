@@ -2441,51 +2441,163 @@ if (!isSupportedDevice()) {
 
 
     private fun showTriggerSetupDialog() {
-        val prefs = getSharedPreferences("rmc_prefs", MODE_PRIVATE)
+        val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
 
-        val leftOptions = arrayOf("None", "Volume Up", "Volume Down")
-        val rightOptions = arrayOf("None", "Volume Up", "Volume Down")
+        val labels = arrayOf("None", "Volume Up", "Volume Down")
+        val values = arrayOf("NONE", "VOL_UP", "VOL_DOWN")
 
-        var left = prefs.getString("trigger_left_action", "NONE")!!
-        var right = prefs.getString("trigger_right_action", "NONE")!!
+        fun indexOfValue(value: String): Int {
+            val i = values.indexOf(value)
+            return if (i >= 0) i else 0
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("Trigger Mapping")
+        var leftChoice = indexOfValue(prefs.getString("left_trigger", "VOL_DOWN") ?: "VOL_DOWN")
+        var rightChoice = indexOfValue(prefs.getString("right_trigger", "VOL_UP") ?: "VOL_UP")
 
-            .setSingleChoiceItems(leftOptions, leftOptions.indexOf(left.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() })) { _, which ->
-                left = when (which) {
-                    1 -> "VOLUME_UP"
-                    2 -> "VOLUME_DOWN"
-                    else -> "NONE"
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Trigger Mapping"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Set left and right shoulder triggers independently."
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, dp(12))
+        }
+
+        val leftLabel = TextView(this).apply {
+            text = "Left Trigger (F7)"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, 0, 0, dp(6))
+        }
+
+        val leftGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+        }
+
+        labels.forEachIndexed { index, label ->
+            leftGroup.addView(RadioButton(this).apply {
+                text = label
+                textSize = 14f
+                setTextColor(textPrimary)
+                buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+                isChecked = index == leftChoice
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) leftChoice = index
                 }
-            }
+            })
+        }
 
-            .setPositiveButton("Save") { _, _ ->
-                prefs.edit()
-                    .putString("trigger_left_action", left)
-                    .putString("trigger_right_action", right)
-                    .apply()
+        val rightLabel = TextView(this).apply {
+            text = "Right Trigger (F8)"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(14), 0, dp(6))
+        }
 
-                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-            }
+        val rightGroup = RadioGroup(this).apply {
+            orientation = RadioGroup.VERTICAL
+        }
 
-            .setNegativeButton("Cancel", null)
-            .show()
+        labels.forEachIndexed { index, label ->
+            rightGroup.addView(RadioButton(this).apply {
+                text = label
+                textSize = 14f
+                setTextColor(textPrimary)
+                buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+                isChecked = index == rightChoice
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) rightChoice = index
+                }
+            })
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("Triggers")
-            .setMessage(
-                "V1 mapping:\n\nLeft trigger (F7) = Volume Down\nRight trigger (F8) = Volume Up\n\n1. Tap Enable Triggers\n2. Open Accessibility Settings\n3. Turn on RedMagic Control"
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(leftLabel)
+        container.addView(leftGroup)
+        container.addView(rightLabel)
+        container.addView(rightGroup)
+        container.addView(buttonRow)
+
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(
+                container,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
             )
-            .setPositiveButton("Enable Triggers") { _, _ ->
-                HardwareController.enableTriggers()
-                Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
-            }
-            .setNeutralButton("Accessibility Settings") { _, _ ->
-                startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            }
-            .setNegativeButton("Close", null)
-            .show()
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(scroll)
+            .setCancelable(true)
+            .create()
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            prefs.edit()
+                .putString("left_trigger", values[leftChoice])
+                .putString("right_trigger", values[rightChoice])
+                .apply()
+
+            Toast.makeText(
+                this,
+                "Saved: Left = ${labels[leftChoice]}, Right = ${labels[rightChoice]}",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
     }
 
 

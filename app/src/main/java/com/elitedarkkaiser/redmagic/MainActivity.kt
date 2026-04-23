@@ -2207,6 +2207,7 @@ if (!isSupportedDevice()) {
 
         val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
             HardwareController.enableTriggers()
+            startService(Intent(this, TriggerRootService::class.java))
             refreshStatus()
             Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
         }

@@ -3152,25 +3152,25 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         val presetBubbleRow1 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-            addView(fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00") { applyFanPreset("0x3002101") })
+            addView(fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", presetValue = "0x3002101") { applyFanPreset("0x3002101") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4") { applyFanPreset("0x3002102") })
+            addView(fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4", presetValue = "0x3002102") { applyFanPreset("0x3002102") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4") { applyFanPreset("0x3002103") })
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4", presetValue = "0x3002103") { applyFanPreset("0x3002103") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE") { applyFanPreset("0x3002104") })
+            addView(fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE", presetValue = "0x3002104") { applyFanPreset("0x3002104") })
         }
 
         val presetBubbleRow2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(10), 0, 0)
-            addView(fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4") { applyFanPreset("0x3002105") })
+            addView(fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4", presetValue = "0x3002105") { applyFanPreset("0x3002105") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000") { applyFanPreset("0x3002106") })
+            addView(fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000", presetValue = "0x3002106") { applyFanPreset("0x3002106") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0") { applyFanPreset("0x3002107") })
+            addView(fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0", presetValue = "0x3002107") { applyFanPreset("0x3002107") })
             addView(space(dp(10)))
-            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676") { applyFanPreset("0x3002108") })
+            addView(fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676", presetValue = "0x3002108") { applyFanPreset("0x3002108") })
         }
 
         container.addView(colorLabel)
@@ -3257,6 +3257,14 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         fun refreshUi() {
             repaint()
             updateColorDots()
+            presetBubbleRow1.invalidate()
+            presetBubbleRow2.invalidate()
+            for (i in 0 until presetBubbleRow1.childCount) {
+                presetBubbleRow1.getChildAt(i).invalidate()
+            }
+            for (i in 0 until presetBubbleRow2.childCount) {
+                presetBubbleRow2.getChildAt(i).invalidate()
+            }
         }
 
         dialogRefreshFanLed = { refreshUi() }
@@ -3302,56 +3310,70 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         dialogRefreshFanLed?.invoke()
     }
 
-    private fun fanPresetBubble(vararg hexes: String, onClick: () -> Unit): View {
+    private fun fanPresetBubble(
+        vararg hexes: String,
+        presetValue: String,
+        onClick: () -> Unit
+    ): View {
         require(hexes.size == 4) { "fanPresetBubble requires exactly 4 colors" }
 
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(4), dp(4), dp(4), dp(4))
-            background = roundedBg(Color.TRANSPARENT, Color.TRANSPARENT, 999)
-            setOnClickListener { onClick() }
-        }
+        return object : View(this) {
+            private val fillPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+            private val ringPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = dp(3).toFloat()
+            }
 
-        fun colorCell(hex: String): View {
-            return View(this).apply {
-                background = roundedFill(Color.parseColor(hex), 2)
-                isClickable = false
-                isFocusable = false
+            init {
+                val size = dp(42)
+                layoutParams = LinearLayout.LayoutParams(size, size)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { onClick() }
+            }
+
+            override fun onDraw(canvas: android.graphics.Canvas) {
+                super.onDraw(canvas)
+
+                val pad = dp(3).toFloat()
+                val rect = android.graphics.RectF(
+                    pad,
+                    pad,
+                    width.toFloat() - pad,
+                    height.toFloat() - pad
+                )
+
+                val saveCount = canvas.save()
+                val clipPath = android.graphics.Path().apply {
+                    addOval(rect, android.graphics.Path.Direction.CW)
+                }
+                canvas.clipPath(clipPath)
+
+                val midX = rect.centerX()
+                val midY = rect.centerY()
+
+                fillPaint.color = Color.parseColor(hexes[0])
+                canvas.drawRect(rect.left, rect.top, midX, midY, fillPaint)
+
+                fillPaint.color = Color.parseColor(hexes[1])
+                canvas.drawRect(midX, rect.top, rect.right, midY, fillPaint)
+
+                fillPaint.color = Color.parseColor(hexes[2])
+                canvas.drawRect(rect.left, midY, midX, rect.bottom, fillPaint)
+
+                fillPaint.color = Color.parseColor(hexes[3])
+                canvas.drawRect(midX, midY, rect.right, rect.bottom, fillPaint)
+
+                canvas.restoreToCount(saveCount)
+
+                ringPaint.color = if (fanLedEffect == "preset:$presetValue") {
+                    Color.WHITE
+                } else {
+                    Color.TRANSPARENT
+                }
+                canvas.drawOval(rect, ringPaint)
             }
         }
-
-        fun makeRow(left: String, right: String): LinearLayout {
-            return LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                addView(
-                    colorCell(left),
-                    LinearLayout.LayoutParams(0, dp(16), 1f)
-                )
-                addView(space(dp(2)))
-                addView(
-                    colorCell(right),
-                    LinearLayout.LayoutParams(0, dp(16), 1f)
-                )
-            }
-        }
-
-        val inner = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = roundedFill(Color.parseColor("#1E2633"), 999)
-            setPadding(dp(3), dp(3), dp(3), dp(3))
-            addView(makeRow(hexes[0], hexes[1]))
-            addView(space(dp(2)))
-            addView(makeRow(hexes[2], hexes[3]))
-        }
-
-        root.addView(
-            inner,
-            LinearLayout.LayoutParams(dp(44), dp(44))
-        )
-
-        return root
     }
 
     private fun colorDot(colorId: Int, hex: String, onClick: () -> Unit): View {

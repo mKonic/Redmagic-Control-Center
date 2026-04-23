@@ -203,7 +203,7 @@ class MainActivity : Activity() {
         }
 
         if (p.fanLedEnabled) {
-            HardwareController.setFanLedEffect(p.fanLedEffect, p.fanLedColor)
+            applyFanLedSelection(p.fanLedEffect, p.fanLedColor)
         } else {
             HardwareController.setFanLedEnabled(false)
         }
@@ -227,7 +227,7 @@ class MainActivity : Activity() {
         }
 
         if (fanLedEnabled) {
-            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            applyFanLedSelection(fanLedEffect, fanLedColor)
         } else {
             HardwareController.setFanLedEnabled(false)
         }
@@ -690,6 +690,14 @@ if (!isSupportedDevice()) {
 
     private fun savedFanLedColor(): Int {
         return prefs().getInt(fanLedColorKey, 5)
+    }
+
+    private fun applyFanLedSelection(effect: String, color: Int) {
+        if (effect.startsWith("preset:")) {
+            applyFanPreset(effect.removePrefix("preset:"))
+        } else {
+            HardwareController.setFanLedEffect(effect, color)
+        }
     }
 
     private fun saveFanLedState() {
@@ -1396,7 +1404,7 @@ if (!isSupportedDevice()) {
         autoPumpEnabled = isAutoPumpEnabledSaved()
 
         if (fanLedEnabled) {
-            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            applyFanLedSelection(fanLedEffect, fanLedColor)
             startFanLedService()
         } else {
             HardwareController.setFanLedEnabled(false)
@@ -1996,7 +2004,7 @@ if (!isSupportedDevice()) {
     private fun applyFanLedPreviewIfEnabled() {
         if (!realTimePreviewEnabled) return
         if (fanLedEnabled) {
-            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+            applyFanLedSelection(fanLedEffect, fanLedColor)
         } else {
             HardwareController.setFanLedEnabled(false)
         }
@@ -2996,7 +3004,7 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             setOnCheckedChangeListener { _, checked ->
                 fanLedEnabled = checked
                 if (checked) {
-                    HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                    applyFanLedSelection(fanLedEffect, fanLedColor)
                 } else {
                     HardwareController.setFanLedEnabled(false)
                 }
@@ -3177,7 +3185,7 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             fanLedColor = originalColor
 
             if (fanLedEnabled) {
-                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                applyFanLedSelection(fanLedEffect, fanLedColor)
             } else {
                 HardwareController.setFanLedEnabled(false)
             }
@@ -3188,7 +3196,7 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         saveBtn.setOnClickListener {
             saveFanLedState()
             if (fanLedEnabled) {
-                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                applyFanLedSelection(fanLedEffect, fanLedColor)
             } else {
                 HardwareController.setFanLedEnabled(false)
             }
@@ -3206,7 +3214,7 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             fanLedColor = originalColor
 
             if (fanLedEnabled) {
-                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                applyFanLedSelection(fanLedEffect, fanLedColor)
             } else {
                 HardwareController.setFanLedEnabled(false)
             }

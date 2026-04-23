@@ -1,10 +1,7 @@
 package com.elitedarkkaiser.redmagic
 
 enum class TriggerAction {
+    NONE,
     VOLUME_UP,
-    VOLUME_DOWN,
-    MEDIA_PLAY_PAUSE,
-    MEDIA_NEXT,
-    MEDIA_PREVIOUS,
-    NONE
+    VOLUME_DOWN
 }

@@ -2436,6 +2436,37 @@ class MainActivity : Activity() {
 
 
     private fun showTriggerSetupDialog() {
+        val prefs = getSharedPreferences("rmc_prefs", MODE_PRIVATE)
+
+        val leftOptions = arrayOf("None", "Volume Up", "Volume Down")
+        val rightOptions = arrayOf("None", "Volume Up", "Volume Down")
+
+        var left = prefs.getString("trigger_left_action", "NONE")!!
+        var right = prefs.getString("trigger_right_action", "NONE")!!
+
+        AlertDialog.Builder(this)
+            .setTitle("Trigger Mapping")
+
+            .setSingleChoiceItems(leftOptions, leftOptions.indexOf(left.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() })) { _, which ->
+                left = when (which) {
+                    1 -> "VOLUME_UP"
+                    2 -> "VOLUME_DOWN"
+                    else -> "NONE"
+                }
+            }
+
+            .setPositiveButton("Save") { _, _ ->
+                prefs.edit()
+                    .putString("trigger_left_action", left)
+                    .putString("trigger_right_action", right)
+                    .apply()
+
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+            }
+
+            .setNegativeButton("Cancel", null)
+            .show()
+
         AlertDialog.Builder(this)
             .setTitle("Triggers")
             .setMessage(

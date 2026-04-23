@@ -3286,7 +3286,10 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
 
     private fun applyFanPreset(effectValue: String) {
-        fanLedEffect = "steady"
+        fanLedEnabled = true
+        fanLedEffect = "preset:$effectValue"
+        fanLedColor = -1
+
         HardwareController.setFanLedStockPreset(effectValue)
         dialogRefreshFanLed?.invoke()
     }

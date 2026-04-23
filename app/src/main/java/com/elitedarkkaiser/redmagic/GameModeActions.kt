@@ -1,6 +1,8 @@
 package com.elitedarkkaiser.redmagic
 
 import android.content.Context
+import android.graphics.drawable.Drawable
+import android.widget.Button
 import android.widget.Toast
 
 internal object GameModeActions {
@@ -46,5 +48,37 @@ internal object GameModeActions {
         persistProfile(profile)
         Toast.makeText(context, "Game profile saved", Toast.LENGTH_SHORT).show()
         onSaved()
+    }
+
+    fun refreshPumpButtons(
+        selectedProfile: String,
+        slowBtn: Button,
+        mediumBtn: Button,
+        quickBtn: Button,
+        roundedFill: (Int, Int) -> Drawable,
+        selectedColor: Int,
+        unselectedColor: Int
+    ) {
+        slowBtn.background = roundedFill(
+            if (selectedProfile == "slow") selectedColor else unselectedColor,
+            999
+        )
+        mediumBtn.background = roundedFill(
+            if (selectedProfile == "medium") selectedColor else unselectedColor,
+            999
+        )
+        quickBtn.background = roundedFill(
+            if (selectedProfile == "quick") selectedColor else unselectedColor,
+            999
+        )
+    }
+
+    fun updatePumpProfile(
+        value: String,
+        onProfileChanged: (String) -> Unit,
+        refreshButtons: () -> Unit
+    ) {
+        onProfileChanged(value)
+        refreshButtons()
     }
 }

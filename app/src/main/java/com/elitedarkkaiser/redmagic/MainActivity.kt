@@ -2708,15 +2708,24 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         lateinit var quickBtn: Button
 
         fun refreshPumpButtons() {
-            slowBtn.background = roundedFill(if (gmPumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"), 999)
-            mediumBtn.background = roundedFill(if (gmPumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"), 999)
-            quickBtn.background = roundedFill(if (gmPumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"), 999)
+            GameModeActions.refreshPumpButtons(
+                selectedProfile = gmPumpProfile,
+                slowBtn = slowBtn,
+                mediumBtn = mediumBtn,
+                quickBtn = quickBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                unselectedColor = Color.parseColor("#1E2633")
+            )
         }
 
         fun gmPumpBtn(label: String, value: String): Button {
             return filterChip(label, gmPumpProfile == value) {
-                gmPumpProfile = value
-                refreshPumpButtons()
+                GameModeActions.updatePumpProfile(
+                    value = value,
+                    onProfileChanged = { newValue -> gmPumpProfile = newValue },
+                    refreshButtons = { refreshPumpButtons() }
+                )
             }
         }
 

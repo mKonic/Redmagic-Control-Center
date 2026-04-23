@@ -888,7 +888,7 @@ if (!isSupportedDevice()) {
 
         fanSeek.progress = profile.fanLevel
 
-        ProfileDialogs.afterProfileApplied(
+        ProfileActions.afterProfileApplied(
             profile = profile,
             setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
             savePumpState = { savePumpState() },

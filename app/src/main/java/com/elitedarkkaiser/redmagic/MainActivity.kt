@@ -2434,6 +2434,24 @@ class MainActivity : Activity() {
     private var magicKeyStatusLabelRef: TextView? = null
 
 
+
+    private fun showTriggerSetupDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Triggers")
+            .setMessage(
+                "V1 mapping:\n\nLeft trigger (F7) = Volume Down\nRight trigger (F8) = Volume Up\n\n1. Tap Enable Triggers\n2. Open Accessibility Settings\n3. Turn on RedMagic Control"
+            )
+            .setPositiveButton("Enable Triggers") { _, _ ->
+                HardwareController.enableTriggers()
+                Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Accessibility Settings") { _, _ ->
+                startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
     private fun showGameModeProfileDialog() {
         val current = getSavedGameModeProfile()
 

@@ -2,6 +2,7 @@ package com.elitedarkkaiser.redmagic
 
 import android.app.Service
 import android.content.Intent
+import android.media.AudioManager
 import android.os.IBinder
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -10,46 +11,48 @@ class TriggerRootService : Service() {
 
     private var running = true
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Thread {
-            try {
-                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "getevent -l"))
+    override fun onBind(intent: Intent?): IBinder? = null
 
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
+    override fun onCreate() {
+        super.onCreate()
+        startReader("/dev/input/event2", "left_trigger")
+        startReader("/dev/input/event5", "right_trigger")
+    }
 
-                val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
+    private fun prefs() = getSharedPreferences("triggers", MODE_PRIVATE)
 
-                while (running) {
-                    val line = reader.readLine() ?: continue
-
-                    if (line.contains("KEY_F7") && line.contains("DOWN")) {
-                        performAction(prefs.getString("left_trigger", "NONE") ?: "NONE")
-                    }
-
-                    if (line.contains("KEY_F8") && line.contains("DOWN")) {
-                        performAction(prefs.getString("right_trigger", "NONE") ?: "NONE")
-                    }
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }.start()
-
-        return START_STICKY
+    private fun getAction(key: String): String {
+        return prefs().getString(key, "NONE") ?: "NONE"
     }
 
     private fun performAction(action: String) {
+        val audio = getSystemService(AUDIO_SERVICE) as AudioManager
+
         when (action) {
-            "VOL_UP" -> Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 24"))
-            "VOL_DOWN" -> Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 25"))
+            "VOL_UP" -> audio.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)
+            "VOL_DOWN" -> audio.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI)
         }
+    }
+
+    private fun startReader(device: String, key: String) {
+        Thread {
+            try {
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "getevent -l $device"))
+                val reader = BufferedReader(InputStreamReader(process.inputStream))
+
+                while (running) {
+                    val line = reader.readLine() ?: break
+
+                    if (line.contains("DOWN")) {
+                        performAction(getAction(key))
+                    }
+                }
+            } catch (_: Exception) {}
+        }.start()
     }
 
     override fun onDestroy() {
         running = false
         super.onDestroy()
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }

@@ -2312,43 +2312,26 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             }
 
             fun renderProfiles() {
-                profileList.removeAllViews()
                 val profiles = ProfileManager.loadProfiles(this@MainActivity)
-
-                if (profiles.isEmpty()) {
-                    profileList.addView(subtleLabel("No saved profiles yet"))
-                    return
-                }
-
-                profiles.forEach { profile ->
-                    val row = LinearLayout(this@MainActivity).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                        gravity = Gravity.CENTER_VERTICAL
-                    }
-
-                    val applyBtn = actionButton(profile.name) {
+                ProfileDialogs.renderProfiles(
+                    context = this@MainActivity,
+                    profileList = profileList,
+                    profiles = profiles,
+                    subtleLabel = { text -> subtleLabel(text) },
+                    actionButton = { text, isDanger, onClick -> actionButton(text, isDanger = isDanger, onClick = onClick) },
+                    space = { value -> space(value) },
+                    dp = { value -> dp(value) },
+                    onApplyProfile = { profile ->
                         HardwareController.applyHardwareProfile(profile)
                         applyProfileToUiState(profile)
                         Toast.makeText(this@MainActivity, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
-                    }.apply {
-                        setPadding(dp(16), dp(10), dp(16), dp(10))
-                    }
-
-                    val deleteBtn = actionButton("DEL", isDanger = true) {
+                    },
+                    onDeleteProfile = { profile ->
                         showDeleteProfileDialog(profile.name) {
                             renderProfiles()
                         }
-                    }.apply {
-                        setPadding(dp(14), dp(10), dp(14), dp(10))
                     }
-
-                    row.addView(applyBtn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                    row.addView(space(dp(8)))
-                    row.addView(deleteBtn)
-
-                    profileList.addView(row)
-                    profileList.addView(space(dp(10)))
-                }
+                )
             }
 
             val saveBtn = actionButton("SAVE CURRENT PROFILE") {

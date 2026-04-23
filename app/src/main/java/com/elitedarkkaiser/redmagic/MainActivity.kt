@@ -3018,7 +3018,10 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
         fun logoBtn(label: String, value: String): Button {
             return filterChip(label, gmLogoLedEffect == value) {
-                gmLogoLedEffect = value
+                GameModeActions.updateLogoLedEffect(
+                    value = value,
+                    onEffectChanged = { newValue -> gmLogoLedEffect = newValue }
+                )
             }
         }
 
@@ -3044,8 +3047,11 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
         fun logoDot(id: Int, hex: String): View {
             return colorDotGeneric(hex, gmLogoLedColor == id) {
-                gmLogoLedColor = id
-                refreshLogoColorDots()
+                GameModeActions.updateLogoLedColor(
+                    id = id,
+                    onColorChanged = { newColor -> gmLogoLedColor = newColor },
+                    refreshColorDots = { refreshLogoColorDots() }
+                )
             }
         }
 

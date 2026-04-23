@@ -144,4 +144,20 @@ internal object GameModeActions {
         refreshColorDots()
         refreshPresetBubbles()
     }
+
+    fun updateLogoLedEffect(
+        value: String,
+        onEffectChanged: (String) -> Unit
+    ) {
+        onEffectChanged(value)
+    }
+
+    fun updateLogoLedColor(
+        id: Int,
+        onColorChanged: (Int) -> Unit,
+        refreshColorDots: () -> Unit
+    ) {
+        onColorChanged(id)
+        refreshColorDots()
+    }
 }

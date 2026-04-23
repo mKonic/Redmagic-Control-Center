@@ -1,0 +1,171 @@
+    private fun showPumpProfileDialog() {
+        val originalEnabled = pumpEnabled
+        val originalProfile = pumpProfile
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Liquid Cooling Flow Rate"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Choose a pump profile with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val profileLabel = TextView(this).apply {
+            text = "Flow rate"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val profilesRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val slowBtn = filterChip("Slow", pumpProfile == "slow") {
+            PumpActions.applyPreviewSelection(
+                profile = "slow",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
+        }
+
+        val mediumBtn = filterChip("Medium", pumpProfile == "medium") {
+            PumpActions.applyPreviewSelection(
+                profile = "medium",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
+        }
+
+        val quickBtn = filterChip("Quick", pumpProfile == "quick") {
+            PumpActions.applyPreviewSelection(
+                profile = "quick",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
+        }
+
+        val experimentalBtn = filterChip("⚠ Exp", pumpProfile == "experimental") {
+            confirmExperimentalPumpThenApply()
+        }
+
+        val chipParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        val gapParams = LinearLayout.LayoutParams(dp(6), ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        profilesRow.addView(slowBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(mediumBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(quickBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(experimentalBtn, chipParams)
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(profileLabel)
+        container.addView(profilesRow)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            savePumpState()
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
+        }
+
+        fun repaint() {
+            PumpActions.repaintButtons(
+                selectedProfile = pumpProfile,
+                slowBtn = slowBtn,
+                mediumBtn = mediumBtn,
+                quickBtn = quickBtn,
+                experimentalBtn = experimentalBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                normalColor = Color.parseColor("#1E2633"),
+                experimentalColor = Color.parseColor("#2A1D1D")
+            )
+        }
+
+        dialogRefreshPump = { repaint() }
+        repaint()
+        dialog.show()
+
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)

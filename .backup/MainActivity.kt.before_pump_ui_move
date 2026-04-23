@@ -151,6 +151,23 @@ class MainActivity : Activity() {
         }
     }
 
+
+    private data class GameModeProfile(
+        val fanEnabled: Boolean,
+        val fanLevel: Int,
+        val pumpEnabled: Boolean,
+        val pumpProfile: String,
+        val fanLedEnabled: Boolean,
+        val fanLedEffect: String,
+        val fanLedColor: Int,
+        val logoLedEnabled: Boolean,
+        val logoLedEffect: String,
+        val logoLedColor: Int,
+        val shoulderLedEnabled: Boolean,
+        val shoulderLedEffect: String,
+        val shoulderLedColor: Int
+    )
+
     private fun getSavedGameModeProfile(): GameModeProfile {
         return GameModeProfile(
             fanEnabled = prefs().getBoolean(gameModeFanEnabledKey, true),
@@ -289,7 +306,6 @@ class MainActivity : Activity() {
     private val danger = Color.parseColor("#5B2C33")
     private val textPrimary = Color.parseColor("#E8EEF7")
     private val textSecondary = Color.parseColor("#9AA8BA")
-    private val typeface: Typeface? = Typeface.SANS_SERIF
     private val highlightBorder = Color.parseColor("#7F8EA3")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -2618,77 +2634,452 @@ addView(row(configureTriggersBtn, trigEnableBtn))
                 space = { value -> space(value) },
                 colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
                 colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
+                fanPresetBubble = { hex1, hex2, hex3, hex4, onClick ->
+                    fanPresetBubble(hex1, hex2, hex3, hex4, onClick)
+                }
             ),
             onSaveProfile = { profile -> saveGameModeProfile(profile) }
         )
     }
 
     private fun showPumpProfileDialog() {
-        PumpDialogUi.showPumpProfileDialog(
-            activity = this,
-            originalEnabled = pumpEnabled,
-            originalProfile = pumpProfile,
-            currentProfile = { pumpProfile },
-            setPumpEnabled = { value -> pumpEnabled = value },
-            setPumpProfile = { value -> pumpProfile = value },
-            applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
-            disablePump = { HardwareController.enablePump(false) },
-            savePumpState = { savePumpState() },
-            confirmExperimentalPumpThenApply = { confirmExperimentalPumpThenApply() },
-            setDialogRefreshPump = { callback -> dialogRefreshPump = callback },
-            deps = PumpDialogUi.Deps(
-                textPrimary = textPrimary,
-                textSecondary = textSecondary,
-                panelColor = panelColor,
-                borderColor = borderColor,
-                panelPressed = panelPressed,
-                typeface = typeface,
-                dp = { value -> dp(value) },
-                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-                roundedFill = { color, radius -> roundedFill(color, radius) },
-                filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
-                space = { value -> space(value) }
+        val originalEnabled = pumpEnabled
+        val originalProfile = pumpProfile
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Liquid Cooling Flow Rate"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Choose a pump profile with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val profileLabel = TextView(this).apply {
+            text = "Flow rate"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val profilesRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val slowBtn = filterChip("Slow", pumpProfile == "slow") {
+            PumpActions.applyPreviewSelection(
+                profile = "slow",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
             )
-        )
+        }
+
+        val mediumBtn = filterChip("Medium", pumpProfile == "medium") {
+            PumpActions.applyPreviewSelection(
+                profile = "medium",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
+        }
+
+        val quickBtn = filterChip("Quick", pumpProfile == "quick") {
+            PumpActions.applyPreviewSelection(
+                profile = "quick",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
+        }
+
+        val experimentalBtn = filterChip("⚠ Exp", pumpProfile == "experimental") {
+            confirmExperimentalPumpThenApply()
+        }
+
+        val chipParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        val gapParams = LinearLayout.LayoutParams(dp(6), ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        profilesRow.addView(slowBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(mediumBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(quickBtn, chipParams)
+        profilesRow.addView(space(dp(6)), gapParams)
+        profilesRow.addView(experimentalBtn, chipParams)
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(profileLabel)
+        container.addView(profilesRow)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            savePumpState()
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
+        }
+
+        fun repaint() {
+            PumpActions.repaintButtons(
+                selectedProfile = pumpProfile,
+                slowBtn = slowBtn,
+                mediumBtn = mediumBtn,
+                quickBtn = quickBtn,
+                experimentalBtn = experimentalBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                normalColor = Color.parseColor("#1E2633"),
+                experimentalColor = Color.parseColor("#2A1D1D")
+            )
+        }
+
+        dialogRefreshPump = { repaint() }
+        repaint()
+        dialog.show()
+
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
     }
 
     private fun showShoulderLedDialog() {
-        ShoulderLedDialogUi.showShoulderLedDialog(
-            activity = this,
-            originalEnabled = shoulderLedEnabled,
-            originalEffect = shoulderLedEffect,
-            originalColor = shoulderLedColor,
-            currentEnabled = { shoulderLedEnabled },
-            currentEffect = { shoulderLedEffect },
-            currentColor = { shoulderLedColor },
-            setEnabled = { value -> shoulderLedEnabled = value },
-            setEffect = { value -> shoulderLedEffect = value },
-            setColor = { value -> shoulderLedColor = value },
-            applyPreviewIfEnabled = { applyShoulderLedPreviewIfEnabled() },
-            applyEffect = { effect, color -> HardwareController.setShoulderLedEffect(effect, color) },
-            disableLed = { HardwareController.setShoulderLedEnabled(false) },
-            saveState = { saveShoulderLedState() },
-            startFanLedService = { startFanLedService() },
-            stopFanLedService = { stopFanLedService() },
-            anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
-            setDialogRefresh = { callback -> dialogRefreshShoulderLed = callback },
-            deps = ShoulderLedDialogUi.Deps(
-                textPrimary = textPrimary,
-                textSecondary = textSecondary,
-                panelColor = panelColor,
-                borderColor = borderColor,
-                panelPressed = panelPressed,
-                accent = accent,
-                typeface = typeface,
-                dp = { value -> dp(value) },
-                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-                roundedFill = { color, radius -> roundedFill(color, radius) },
-                space = { value -> space(value) },
-                filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
-                colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
-                colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) }
+        val originalEnabled = shoulderLedEnabled
+        val originalEffect = shoulderLedEffect
+        val originalColor = shoulderLedColor
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(12))
+            background = roundedBg(panelColor, borderColor, 22)
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Shoulder LEDs"
+            textSize = 20f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(this).apply {
+            text = "Customize shoulder LED strips with instant preview"
+            textSize = 13f
+            setTextColor(textSecondary)
+            setPadding(0, dp(8), 0, 0)
+        }
+
+        val enableCheck = CheckBox(this).apply {
+            text = "Enable shoulder LEDs"
+            isChecked = shoulderLedEnabled
+            textSize = 14f
+            setTextColor(textPrimary)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            setPadding(0, dp(14), 0, 0)
+            setOnCheckedChangeListener { _, checked ->
+                shoulderLedEnabled = checked
+                if (checked) {
+                    HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+                } else {
+                    HardwareController.setShoulderLedEnabled(false)
+                }
+            }
+        }
+
+        val effectLabel = TextView(this).apply {
+            text = "Effect"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(8))
+        }
+
+        val effectsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val steadyBtn = filterChip("Steady", shoulderLedEffect == "steady") {
+            shoulderLedEffect = "steady"
+            applyShoulderLedPreviewIfEnabled()
+            dialogRefreshShoulderLed?.invoke()
+        }
+
+        val breatheBtn = filterChip("Breathe", shoulderLedEffect == "breathe") {
+            shoulderLedEffect = "breathe"
+            applyShoulderLedPreviewIfEnabled()
+            dialogRefreshShoulderLed?.invoke()
+        }
+
+        val flashingBtn = filterChip("Flashing", shoulderLedEffect == "flashing") {
+            shoulderLedEffect = "flashing"
+            applyShoulderLedPreviewIfEnabled()
+            dialogRefreshShoulderLed?.invoke()
+        }
+
+        effectsRow.addView(steadyBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(breatheBtn)
+        effectsRow.addView(space(dp(8)))
+        effectsRow.addView(flashingBtn)
+
+        val colorLabel = TextView(this).apply {
+            text = "Color"
+            textSize = 12f
+            setTextColor(textSecondary)
+            setPadding(0, dp(16), 0, dp(10))
+        }
+
+        val colorRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(colorDotGeneric("#FF0000", shoulderLedColor == 1) {
+                shoulderLedColor = 1
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FF8C00", shoulderLedColor == 3) {
+                shoulderLedColor = 3
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FFD600", shoulderLedColor == 4) {
+                shoulderLedColor = 4
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#00E676", shoulderLedColor == 5) {
+                shoulderLedColor = 5
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+        }
+
+        val colorRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(10), 0, 0)
+            addView(colorDotGeneric("#00E5FF", shoulderLedColor == 6) {
+                shoulderLedColor = 6
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#1565FF", shoulderLedColor == 7) {
+                shoulderLedColor = 7
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#A020F0", shoulderLedColor == 8) {
+                shoulderLedColor = 8
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+            addView(space(dp(10)))
+            addView(colorDotGeneric("#FF69B4", shoulderLedColor == 9) {
+                shoulderLedColor = 9
+                applyShoulderLedPreviewIfEnabled()
+                dialogRefreshShoulderLed?.invoke()
+            })
+        }
+
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(this).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        val saveBtn = Button(this).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(textPrimary)
+            background = roundedFill(panelPressed, 14)
+            setPadding(dp(20), dp(10), dp(20), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(enableCheck)
+        container.addView(effectLabel)
+        container.addView(effectsRow)
+
+        container.addView(colorLabel)
+        container.addView(colorRow)
+        container.addView(colorRow2)
+
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        cancelBtn.setOnClickListener {
+            shoulderLedEnabled = originalEnabled
+            shoulderLedEffect = originalEffect
+            shoulderLedColor = originalColor
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            saveShoulderLedState()
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+            if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
+                startFanLedService()
+            } else {
+                stopFanLedService()
+            }
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            shoulderLedEnabled = originalEnabled
+            shoulderLedEffect = originalEffect
+            shoulderLedColor = originalColor
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+        }
+
+        fun repaint() {
+            steadyBtn.background = roundedFill(
+                if (shoulderLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"),
+                999
             )
-        )
+            breatheBtn.background = roundedFill(
+                if (shoulderLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        fun updateColorDots() {
+            (colorRow.getChildAt(0) as View).background = colorDotDrawable("#FF0000", shoulderLedColor == 1)
+            (colorRow.getChildAt(2) as View).background = colorDotDrawable("#FF8C00", shoulderLedColor == 3)
+            (colorRow.getChildAt(4) as View).background = colorDotDrawable("#FFD600", shoulderLedColor == 4)
+            (colorRow.getChildAt(6) as View).background = colorDotDrawable("#00E676", shoulderLedColor == 5)
+
+            (colorRow2.getChildAt(0) as View).background = colorDotDrawable("#00E5FF", shoulderLedColor == 6)
+            (colorRow2.getChildAt(2) as View).background = colorDotDrawable("#1565FF", shoulderLedColor == 7)
+            (colorRow2.getChildAt(4) as View).background = colorDotDrawable("#A020F0", shoulderLedColor == 8)
+            (colorRow2.getChildAt(6) as View).background = colorDotDrawable("#FF69B4", shoulderLedColor == 9)
+        }
+
+        fun refreshUi() {
+            repaint()
+            updateColorDots()
+        }
+
+        dialogRefreshShoulderLed = { refreshUi() }
+
+        refreshUi()
+        dialog.show()
+
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
     }
 
     private fun showLogoLedDialog() {

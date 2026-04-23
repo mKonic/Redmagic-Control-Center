@@ -317,41 +317,76 @@ internal object GameModeUi {
             preset8.background = presetRing(gmFanLedEffect == "preset:0x3002108")
         }
 
-        fun gmPresetBubble(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
-            val bubble = LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(deps.dp(4), deps.dp(4), deps.dp(4), deps.dp(4))
-                alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.72f
+            fun gmPresetBubble(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
+        return object : View(activity) {
+            private val fillPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+            private val ringPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = deps.dp(3).toFloat()
             }
 
-            fun colorCell(hex: String): View {
-                return View(activity).apply {
-                    background = deps.roundedFill(Color.parseColor(hex), 8)
+            init {
+                val size = deps.dp(42)
+                layoutParams = LinearLayout.LayoutParams(size, size)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    GameModeActions.applyLedPreset(
+                        value = value,
+                        onEffectChanged = { gmFanLedEffect = it },
+                        onColorChanged = { gmFanLedColor = it },
+                        refreshEffectButtons = { refreshLedEffectButtons() },
+                        refreshColorDots = { refreshLedColorDots() },
+                        refreshPresetBubbles = { refreshPresetBubbles() }
+                    )
                 }
             }
 
-            val cellParams = LinearLayout.LayoutParams(0, deps.dp(22), 1f)
-            bubble.addView(colorCell(hex1), cellParams)
-            bubble.addView(deps.space(deps.dp(4)))
-            bubble.addView(colorCell(hex2), cellParams)
-            bubble.addView(deps.space(deps.dp(4)))
-            bubble.addView(colorCell(hex3), cellParams)
-            bubble.addView(deps.space(deps.dp(4)))
-            bubble.addView(colorCell(hex4), cellParams)
+            override fun onDraw(canvas: android.graphics.Canvas) {
+                super.onDraw(canvas)
 
-            bubble.setOnClickListener {
-                GameModeActions.applyLedPreset(
-                    value = value,
-                    onEffectChanged = { newEffect -> gmFanLedEffect = newEffect },
-                    onColorChanged = { newColor -> gmFanLedColor = newColor },
-                    refreshEffectButtons = { refreshLedEffectButtons() },
-                    refreshColorDots = { refreshLedColorDots() },
-                    refreshPresetBubbles = { refreshPresetBubbles() }
+                val pad = deps.dp(3).toFloat()
+                val rect = android.graphics.RectF(
+                    pad, pad,
+                    width.toFloat() - pad,
+                    height.toFloat() - pad
                 )
-            }
 
-            return bubble
+                val save = canvas.save()
+                val path = android.graphics.Path().apply {
+                    addOval(rect, android.graphics.Path.Direction.CW)
+                }
+                canvas.clipPath(path)
+
+                val midX = rect.centerX()
+                val midY = rect.centerY()
+
+                val colors = arrayOf(hex1, hex2, hex3, hex4)
+
+                fillPaint.color = Color.parseColor(colors[0])
+                canvas.drawRect(rect.left, rect.top, midX, midY, fillPaint)
+
+                fillPaint.color = Color.parseColor(colors[1])
+                canvas.drawRect(midX, rect.top, rect.right, midY, fillPaint)
+
+                fillPaint.color = Color.parseColor(colors[2])
+                canvas.drawRect(rect.left, midY, midX, rect.bottom, fillPaint)
+
+                fillPaint.color = Color.parseColor(colors[3])
+                canvas.drawRect(midX, midY, rect.right, rect.bottom, fillPaint)
+
+                canvas.restoreToCount(save)
+
+                ringPaint.color = if (gmFanLedEffect == "preset:$value") {
+                    Color.WHITE
+                } else {
+                    Color.TRANSPARENT
+                }
+
+                canvas.drawOval(rect, ringPaint)
+            }
         }
+    }
 
         preset1 = gmPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", "0x3002101")
         preset2 = gmPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4", "0x3002102")

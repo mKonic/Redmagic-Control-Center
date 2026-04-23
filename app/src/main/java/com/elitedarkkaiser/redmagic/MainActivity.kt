@@ -3057,24 +3057,28 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             orientation = LinearLayout.HORIZONTAL
             addView(colorDot(1, "#FF0000") {
                 fanLedColor = 1
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(3, "#FF8C00") {
                 fanLedColor = 3
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(4, "#FFD600") {
                 fanLedColor = 4
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(5, "#00E676") {
                 fanLedColor = 5
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
@@ -3085,24 +3089,28 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             setPadding(0, dp(10), 0, 0)
             addView(colorDot(6, "#00E5FF") {
                 fanLedColor = 6
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(7, "#1565FF") {
                 fanLedColor = 7
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(8, "#A020F0") {
                 fanLedColor = 8
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
             addView(space(dp(10)))
             addView(colorDot(9, "#FF69B4") {
                 fanLedColor = 9
+                if (fanLedEffect.startsWith("preset:")) fanLedEffect = "steady"
                 applyFanLedPreviewIfEnabled()
                 dialogRefreshFanLed?.invoke()
             })
@@ -3302,6 +3310,7 @@ addView(row(configureTriggersBtn, trigEnableBtn))
             isClickable = true
             isFocusable = true
             setPadding(dp(4), dp(4), dp(4), dp(4))
+            background = roundedBg(Color.TRANSPARENT, Color.TRANSPARENT, 999)
             setOnClickListener { onClick() }
         }
 

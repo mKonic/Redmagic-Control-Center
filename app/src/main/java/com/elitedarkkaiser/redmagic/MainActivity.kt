@@ -2481,12 +2481,12 @@ if (!isSupportedDevice()) {
             setPadding(0, 0, 0, dp(6))
         }
 
-        val leftGroup = RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
+        val leftGroup = android.widget.RadioGroup(this).apply {
+            orientation = android.widget.RadioGroup.VERTICAL
         }
 
         labels.forEachIndexed { index, label ->
-            leftGroup.addView(RadioButton(this).apply {
+            leftGroup.addView(android.widget.RadioButton(this).apply {
                 text = label
                 textSize = 14f
                 setTextColor(textPrimary)
@@ -2505,12 +2505,12 @@ if (!isSupportedDevice()) {
             setPadding(0, dp(14), 0, dp(6))
         }
 
-        val rightGroup = RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
+        val rightGroup = android.widget.RadioGroup(this).apply {
+            orientation = android.widget.RadioGroup.VERTICAL
         }
 
         labels.forEachIndexed { index, label ->
-            rightGroup.addView(RadioButton(this).apply {
+            rightGroup.addView(android.widget.RadioButton(this).apply {
                 text = label
                 textSize = 14f
                 setTextColor(textPrimary)

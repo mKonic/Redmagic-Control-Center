@@ -3292,36 +3292,54 @@ addView(row(configureTriggersBtn, trigEnableBtn))
     }
 
     private fun fanPresetBubble(vararg hexes: String, onClick: () -> Unit): View {
-        return ImageView(this).apply {
-            val size = dp(42)
-            layoutParams = LinearLayout.LayoutParams(size, size)
-            val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
-            val canvas = android.graphics.Canvas(bmp)
-            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-            val rect = android.graphics.RectF(0f, 0f, size.toFloat(), size.toFloat())
+        require(hexes.size == 4) { "fanPresetBubble requires exactly 4 colors" }
 
-            val colors = hexes.toList().take(4).let {
-                if (it.size == 4) it else listOf("#FF0000", "#FF8C00", "#FFD600", "#00E676")
-            }
-
-            paint.style = android.graphics.Paint.Style.FILL
-            paint.color = Color.parseColor(colors[0])
-            canvas.drawArc(rect, 180f, 90f, true, paint)   // TL
-            paint.color = Color.parseColor(colors[1])
-            canvas.drawArc(rect, 90f, 90f, true, paint)    // TR
-            paint.color = Color.parseColor(colors[2])
-            canvas.drawArc(rect, 270f, 90f, true, paint)   // BL
-            paint.color = Color.parseColor(colors[3])
-            canvas.drawArc(rect, 0f, 90f, true, paint)     // BR
-
-            paint.style = android.graphics.Paint.Style.STROKE
-            paint.strokeWidth = dp(2).toFloat()
-            paint.color = borderColor
-            canvas.drawCircle(size / 2f, size / 2f, size / 2f - dp(1).toFloat(), paint)
-
-            setImageBitmap(bmp)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(4), dp(4), dp(4), dp(4))
             setOnClickListener { onClick() }
         }
+
+        fun colorCell(hex: String): View {
+            return View(this).apply {
+                background = roundedFill(Color.parseColor(hex), 2)
+                isClickable = false
+                isFocusable = false
+            }
+        }
+
+        fun makeRow(left: String, right: String): LinearLayout {
+            return LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                addView(
+                    colorCell(left),
+                    LinearLayout.LayoutParams(0, dp(16), 1f)
+                )
+                addView(space(dp(2)))
+                addView(
+                    colorCell(right),
+                    LinearLayout.LayoutParams(0, dp(16), 1f)
+                )
+            }
+        }
+
+        val inner = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = roundedFill(Color.parseColor("#1E2633"), 999)
+            setPadding(dp(3), dp(3), dp(3), dp(3))
+            addView(makeRow(hexes[0], hexes[1]))
+            addView(space(dp(2)))
+            addView(makeRow(hexes[2], hexes[3]))
+        }
+
+        root.addView(
+            inner,
+            LinearLayout.LayoutParams(dp(44), dp(44))
+        )
+
+        return root
     }
 
     private fun colorDot(colorId: Int, hex: String, onClick: () -> Unit): View {

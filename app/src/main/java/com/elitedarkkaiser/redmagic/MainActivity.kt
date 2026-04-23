@@ -888,102 +888,40 @@ if (!isSupportedDevice()) {
 
         fanSeek.progress = profile.fanLevel
 
-        setAutoFanEnabledSaved(profile.autoFanEnabled)
-        savePumpState()
-        saveAutoPumpState()
-        saveFanLedState()
-        saveLogoLedState()
-        saveShoulderLedState()
-
-        if (profile.autoFanEnabled) {
-            startAutoFanService()
-        } else {
-            stopAutoFanService()
-        }
-
-        if (profile.autoPumpEnabled) {
-            startAutoPumpService()
-        } else {
-            stopAutoPumpService()
-        }
-
-        refreshStatus()
-        refreshSmartPumpStatusViews()
+        ProfileDialogs.afterProfileApplied(
+            profile = profile,
+            setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
+            savePumpState = { savePumpState() },
+            saveAutoPumpState = { saveAutoPumpState() },
+            saveFanLedState = { saveFanLedState() },
+            saveLogoLedState = { saveLogoLedState() },
+            saveShoulderLedState = { saveShoulderLedState() },
+            startAutoFanService = { startAutoFanService() },
+            stopAutoFanService = { stopAutoFanService() },
+            startAutoPumpService = { startAutoPumpService() },
+            stopAutoPumpService = { stopAutoPumpService() },
+            refreshStatus = { refreshStatus() },
+            refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() }
+        )
     }
 
     private fun showSaveProfileDialog(onSaved: () -> Unit) {
-        val titleView = TextView(this).apply {
-            text = "Save Profile"
-            textSize = 19f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, 0, 0, dp(14))
-        }
-
-        val input = EditText(this).apply {
-            hint = "Profile name"
-            setTextColor(textPrimary)
-            setHintTextColor(textSecondary)
-            textSize = 15f
-            setPadding(dp(16), dp(14), dp(16), dp(14))
-            background = roundedBg(Color.parseColor("#121A27"), Color.parseColor("#263246"), 18)
-        }
-
-        val buttonRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-            setPadding(0, dp(18), 0, 0)
-        }
-
-        val cancelBtn = actionButton("CANCEL") {}.apply {
-            alpha = 0.88f
-        }
-
-        val saveBtn = actionButton("SAVE") {}.apply {
-            setPadding(dp(18), dp(10), dp(18), dp(10))
-        }
-
-        buttonRow.addView(cancelBtn)
-        buttonRow.addView(space(dp(10)))
-        buttonRow.addView(saveBtn)
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(20), dp(22), dp(16))
-            background = roundedBg(panelColor, borderColor, 24)
-            addView(titleView)
-            addView(input)
-            addView(buttonRow)
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-
-        cancelBtn.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        saveBtn.setOnClickListener {
-            val name = input.text?.toString()?.trim().orEmpty()
-            if (name.isBlank()) return@setOnClickListener
-
-            val profile = buildCurrentHardwareProfile(name)
-            ProfileDialogs.saveProfile(this, name, profile) {
-                dialog.dismiss()
-                onSaved()
-            }
-        }
-
-        dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
+        ProfileDialogs.showStyledSaveProfileDialog(
+            context = this,
+            textPrimary = textPrimary,
+            textSecondary = textSecondary,
+            panelColor = panelColor,
+            borderColor = borderColor,
+            typeface = typeface,
+            dp = { value -> dp(value) },
+            roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+            actionButton = { text, isDanger, onClick ->
+                actionButton(text, isDanger = isDanger, onClick = onClick)
+            },
+            space = { value -> space(value) },
+            buildProfile = { name -> buildCurrentHardwareProfile(name) },
+            onSaved = onSaved
+        )
     }
 
     private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {

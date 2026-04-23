@@ -2,10 +2,13 @@ package com.elitedarkkaiser.redmagic
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 
 internal object ProfileDialogs {
@@ -81,6 +84,136 @@ internal object ProfileDialogs {
 
             profileList.addView(row)
             profileList.addView(space(dp(10)))
+        }
+    }
+
+    fun afterProfileApplied(
+        profile: HardwareProfile,
+        setAutoFanEnabledSaved: (Boolean) -> Unit,
+        savePumpState: () -> Unit,
+        saveAutoPumpState: () -> Unit,
+        saveFanLedState: () -> Unit,
+        saveLogoLedState: () -> Unit,
+        saveShoulderLedState: () -> Unit,
+        startAutoFanService: () -> Unit,
+        stopAutoFanService: () -> Unit,
+        startAutoPumpService: () -> Unit,
+        stopAutoPumpService: () -> Unit,
+        refreshStatus: () -> Unit,
+        refreshSmartPumpStatusViews: () -> Unit
+    ) {
+        setAutoFanEnabledSaved(profile.autoFanEnabled)
+        savePumpState()
+        saveAutoPumpState()
+        saveFanLedState()
+        saveLogoLedState()
+        saveShoulderLedState()
+
+        if (profile.autoFanEnabled) {
+            startAutoFanService()
+        } else {
+            stopAutoFanService()
+        }
+
+        if (profile.autoPumpEnabled) {
+            startAutoPumpService()
+        } else {
+            stopAutoPumpService()
+        }
+
+        refreshStatus()
+        refreshSmartPumpStatusViews()
+    }
+
+    fun showStyledSaveProfileDialog(
+        context: Context,
+        textPrimary: Int,
+        textSecondary: Int,
+        panelColor: Int,
+        borderColor: Int,
+        typeface: Typeface?,
+        dp: (Int) -> Int,
+        roundedBg: (Int, Int, Int) -> android.graphics.drawable.Drawable,
+        actionButton: (String, Boolean, () -> Unit) -> View,
+        space: (Int) -> View,
+        buildProfile: (String) -> HardwareProfile,
+        onSaved: () -> Unit
+    ) {
+        val titleView = TextView(context).apply {
+            text = "Save Profile"
+            textSize = 19f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, 0, 0, dp(14))
+        }
+
+        val input = EditText(context).apply {
+            hint = "Profile name"
+            setTextColor(textPrimary)
+            setHintTextColor(textSecondary)
+            textSize = 15f
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = roundedBg(0xFF121A27.toInt(), 0xFF263246.toInt(), 18)
+        }
+
+        val buttonRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = actionButton("CANCEL", false) {}.apply {
+            alpha = 0.88f
+        }
+
+        val saveBtn = actionButton("SAVE", false) {}.apply {
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(20), dp(22), dp(16))
+            background = roundedBg(panelColor, borderColor, 24)
+            addView(titleView)
+            addView(input)
+            addView(buttonRow)
+        }
+
+        val dialog = AlertDialog.Builder(context)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        )
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            val name = input.text?.toString()?.trim().orEmpty()
+            if (name.isBlank()) return@setOnClickListener
+
+            val profile = buildProfile(name)
+            saveProfile(context, name, profile) {
+                dialog.dismiss()
+                onSaved()
+            }
+        }
+
+        dialog.show()
+
+        dialog.window?.apply {
+            setBackgroundDrawable(
+                android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+            )
+            setDimAmount(0.65f)
         }
     }
 }

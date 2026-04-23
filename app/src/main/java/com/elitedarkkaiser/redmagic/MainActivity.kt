@@ -972,10 +972,10 @@ if (!isSupportedDevice()) {
             if (name.isBlank()) return@setOnClickListener
 
             val profile = buildCurrentHardwareProfile(name)
-            ProfileManager.upsertProfile(this, profile)
-            Toast.makeText(this, "Saved $name", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-            onSaved()
+            ProfileDialogs.saveProfile(this, name, profile) {
+                dialog.dismiss()
+                onSaved()
+            }
         }
 
         dialog.show()
@@ -987,16 +987,11 @@ if (!isSupportedDevice()) {
     }
 
     private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {
-        AlertDialog.Builder(this)
-            .setTitle("Delete Profile")
-            .setMessage("Delete $profileName?")
-            .setPositiveButton("Delete") { _, _ ->
-                ProfileManager.deleteProfile(this, profileName)
-                Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
-                onDeleted()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        ProfileDialogs.showDeleteProfileDialog(this, profileName) {
+            ProfileManager.deleteProfile(this, profileName)
+            Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
+            onDeleted()
+        }
     }
 
     private fun refreshSmartPumpStatusViews() {

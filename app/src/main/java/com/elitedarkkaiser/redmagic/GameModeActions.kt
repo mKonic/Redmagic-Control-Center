@@ -160,4 +160,45 @@ internal object GameModeActions {
         onColorChanged(id)
         refreshColorDots()
     }
+
+    fun refreshShoulderEffectButtons(
+        selectedEffect: String,
+        steadyBtn: Button,
+        breatheBtn: Button,
+        flashingBtn: Button,
+        roundedFill: (Int, Int) -> Drawable,
+        selectedColor: Int,
+        unselectedColor: Int
+    ) {
+        steadyBtn.background = roundedFill(
+            if (selectedEffect == "steady") selectedColor else unselectedColor,
+            999
+        )
+        breatheBtn.background = roundedFill(
+            if (selectedEffect == "breathe") selectedColor else unselectedColor,
+            999
+        )
+        flashingBtn.background = roundedFill(
+            if (selectedEffect == "flashing") selectedColor else unselectedColor,
+            999
+        )
+    }
+
+    fun updateShoulderLedEffect(
+        value: String,
+        onEffectChanged: (String) -> Unit,
+        refreshButtons: () -> Unit
+    ) {
+        onEffectChanged(value)
+        refreshButtons()
+    }
+
+    fun updateShoulderLedColor(
+        id: Int,
+        onColorChanged: (Int) -> Unit,
+        refreshColorDots: () -> Unit
+    ) {
+        onColorChanged(id)
+        refreshColorDots()
+    }
 }

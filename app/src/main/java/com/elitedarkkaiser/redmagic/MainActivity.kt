@@ -3108,15 +3108,24 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         lateinit var shoulderFlashingBtn: Button
 
         fun refreshShoulderEffectButtons() {
-            shoulderSteadyBtn.background = roundedFill(if (gmShoulderLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"), 999)
-            shoulderBreatheBtn.background = roundedFill(if (gmShoulderLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"), 999)
-            shoulderFlashingBtn.background = roundedFill(if (gmShoulderLedEffect == "flashing") panelPressed else Color.parseColor("#1E2633"), 999)
+            GameModeActions.refreshShoulderEffectButtons(
+                selectedEffect = gmShoulderLedEffect,
+                steadyBtn = shoulderSteadyBtn,
+                breatheBtn = shoulderBreatheBtn,
+                flashingBtn = shoulderFlashingBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                unselectedColor = Color.parseColor("#1E2633")
+            )
         }
 
         fun gmShoulderEffectBtn(label: String, value: String): Button {
             return filterChip(label, gmShoulderLedEffect == value) {
-                gmShoulderLedEffect = value
-                refreshShoulderEffectButtons()
+                GameModeActions.updateShoulderLedEffect(
+                    value = value,
+                    onEffectChanged = { newValue -> gmShoulderLedEffect = newValue },
+                    refreshButtons = { refreshShoulderEffectButtons() }
+                )
             }
         }
 
@@ -3150,8 +3159,11 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
         fun gmShoulderColorDot(id: Int, hex: String): View {
             return colorDotGeneric(hex, gmShoulderLedColor == id) {
-                gmShoulderLedColor = id
-                refreshShoulderColorDots()
+                GameModeActions.updateShoulderLedColor(
+                    id = id,
+                    onColorChanged = { newColor -> gmShoulderLedColor = newColor },
+                    refreshColorDots = { refreshShoulderColorDots() }
+                )
             }
         }
 

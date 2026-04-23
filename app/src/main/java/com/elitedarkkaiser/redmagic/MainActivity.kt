@@ -2678,24 +2678,33 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         }
 
         val slowBtn = filterChip("Slow", pumpProfile == "slow") {
-            pumpProfile = "slow"
-            pumpEnabled = true
-            HardwareController.setPumpProfile("slow")
-            dialogRefreshPump?.invoke()
+            PumpActions.applyPreviewSelection(
+                profile = "slow",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
         }
 
         val mediumBtn = filterChip("Medium", pumpProfile == "medium") {
-            pumpProfile = "medium"
-            pumpEnabled = true
-            HardwareController.setPumpProfile("medium")
-            dialogRefreshPump?.invoke()
+            PumpActions.applyPreviewSelection(
+                profile = "medium",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
         }
 
         val quickBtn = filterChip("Quick", pumpProfile == "quick") {
-            pumpProfile = "quick"
-            pumpEnabled = true
-            HardwareController.setPumpProfile("quick")
-            dialogRefreshPump?.invoke()
+            PumpActions.applyPreviewSelection(
+                profile = "quick",
+                setPumpProfile = { value -> pumpProfile = value },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                refreshDialog = { dialogRefreshPump?.invoke() }
+            )
         }
 
         val experimentalBtn = filterChip("⚠ Exp", pumpProfile == "experimental") {
@@ -2755,14 +2764,14 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
         cancelBtn.setOnClickListener {
-            pumpEnabled = originalEnabled
-            pumpProfile = originalProfile
-
-            if (pumpEnabled) {
-                HardwareController.setPumpProfile(pumpProfile)
-            } else {
-                HardwareController.enablePump(false)
-            }
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
 
             dialog.dismiss()
         }
@@ -2773,32 +2782,27 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         }
 
         dialog.setOnCancelListener {
-            pumpEnabled = originalEnabled
-            pumpProfile = originalProfile
-
-            if (pumpEnabled) {
-                HardwareController.setPumpProfile(pumpProfile)
-            } else {
-                HardwareController.enablePump(false)
-            }
+            PumpActions.restoreOriginalState(
+                originalEnabled = originalEnabled,
+                originalProfile = originalProfile,
+                setPumpEnabled = { value -> pumpEnabled = value },
+                setPumpProfile = { value -> pumpProfile = value },
+                applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
+                disablePump = { HardwareController.enablePump(false) }
+            )
         }
 
         fun repaint() {
-            slowBtn.background = roundedFill(
-                if (pumpProfile == "slow") panelPressed else Color.parseColor("#1E2633"),
-                999
-            )
-            mediumBtn.background = roundedFill(
-                if (pumpProfile == "medium") panelPressed else Color.parseColor("#1E2633"),
-                999
-            )
-            quickBtn.background = roundedFill(
-                if (pumpProfile == "quick") panelPressed else Color.parseColor("#1E2633"),
-                999
-            )
-            experimentalBtn.background = roundedFill(
-                if (pumpProfile == "experimental") panelPressed else Color.parseColor("#2A1D1D"),
-                999
+            PumpActions.repaintButtons(
+                selectedProfile = pumpProfile,
+                slowBtn = slowBtn,
+                mediumBtn = mediumBtn,
+                quickBtn = quickBtn,
+                experimentalBtn = experimentalBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                normalColor = Color.parseColor("#1E2633"),
+                experimentalColor = Color.parseColor("#2A1D1D")
             )
         }
 

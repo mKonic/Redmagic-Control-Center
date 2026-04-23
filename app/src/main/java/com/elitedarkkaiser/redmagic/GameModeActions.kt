@@ -113,4 +113,20 @@ internal object GameModeActions {
         onEffectChanged(value)
         refreshButtons()
     }
+
+    fun updateLedColor(
+        id: Int,
+        currentEffect: String,
+        onColorChanged: (Int) -> Unit,
+        onEffectChanged: (String) -> Unit,
+        refreshColorDots: () -> Unit,
+        refreshEffectButtons: () -> Unit
+    ) {
+        onColorChanged(id)
+        if (currentEffect.startsWith("preset:")) {
+            onEffectChanged("steady")
+        }
+        refreshColorDots()
+        refreshEffectButtons()
+    }
 }

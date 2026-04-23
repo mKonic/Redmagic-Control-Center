@@ -2823,12 +2823,14 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
         fun gmColorDot(id: Int, hex: String): View {
             return colorDotGeneric(hex, gmFanLedColor == id && !gmFanLedEffect.startsWith("preset:")) {
-                gmFanLedColor = id
-                if (gmFanLedEffect.startsWith("preset:")) {
-                    gmFanLedEffect = "steady"
-                }
-                refreshLedColorDots()
-                refreshLedEffectButtons()
+                GameModeActions.updateLedColor(
+                    id = id,
+                    currentEffect = gmFanLedEffect,
+                    onColorChanged = { newColor -> gmFanLedColor = newColor },
+                    onEffectChanged = { newEffect -> gmFanLedEffect = newEffect },
+                    refreshColorDots = { refreshLedColorDots() },
+                    refreshEffectButtons = { refreshLedEffectButtons() }
+                )
             }
         }
 

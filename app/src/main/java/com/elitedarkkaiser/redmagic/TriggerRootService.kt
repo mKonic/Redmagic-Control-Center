@@ -5,10 +5,14 @@ import android.content.Intent
 import android.os.IBinder
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 class TriggerRootService : Service() {
 
     private var running = true
+    private val held = ConcurrentHashMap<String, AtomicBoolean>()
+    private val repeatThreads = ConcurrentHashMap<String, Thread>()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -48,19 +52,68 @@ class TriggerRootService : Service() {
         }
     }
 
-    private fun startReader(device: String, key: String) {
+    private fun startRepeater(prefKey: String) {
+        stopRepeater(prefKey)
+
+        val flag = AtomicBoolean(true)
+        held[prefKey] = flag
+
+        val thread = Thread {
+            try {
+                // Initial long-press delay before repeat starts
+                Thread.sleep(350)
+
+                while (running && flag.get()) {
+                    performAction(getAction(prefKey))
+                    Thread.sleep(110)
+                }
+            } catch (_: InterruptedException) {
+            } catch (t: Throwable) {
+                android.util.Log.e("TRIGGER", "startRepeater failed for " + prefKey + ": " + t)
+            }
+        }
+
+        repeatThreads[prefKey] = thread
+        thread.start()
+    }
+
+    private fun stopRepeater(prefKey: String) {
+        held[prefKey]?.set(false)
+        held.remove(prefKey)
+
+        repeatThreads[prefKey]?.interrupt()
+        repeatThreads.remove(prefKey)
+    }
+
+    private fun handleDown(prefKey: String, device: String, line: String) {
+        android.util.Log.d("TRIGGER", "DOWN device=" + device + " key=" + prefKey + " line=" + line)
+
+        // Single tap behavior
+        performAction(getAction(prefKey))
+
+        // Start hold-to-repeat behavior
+        startRepeater(prefKey)
+    }
+
+    private fun handleUp(prefKey: String, device: String, line: String) {
+        android.util.Log.d("TRIGGER", "UP device=" + device + " key=" + prefKey + " line=" + line)
+        stopRepeater(prefKey)
+    }
+
+    private fun startReader(device: String, prefKey: String) {
         Thread {
             try {
-                android.util.Log.d("TRIGGER", "startReader device=" + device + " key=" + key)
+                android.util.Log.d("TRIGGER", "startReader device=" + device + " key=" + prefKey)
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "getevent -l " + device))
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
 
                 while (running) {
                     val line = reader.readLine() ?: break
 
-                    if (line.contains("DOWN")) {
-                        android.util.Log.d("TRIGGER", "root event device=" + device + " key=" + key + " line=" + line)
-                        performAction(getAction(key))
+                    if (line.contains(" DOWN")) {
+                        handleDown(prefKey, device, line)
+                    } else if (line.contains(" UP")) {
+                        handleUp(prefKey, device, line)
                     }
                 }
             } catch (t: Throwable) {
@@ -71,6 +124,8 @@ class TriggerRootService : Service() {
 
     override fun onDestroy() {
         running = false
+        stopRepeater("left_trigger")
+        stopRepeater("right_trigger")
         android.util.Log.d("TRIGGER", "TriggerRootService onDestroy")
         super.onDestroy()
     }

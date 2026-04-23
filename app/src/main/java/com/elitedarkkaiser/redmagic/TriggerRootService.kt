@@ -40,8 +40,8 @@ class TriggerRootService : Service() {
         android.util.Log.d("TRIGGER", "performAction=" + action)
 
         when (action) {
-            "VOL_UP" -> runRoot("cmd media_session volume --stream 3 --adj raise")
-            "VOL_DOWN" -> runRoot("cmd media_session volume --stream 3 --adj lower")
+            "VOL_UP" -> runRoot("input keyevent 24")
+            "VOL_DOWN" -> runRoot("input keyevent 25")
             "PLAY_PAUSE" -> runRoot("input keyevent 85")
             "NONE" -> Unit
             else -> Unit

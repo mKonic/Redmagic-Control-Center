@@ -129,4 +129,19 @@ internal object GameModeActions {
         refreshColorDots()
         refreshEffectButtons()
     }
+
+    fun applyLedPreset(
+        value: String,
+        onEffectChanged: (String) -> Unit,
+        onColorChanged: (Int) -> Unit,
+        refreshEffectButtons: () -> Unit,
+        refreshColorDots: () -> Unit,
+        refreshPresetBubbles: () -> Unit
+    ) {
+        onEffectChanged("preset:$value")
+        onColorChanged(-1)
+        refreshEffectButtons()
+        refreshColorDots()
+        refreshPresetBubbles()
+    }
 }

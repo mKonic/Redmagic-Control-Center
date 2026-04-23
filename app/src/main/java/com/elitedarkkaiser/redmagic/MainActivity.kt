@@ -2896,11 +2896,14 @@ addView(row(configureTriggersBtn, trigEnableBtn))
 
         fun gmPresetBubble(hex1: String, hex2: String, hex3: String, hex4: String, value: String): View {
             return fanPresetBubble(hex1, hex2, hex3, hex4) {
-                gmFanLedEffect = "preset:$value"
-                gmFanLedColor = -1
-                refreshLedEffectButtons()
-                refreshLedColorDots()
-                refreshPresetBubbles()
+                GameModeActions.applyLedPreset(
+                    value = value,
+                    onEffectChanged = { newEffect -> gmFanLedEffect = newEffect },
+                    onColorChanged = { newColor -> gmFanLedColor = newColor },
+                    refreshEffectButtons = { refreshLedEffectButtons() },
+                    refreshColorDots = { refreshLedColorDots() },
+                    refreshPresetBubbles = { refreshPresetBubbles() }
+                )
             }.apply {
                 setPadding(dp(4), dp(4), dp(4), dp(4))
                 alpha = if (gmFanLedEffect == "preset:$value") 1f else 0.72f

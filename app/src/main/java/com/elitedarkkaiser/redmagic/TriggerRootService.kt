@@ -40,6 +40,22 @@ class TriggerRootService : Service() {
         }
     }
 
+    private fun hapticTap() {
+        try {
+            HardwareController.vibrate(durationMs = 20, gain = 180)
+        } catch (t: Throwable) {
+            android.util.Log.e("TRIGGER", "hapticTap failed: " + t)
+        }
+    }
+
+    private fun hapticHoldStart() {
+        try {
+            HardwareController.vibrate(durationMs = 35, gain = 255)
+        } catch (t: Throwable) {
+            android.util.Log.e("TRIGGER", "hapticHoldStart failed: " + t)
+        }
+    }
+
     private fun performAction(action: String) {
         android.util.Log.d("TRIGGER", "performAction=" + action)
 
@@ -47,21 +63,38 @@ class TriggerRootService : Service() {
             "VOL_UP" -> runRoot("input keyevent 24")
             "VOL_DOWN" -> runRoot("input keyevent 25")
             "PLAY_PAUSE" -> runRoot("input keyevent 85")
+            "NEXT" -> runRoot("input keyevent 87")
+            "PREVIOUS" -> runRoot("input keyevent 88")
+            "REWIND" -> runRoot("input keyevent 89")
+            "FAST_FORWARD" -> runRoot("input keyevent 90")
             "NONE" -> Unit
             else -> Unit
+        }
+    }
+
+    private fun isRepeatable(action: String): Boolean {
+        return when (action) {
+            "VOL_UP", "VOL_DOWN", "REWIND", "FAST_FORWARD" -> true
+            else -> false
         }
     }
 
     private fun startRepeater(prefKey: String) {
         stopRepeater(prefKey)
 
+        val action = getAction(prefKey)
+        if (!isRepeatable(action)) return
+
         val flag = AtomicBoolean(true)
         held[prefKey] = flag
 
         val thread = Thread {
             try {
-                // Initial long-press delay before repeat starts
                 Thread.sleep(350)
+
+                if (running && flag.get()) {
+                    hapticHoldStart()
+                }
 
                 while (running && flag.get()) {
                     performAction(getAction(prefKey))
@@ -88,10 +121,8 @@ class TriggerRootService : Service() {
     private fun handleDown(prefKey: String, device: String, line: String) {
         android.util.Log.d("TRIGGER", "DOWN device=" + device + " key=" + prefKey + " line=" + line)
 
-        // Single tap behavior
+        hapticTap()
         performAction(getAction(prefKey))
-
-        // Start hold-to-repeat behavior
         startRepeater(prefKey)
     }
 

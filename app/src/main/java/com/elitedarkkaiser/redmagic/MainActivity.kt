@@ -2444,8 +2444,26 @@ if (!isSupportedDevice()) {
     private fun showTriggerSetupDialog() {
         val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
 
-        val labels = arrayOf("None", "Volume Up", "Volume Down")
-        val values = arrayOf("NONE", "VOL_UP", "VOL_DOWN")
+        val labels = arrayOf(
+            "None",
+            "Volume Up",
+            "Volume Down",
+            "Play / Pause",
+            "Next Track",
+            "Previous Track",
+            "Rewind",
+            "Fast Forward"
+        )
+        val values = arrayOf(
+            "NONE",
+            "VOL_UP",
+            "VOL_DOWN",
+            "PLAY_PAUSE",
+            "NEXT",
+            "PREVIOUS",
+            "REWIND",
+            "FAST_FORWARD"
+        )
 
         fun indexOfValue(value: String): Int {
             val i = values.indexOf(value)

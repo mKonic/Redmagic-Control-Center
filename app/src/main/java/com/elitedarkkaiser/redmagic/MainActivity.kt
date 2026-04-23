@@ -2765,15 +2765,24 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         lateinit var ledFlashingBtn: Button
 
         fun refreshLedEffectButtons() {
-            ledSteadyBtn.background = roundedFill(if (gmFanLedEffect == "steady") panelPressed else Color.parseColor("#1E2633"), 999)
-            ledBreatheBtn.background = roundedFill(if (gmFanLedEffect == "breathe") panelPressed else Color.parseColor("#1E2633"), 999)
-            ledFlashingBtn.background = roundedFill(if (gmFanLedEffect == "flashing") panelPressed else Color.parseColor("#1E2633"), 999)
+            GameModeActions.refreshLedEffectButtons(
+                selectedEffect = gmFanLedEffect,
+                steadyBtn = ledSteadyBtn,
+                breatheBtn = ledBreatheBtn,
+                flashingBtn = ledFlashingBtn,
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                selectedColor = panelPressed,
+                unselectedColor = Color.parseColor("#1E2633")
+            )
         }
 
         fun gmLedEffectBtn(label: String, value: String): Button {
             return filterChip(label, gmFanLedEffect == value) {
-                gmFanLedEffect = value
-                refreshLedEffectButtons()
+                GameModeActions.updateLedEffect(
+                    value = value,
+                    onEffectChanged = { newValue -> gmFanLedEffect = newValue },
+                    refreshButtons = { refreshLedEffectButtons() }
+                )
             }
         }
 

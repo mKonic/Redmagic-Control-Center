@@ -2200,6 +2200,10 @@ class MainActivity : Activity() {
     private fun createHardwareTab(): LinearLayout {
         val container = scrollTabContainer()
 
+        val configureTriggersBtn = actionButton("CONFIGURE TRIGGERS") {
+            showTriggerSetupDialog()
+        }
+
         val trigEnableBtn = actionButton("ENABLE TRIGGERS") {
             HardwareController.enableTriggers()
             refreshStatus()
@@ -2208,9 +2212,9 @@ class MainActivity : Activity() {
 
         val triggerCard = sectionPanel().apply {
             addView(sectionHeader("⌥", "TRIGGERS"))
-            addView(bodyText("Re-enable shoulder triggers if the system has disabled them."))
+            addView(bodyText("Map shoulder triggers to quick actions or re-enable them if the system has disabled them."))
             addView(space(dp(10)))
-            addView(singleRow(trigEnableBtn))
+            addView(row(configureTriggersBtn, trigEnableBtn))
         }
 
         val vibrateBtn = actionButton("TEST HAPTIC") {

@@ -3176,8 +3176,9 @@ addView(row(configureTriggersBtn, trigEnableBtn))
         cancelBtn.setOnClickListener { dialog.dismiss() }
 
         saveBtn.setOnClickListener {
-            saveGameModeProfile(
-                GameModeProfile(
+            GameModeActions.saveProfile(
+                context = this,
+                profile = GameModeActions.buildProfile(
                     fanEnabled = gmFanEnabled,
                     fanLevel = gmFanLevel,
                     pumpEnabled = gmPumpEnabled,
@@ -3191,10 +3192,10 @@ addView(row(configureTriggersBtn, trigEnableBtn))
                     shoulderLedEnabled = gmShoulderLedEnabled,
                     shoulderLedEffect = gmShoulderLedEffect,
                     shoulderLedColor = gmShoulderLedColor
-                )
+                ),
+                persistProfile = { profile -> saveGameModeProfile(profile) },
+                onSaved = { dialog.dismiss() }
             )
-            Toast.makeText(this, "Game profile saved", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
         }
 
         dialog.show()

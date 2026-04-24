@@ -2238,9 +2238,6 @@ if (!isSupportedDevice()) {
                 addView(autoStartSwitch)
             }
 
-            addView(space(dp(8)))
-            addView(autoStartRow)
-
             val intentUnlockDesc = TextView(this@MainActivity).apply {
                 text = "Prevents accidental touches. Double tap to activate the right trigger, then use it normally until it times out."
                 textSize = 12f
@@ -2248,7 +2245,21 @@ if (!isSupportedDevice()) {
                 setPadding(0, dp(4), 0, dp(4))
             }
 
+            addView(space(dp(4)))
             addView(intentUnlockDesc)
+
+            addView(space(dp(8)))
+            addView(autoStartRow)
+
+            val autoStartDesc = TextView(this@MainActivity).apply {
+                text = "Automatically enable triggers and start the service on boot or when the app launches."
+                textSize = 12f
+                setTextColor(textSecondary)
+                setPadding(0, dp(4), 0, dp(4))
+            }
+
+            addView(space(dp(4)))
+            addView(autoStartDesc)
 
 
 addView(row(configureTriggersBtn, trigEnableBtn))

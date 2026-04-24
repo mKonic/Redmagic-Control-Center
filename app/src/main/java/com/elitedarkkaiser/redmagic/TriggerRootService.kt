@@ -26,6 +26,8 @@ class TriggerRootService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        HardwareController.enableTriggers()
         android.util.Log.d("TRIGGER", "TriggerRootService onCreate")
         startReader("/dev/input/event2", "left_trigger")
         startReader("/dev/input/event5", "right_trigger")

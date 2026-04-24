@@ -18,6 +18,12 @@ class BootReceiver : BroadcastReceiver() {
 
         if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_USER_UNLOCKED) return
 
+        val triggerPrefs = context.getSharedPreferences("triggers", Context.MODE_PRIVATE)
+        if (triggerPrefs.getBoolean("triggers_auto_start", false)) {
+            HardwareController.enableTriggers()
+            context.startService(Intent(context, TriggerRootService::class.java))
+        }
+
         val prefs = context.getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
         val fanLedEnabled = prefs.getBoolean("fan_led_enabled", false)
 

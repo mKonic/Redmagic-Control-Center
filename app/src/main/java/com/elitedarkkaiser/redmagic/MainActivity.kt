@@ -2204,6 +2204,43 @@ if (!isSupportedDevice()) {
             addView(space(dp(8)))
             addView(intentUnlockRow)
 
+            val autoStartSwitch = android.widget.Switch(this@MainActivity).apply {
+                val prefs = getSharedPreferences("triggers", MODE_PRIVATE)
+                isChecked = prefs.getBoolean("triggers_auto_start", false)
+
+                setOnCheckedChangeListener { _, checked ->
+                    prefs.edit().putBoolean("triggers_auto_start", checked).apply()
+
+                    if (checked) {
+                        HardwareController.enableTriggers()
+                        startService(Intent(this@MainActivity, TriggerRootService::class.java))
+                    }
+
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Auto-start triggers " + (if (checked) "enabled" else "disabled"),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            val autoStartRow = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(8), 0, 0)
+
+                addView(TextView(this@MainActivity).apply {
+                    text = "Auto-start triggers"
+                    textSize = 14f
+                    setTextColor(textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+
+                addView(autoStartSwitch)
+            }
+
+            addView(space(dp(8)))
+            addView(autoStartRow)
+
             val intentUnlockDesc = TextView(this@MainActivity).apply {
                 text = "Prevents accidental touches. Double tap to activate the right trigger, then use it normally until it times out."
                 textSize = 12f

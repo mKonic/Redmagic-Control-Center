@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class TriggerRootService : Service() {
 
+    
+    private var rightTriggerUnlockedUntil: Long = 0L
     private var running = true
     private val held = ConcurrentHashMap<String, AtomicBoolean>()
     private val repeatThreads = ConcurrentHashMap<String, Thread>()
@@ -191,12 +193,22 @@ class TriggerRootService : Service() {
     private fun handleLeftDown(device: String, line: String) {
         android.util.Log.d("TRIGGER", "LEFT DOWN device=" + device + " line=" + line)
         hapticTap()
+        rightTriggerUnlockedUntil = System.currentTimeMillis() + 1000L
+        android.util.Log.d("TRIGGER", "LEFT unlocked right trigger until=" + rightTriggerUnlockedUntil)
         performAction(getAction("left_trigger"))
         startRepeater("left_trigger")
     }
 
     private fun handleRightDown(device: String, line: String) {
         android.util.Log.d("TRIGGER", "RIGHT DOWN device=" + device + " line=" + line)
+
+        if (System.currentTimeMillis() <= rightTriggerUnlockedUntil) {
+            rightTriggerUnlockedUntil = 0L
+            hapticTap()
+            performAction(getAction("right_trigger"))
+            startRepeater("right_trigger")
+            return
+        }
 
         if (!handleRightIntentUnlock()) {
             stopRepeater("right_trigger")

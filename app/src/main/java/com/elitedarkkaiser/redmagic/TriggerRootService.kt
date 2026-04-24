@@ -186,7 +186,6 @@ class TriggerRootService : Service() {
 
         rightUnlockArmedAt = current
         android.util.Log.d("TRIGGER", "right trigger first tap ignored, armedAt=" + rightUnlockArmedAt)
-        hapticTap()
         return false
     }
 

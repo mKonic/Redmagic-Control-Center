@@ -1842,7 +1842,7 @@ if (!isSupportedDevice()) {
                         HardwareController.enablePump(false)
                     }
                     refreshStatus()
-                    switchTab("cooling")
+                    refreshSmartPumpStatusViews()
                 }
             }
 
@@ -1972,6 +1972,9 @@ if (!isSupportedDevice()) {
                     autoPumpEnabled = checked
                     saveAutoPumpState()
                     if (checked) {
+                        pumpEnabled = true
+                        savePumpState()
+                        HardwareController.setPumpProfile(pumpProfile)
                         startAutoPumpService()
                     } else {
                         stopAutoPumpService()

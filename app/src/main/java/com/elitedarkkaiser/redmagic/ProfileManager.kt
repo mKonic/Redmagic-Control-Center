@@ -41,8 +41,12 @@ object ProfileManager {
                     shoulderLedEffect = o.getString("shoulderLedEffect"),
                     shoulderLedColor = o.getInt("shoulderLedColor"),
 
-                    triggerEnabled = o.getBoolean("triggerEnabled"),
-                    hapticsEnabled = o.getBoolean("hapticsEnabled")
+                    triggerEnabled = o.optBoolean("triggerEnabled", false),
+                    hapticsEnabled = o.optBoolean("hapticsEnabled", true),
+                    leftTriggerAction = o.optString("leftTriggerAction", "NONE"),
+                    rightTriggerAction = o.optString("rightTriggerAction", "NONE"),
+                    intentUnlockRightTrigger = o.optBoolean("intentUnlockRightTrigger", true),
+                    triggersAutoStart = o.optBoolean("triggersAutoStart", false)
                 )
             )
         }
@@ -80,6 +84,10 @@ object ProfileManager {
 
             o.put("triggerEnabled", p.triggerEnabled)
             o.put("hapticsEnabled", p.hapticsEnabled)
+            o.put("leftTriggerAction", p.leftTriggerAction)
+            o.put("rightTriggerAction", p.rightTriggerAction)
+            o.put("intentUnlockRightTrigger", p.intentUnlockRightTrigger)
+            o.put("triggersAutoStart", p.triggersAutoStart)
 
             arr.put(o)
         }

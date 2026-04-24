@@ -853,8 +853,12 @@ if (!isSupportedDevice()) {
             shoulderLedEffect = shoulderLedEffect,
             shoulderLedColor = shoulderLedColor,
 
-            triggerEnabled = true,
-            hapticsEnabled = true
+            triggerEnabled = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("triggers_auto_start", false),
+            hapticsEnabled = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("haptics_enabled", true),
+            leftTriggerAction = getSharedPreferences("triggers", MODE_PRIVATE).getString("left_trigger", "NONE") ?: "NONE",
+            rightTriggerAction = getSharedPreferences("triggers", MODE_PRIVATE).getString("right_trigger", "NONE") ?: "NONE",
+            intentUnlockRightTrigger = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("intent_unlock_right_trigger", true),
+            triggersAutoStart = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("triggers_auto_start", false)
         )
     }
 
@@ -879,6 +883,20 @@ if (!isSupportedDevice()) {
         shoulderLedColor = profile.shoulderLedColor
 
         fanSeek.progress = profile.fanLevel
+
+        getSharedPreferences("triggers", MODE_PRIVATE)
+            .edit()
+            .putString("left_trigger", profile.leftTriggerAction)
+            .putString("right_trigger", profile.rightTriggerAction)
+            .putBoolean("haptics_enabled", profile.hapticsEnabled)
+            .putBoolean("intent_unlock_right_trigger", profile.intentUnlockRightTrigger)
+            .putBoolean("triggers_auto_start", profile.triggersAutoStart)
+            .apply()
+
+        if (profile.triggersAutoStart) {
+            HardwareController.enableTriggers()
+            startService(Intent(this, TriggerRootService::class.java))
+        }
 
         ProfileActions.afterProfileApplied(
             profile = profile,

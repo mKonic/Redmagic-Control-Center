@@ -37,6 +37,12 @@ class TriggerRootService : Service() {
 
     private fun prefs() = getSharedPreferences("triggers", MODE_PRIVATE)
 
+    private fun isScreenInteractive(): Boolean {
+        val powerManager = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        return powerManager.isInteractive
+    }
+
+
     private fun getAction(key: String): String {
         val value = prefs().getString(key, "NONE") ?: "NONE"
         android.util.Log.d("TRIGGER", "getAction(" + key + ")=" + value)
@@ -191,6 +197,12 @@ class TriggerRootService : Service() {
 
     private fun handleLeftDown(device: String, line: String) {
         android.util.Log.d("TRIGGER", "LEFT DOWN device=" + device + " line=" + line)
+
+        if (!isScreenInteractive()) {
+            android.util.Log.d("TRIGGER", "LEFT ignored because screen is off")
+            return
+        }
+
         hapticTap()
         rightTriggerUnlockedUntil = System.currentTimeMillis() + 1000L
         android.util.Log.d("TRIGGER", "LEFT unlocked right trigger until=" + rightTriggerUnlockedUntil)
@@ -200,6 +212,11 @@ class TriggerRootService : Service() {
 
     private fun handleRightDown(device: String, line: String) {
         android.util.Log.d("TRIGGER", "RIGHT DOWN device=" + device + " line=" + line)
+
+        if (!isScreenInteractive()) {
+            android.util.Log.d("TRIGGER", "RIGHT ignored because screen is off")
+            return
+        }
 
         if (System.currentTimeMillis() <= rightTriggerUnlockedUntil) {
             rightTriggerUnlockedUntil = 0L

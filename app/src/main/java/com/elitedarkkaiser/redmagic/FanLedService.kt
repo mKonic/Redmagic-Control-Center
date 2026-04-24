@@ -74,6 +74,11 @@ class FanLedService : Service() {
     private fun reapplySavedLedState() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
+        if (prefs.getBoolean("game_mode_led_override_active", false)) {
+            android.util.Log.i("RedmagicGameMode", "FanLedService skipped normal LED apply because Game Mode owns LEDs")
+            return
+        }
+
         
         if (prefs.getBoolean("game_mode_led_override_active", false)) {
             android.util.Log.i("RedmagicGameMode", "FanLedService skipped normal LED apply because Game Mode owns LEDs")

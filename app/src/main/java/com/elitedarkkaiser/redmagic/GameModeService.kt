@@ -174,7 +174,6 @@ private fun applyGameModeProfile() {
             HardwareController.setShoulderLedEnabled(false)
         }
     }
-
     private fun restoreNormalProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
@@ -182,9 +181,18 @@ private fun applyGameModeProfile() {
         val fanLevel = prefs.getInt("fan_level", 0)
         val pumpEnabled = prefs.getBoolean("pump_enabled", false)
         val pumpProfile = prefs.getString("pump_profile", "quick") ?: "quick"
+
         val fanLedEnabled = prefs.getBoolean("fan_led_enabled", false)
         val fanLedEffect = prefs.getString("fan_led_effect", "steady") ?: "steady"
         val fanLedColor = prefs.getInt("fan_led_color", 5)
+
+        val logoLedEnabled = prefs.getBoolean("logo_led_enabled", true)
+        val logoLedEffect = prefs.getString("logo_led_effect", "steady") ?: "steady"
+        val logoLedColor = prefs.getInt("logo_led_color", 1)
+
+        val shoulderLedEnabled = prefs.getBoolean("shoulder_led_enabled", true)
+        val shoulderLedEffect = prefs.getString("shoulder_led_effect", "breathe") ?: "breathe"
+        val shoulderLedColor = prefs.getInt("shoulder_led_color", 8)
 
         if (fanEnabled) {
             HardwareController.setFanLevel(fanLevel)
@@ -202,6 +210,20 @@ private fun applyGameModeProfile() {
             HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
         } else {
             HardwareController.setFanLedEnabled(false)
+        }
+
+        if (logoLedEnabled) {
+            HardwareController.setLogoLedEnabled(true)
+            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+        } else {
+            HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (shoulderLedEnabled) {
+            HardwareController.setShoulderLedEnabled(true)
+            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
         }
     }
 }

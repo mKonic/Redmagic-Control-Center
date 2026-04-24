@@ -188,8 +188,7 @@ class GameModeService : Service() {
         }
 
         applyOnce("now")
-        handler.postDelayed({ applyOnce("350ms") }, 350L)
-        handler.postDelayed({ applyOnce("1200ms") }, 1200L)
+        handler.postDelayed({ applyOnce("750ms") }, 750L)
     }
     private fun restoreNormalProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
@@ -257,6 +256,5 @@ class GameModeService : Service() {
 
         restoreOnce("now")
         handler.postDelayed({ restoreOnce("750ms") }, 750L)
-        handler.postDelayed({ restoreOnce("1500ms") }, 1500L)
     }
 }

@@ -30,7 +30,7 @@ class GameModeService : Service() {
                             .apply()
                         applyGameModeProfile()
                     }
-                } else {
+                } else if (!currentPkg.isNullOrBlank()) {
                     if (gameModeActiveFor != null) {
                         restoreNormalProfile()
                         getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
@@ -95,7 +95,6 @@ class GameModeService : Service() {
     private fun shouldIgnorePackage(pkg: String): Boolean {
         if (pkg == packageName) return true
         if (pkg == "com.android.systemui") return true
-        if (pkg.contains("launcher", ignoreCase = true)) return true
         return false
     }
 

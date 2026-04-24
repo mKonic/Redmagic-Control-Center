@@ -114,9 +114,7 @@ class GameModeService : Service() {
             emptyMap()
         }
     }
-
-
-private fun applyGameModeProfile() {
+    private fun applyGameModeProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
         val pkg = gameModeActiveFor ?: return
@@ -126,53 +124,72 @@ private fun applyGameModeProfile() {
         val fanLevel = profile["fanLevel"] as? Int ?: prefs.getInt("game_mode_fan_level", 3)
         val pumpEnabled = prefs.getBoolean("game_mode_pump_enabled", false)
         val pumpProfile = prefs.getString("game_mode_pump_profile", "quick") ?: "quick"
+
         val fanLedEnabled = profile["fanLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_fan_led_enabled", true)
         val fanLedEffect = profile["fanLedEffect"] as? String ?: prefs.getString("game_mode_fan_led_effect", "steady") ?: "steady"
         val fanLedColor = profile["fanLedColor"] as? Int ?: prefs.getInt("game_mode_fan_led_color", 5)
         val fanLedModeType = profile["fanLedModeType"] as? String ?: "basic"
         val fanLedPresetValue = profile["fanLedPresetValue"] as? String ?: ""
+
         val logoLedEnabled = profile["logoLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_logo_led_enabled", true)
         val logoLedEffect = profile["logoLedEffect"] as? String ?: prefs.getString("game_mode_logo_led_effect", "steady") ?: "steady"
         val logoLedColor = profile["logoLedColor"] as? Int ?: prefs.getInt("game_mode_logo_led_color", 1)
+
         val shoulderLedEnabled = profile["shoulderLedEnabled"] as? Boolean ?: prefs.getBoolean("game_mode_shoulder_led_enabled", true)
         val shoulderLedEffect = profile["shoulderLedEffect"] as? String ?: prefs.getString("game_mode_shoulder_led_effect", "breathe") ?: "breathe"
         val shoulderLedColor = profile["shoulderLedColor"] as? Int ?: prefs.getInt("game_mode_shoulder_led_color", 8)
 
-        if (fanEnabled) {
-            HardwareController.setFanLevel(fanLevel)
-        } else {
-            HardwareController.enableFan(false)
-        }
+        fun applyOnce(reason: String) {
+            if (gameModeActiveFor != pkg) return
 
-        if (pumpEnabled) {
-            HardwareController.setPumpProfile(pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
-
-        if (fanLedEnabled) {
-            if (fanLedModeType == "preset" && fanLedPresetValue.isNotBlank()) {
-                HardwareController.setFanLedStockPreset(fanLedPresetValue)
-            } else if (fanLedEffect.startsWith("preset:")) {
-                HardwareController.setFanLedStockPreset(fanLedEffect.removePrefix("preset:"))
+            if (fanEnabled) {
+                HardwareController.setFanLevel(fanLevel)
             } else {
-                HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                HardwareController.enableFan(false)
             }
-        } else {
-            HardwareController.setFanLedEnabled(false)
+
+            if (pumpEnabled) {
+                HardwareController.setPumpProfile(pumpProfile)
+            } else {
+                HardwareController.enablePump(false)
+            }
+
+            if (fanLedEnabled) {
+                HardwareController.setFanLedEnabled(true)
+                if (fanLedModeType == "preset" && fanLedPresetValue.isNotBlank()) {
+                    HardwareController.setFanLedStockPreset(fanLedPresetValue)
+                } else if (fanLedEffect.startsWith("preset:")) {
+                    HardwareController.setFanLedStockPreset(fanLedEffect.removePrefix("preset:"))
+                } else {
+                    HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                }
+            } else {
+                HardwareController.setFanLedEnabled(false)
+            }
+
+            if (logoLedEnabled) {
+                HardwareController.setLogoLedEnabled(true)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+            } else {
+                HardwareController.setLogoLedEnabled(false)
+            }
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEnabled(true)
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+
+            android.util.Log.i(
+                "RedmagicGameMode",
+                "apply[$reason] pkg=$pkg fan=$fanLedEnabled/$fanLedEffect/$fanLedColor logo=$logoLedEnabled/$logoLedEffect/$logoLedColor shoulder=$shoulderLedEnabled/$shoulderLedEffect/$shoulderLedColor"
+            )
         }
 
-        if (logoLedEnabled) {
-            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
-        } else {
-            HardwareController.setLogoLedEnabled(false)
-        }
-
-        if (shoulderLedEnabled) {
-            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
-        } else {
-            HardwareController.setShoulderLedEnabled(false)
-        }
+        applyOnce("now")
+        handler.postDelayed({ applyOnce("350ms") }, 350L)
+        handler.postDelayed({ applyOnce("1200ms") }, 1200L)
     }
     private fun restoreNormalProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
@@ -194,36 +211,52 @@ private fun applyGameModeProfile() {
         val shoulderLedEffect = prefs.getString("shoulder_led_effect", "breathe") ?: "breathe"
         val shoulderLedColor = prefs.getInt("shoulder_led_color", 8)
 
-        if (fanEnabled) {
-            HardwareController.setFanLevel(fanLevel)
-        } else {
-            HardwareController.enableFan(false)
+        fun restoreOnce(reason: String) {
+            if (fanEnabled) {
+                HardwareController.setFanLevel(fanLevel)
+            } else {
+                HardwareController.enableFan(false)
+            }
+
+            if (pumpEnabled) {
+                HardwareController.setPumpProfile(pumpProfile)
+            } else {
+                HardwareController.enablePump(false)
+            }
+
+            if (fanLedEnabled) {
+                HardwareController.setFanLedEnabled(true)
+                if (fanLedEffect.startsWith("preset:")) {
+                    HardwareController.setFanLedStockPreset(fanLedEffect.removePrefix("preset:"))
+                } else {
+                    HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
+                }
+            } else {
+                HardwareController.setFanLedEnabled(false)
+            }
+
+            if (logoLedEnabled) {
+                HardwareController.setLogoLedEnabled(true)
+                HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
+            } else {
+                HardwareController.setLogoLedEnabled(false)
+            }
+
+            if (shoulderLedEnabled) {
+                HardwareController.setShoulderLedEnabled(true)
+                HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
+            } else {
+                HardwareController.setShoulderLedEnabled(false)
+            }
+
+            android.util.Log.i(
+                "RedmagicGameMode",
+                "restore[$reason] fan=$fanLedEnabled/$fanLedEffect/$fanLedColor logo=$logoLedEnabled/$logoLedEffect/$logoLedColor shoulder=$shoulderLedEnabled/$shoulderLedEffect/$shoulderLedColor"
+            )
         }
 
-        if (pumpEnabled) {
-            HardwareController.setPumpProfile(pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
-
-        if (fanLedEnabled) {
-            HardwareController.setFanLedEffect(fanLedEffect, fanLedColor)
-        } else {
-            HardwareController.setFanLedEnabled(false)
-        }
-
-        if (logoLedEnabled) {
-            HardwareController.setLogoLedEnabled(true)
-            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
-        } else {
-            HardwareController.setLogoLedEnabled(false)
-        }
-
-        if (shoulderLedEnabled) {
-            HardwareController.setShoulderLedEnabled(true)
-            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
-        } else {
-            HardwareController.setShoulderLedEnabled(false)
-        }
+        restoreOnce("now")
+        handler.postDelayed({ restoreOnce("750ms") }, 750L)
+        handler.postDelayed({ restoreOnce("1500ms") }, 1500L)
     }
 }

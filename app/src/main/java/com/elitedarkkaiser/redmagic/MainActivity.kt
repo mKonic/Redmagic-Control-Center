@@ -998,6 +998,13 @@ if (!isSupportedDevice()) {
             stopFanLedService = { stopFanLedService() }
         )
 
+        restoreFanCurveUiState()
+        switchTab("home")
+        refreshStatus()
+        startGameModeService()
+    }
+
+    private fun restoreFanCurveUiState() {
         selectedCurve = getSelectedCurveSaved()
         autoFanCurveEnabled = isAutoFanEnabledSaved()
         autoCurveCheck.isChecked = autoFanCurveEnabled
@@ -1014,9 +1021,6 @@ if (!isSupportedDevice()) {
             else -> setActiveMode(balancedCardRef)
         }
         updateManualCurveUiState()
-        switchTab("home")
-        refreshStatus()
-        startGameModeService()
     }
 
     private fun createHomeTab(): LinearLayout {

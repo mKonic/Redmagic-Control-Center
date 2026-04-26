@@ -1598,98 +1598,39 @@ if (!isSupportedDevice()) {
     }
 
     private fun createControlsTab(): LinearLayout {
-        val container = scrollTabContainer()
+        val result = com.elitedarkkaiser.redmagic.ui.ControlsTabUi.create(
+            this,
+            com.elitedarkkaiser.redmagic.ui.ControlsTabDeps(
+                scrollTabContainer = { scrollTabContainer() },
+                sectionPanel = { sectionPanel() },
+                sectionHeader = { icon, text -> sectionHeader(icon, text) },
+                bodyText = { text -> bodyText(text) },
+                subtleLabel = { text -> subtleLabel(text) },
+                actionButton = { text, isDanger, onClick -> actionButton(text, isDanger, onClick) },
+                smallActionButton = { text, isDanger, onClick -> smallActionButton(text, isDanger, onClick) },
+                singleRow = { button -> singleRow(button) },
+                row = { left, right -> row(left, right) },
+                flowRow = { views -> flowRow(*views) },
+                space = { width -> space(width) },
+                spacer = { height -> spacer(height) },
+                dp = { value -> dp(value) },
 
-        val rootCheckBtn = actionButton("CHECK ROOT") {
-            val ok = RootShell.hasRoot()
-            AlertDialog.Builder(this)
-                .setTitle("Root Status")
-                .setMessage(
-                    if (ok) "Root access granted\n\nApp is running as root"
-                    else "Root access NOT granted\n\nCheck your root manager"
-                )
-                .setPositiveButton("OK", null)
-                .show()
-            refreshStatus()
-        }
+                refreshStatus = { refreshStatus() },
+                readMagicKeyModeLabel = { readMagicKeyModeLabel() },
+                applyStockMagicKeyMode = { label, action, statusLabel, sliderButton ->
+                    applyStockMagicKeyMode(label, action, statusLabel, sliderButton)
+                },
+                disableMagicKeyMode = { statusLabel, sliderButton ->
+                    disableMagicKeyMode(statusLabel, sliderButton)
+                },
+                resolveMagicKeyAppLabel = { pkg -> resolveMagicKeyAppLabel(pkg) },
+                savedMagicKeyAppPackage = { savedMagicKeyAppPackage() },
+                showMagicKeyAppPicker = { button -> showMagicKeyAppPicker(button) }
+            )
+        )
 
-        val refreshBtn = actionButton("REFRESH STATUS") {
-            refreshStatus()
-        }
-
-        val systemCard = sectionPanel().apply {
-            addView(sectionHeader("⚙", "SYSTEM"))
-            addView(row(rootCheckBtn, refreshBtn))
-        }
-
-        val magicKeyStatusLabel = subtleLabel("Current: ${readMagicKeyModeLabel()}")
-        magicKeyStatusLabelRef = magicKeyStatusLabel
-
-        var sliderAppBtnRef: Button? = null
-
-        val cameraBtn = smallActionButton("CAMERA") {
-            applyStockMagicKeyMode("Camera", { HardwareController.setSliderOpenCamera() }, magicKeyStatusLabel, sliderAppBtnRef)
-        }
-
-        val gameSpaceBtn = smallActionButton("GAMESPACE") {
-            applyStockMagicKeyMode("GameSpace", { HardwareController.setSliderOpenGameSpace() }, magicKeyStatusLabel, sliderAppBtnRef)
-        }
-
-        val soundModeBtn = smallActionButton("SOUND MODE") {
-            applyStockMagicKeyMode("Sound Mode", { HardwareController.setSliderSoundMode() }, magicKeyStatusLabel, sliderAppBtnRef)
-        }
-
-        val flashlightBtn = smallActionButton("FLASHLIGHT") {
-            applyStockMagicKeyMode("Flashlight", { HardwareController.setSliderFlashlight() }, magicKeyStatusLabel, sliderAppBtnRef)
-        }
-
-        val recorderBtn = smallActionButton("VOICE RECORDER") {
-            applyStockMagicKeyMode("Voice Recorder", { HardwareController.setSliderVoiceRecorder() }, magicKeyStatusLabel, sliderAppBtnRef)
-        }
-
-        val stockFunctionsCard = sectionPanel().apply {
-            addView(sectionHeader("⌘", "MAGIC KEY FUNCTIONS"))
-            addView(bodyText("Choose one stock Magic Key action. Selecting a stock action disables app launch mode."))
-            addView(magicKeyStatusLabel)
-            addView(space(dp(8)))
-            addView(flowRow(cameraBtn, gameSpaceBtn, soundModeBtn))
-            addView(spacer(dp(8)))
-            addView(flowRow(flashlightBtn, recorderBtn))
-            addView(spacer(dp(8)))
-            addView(singleRow(actionButton("DISABLE MAGIC KEY ACTION", isDanger = true) {
-                disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtnRef)
-            }))
-        }
-
-        val sliderAppBtn = actionButton(
-            "MAGIC KEY APP: ${resolveMagicKeyAppLabel(savedMagicKeyAppPackage())}"
-        ) {}
-        sliderAppBtnRef = sliderAppBtn
-        sliderAppBtn.setOnClickListener {
-            showMagicKeyAppPicker(sliderAppBtn)
-        }
-
-        val clearSliderAppBtn = actionButton("CLEAR APP SELECTION", isDanger = true) {
-            disableMagicKeyMode(magicKeyStatusLabel, sliderAppBtn)
-        }
-
-        val sliderCard = sectionPanel().apply {
-            addView(sectionHeader("↕", "SLIDER APP LAUNCH"))
-            addView(bodyText("Choose one app for Magic Key launch mode. Selecting an app disables stock Magic Key functions."))
-            addView(space(dp(12)))
-            addView(singleRow(sliderAppBtn))
-            addView(space(dp(12)))
-            addView(singleRow(clearSliderAppBtn))
-            addView(space(dp(4)))
-            setPadding(dp(18), dp(18), dp(18), dp(26))
-        }
-        container.addView(systemCard)
-        container.addView(stockFunctionsCard)
-        container.addView(sliderCard)
-
-
-
-        return container
+        magicKeyStatusLabelRef = result.refs.magicKeyStatusLabel
+        return result.view
     }
 
     private fun createHardwareTab(): LinearLayout {

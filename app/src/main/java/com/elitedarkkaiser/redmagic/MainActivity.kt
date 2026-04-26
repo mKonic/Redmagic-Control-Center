@@ -838,36 +838,39 @@ if (!isSupportedDevice()) {
 
 
     private fun buildCurrentHardwareProfile(name: String): HardwareProfile {
-        return HardwareProfile(
+        val triggerPrefs = getSharedPreferences("triggers", MODE_PRIVATE)
+
+        return ProfileStateHelpers.buildCurrentHardwareProfile(
             name = name,
+            input = ProfileStateHelpers.ProfileInputs(
+                fanEnabled = HardwareController.isFanEnabled(),
+                fanLevel = fanSeek.progress,
+                autoFanEnabled = autoFanCurveEnabled,
+                fanCurveMode = selectedCurve,
 
-            fanEnabled = HardwareController.isFanEnabled(),
-            fanLevel = fanSeek.progress,
-            autoFanEnabled = autoFanCurveEnabled,
-            fanCurveMode = selectedCurve,
+                pumpEnabled = pumpEnabled,
+                pumpProfile = pumpProfile,
+                autoPumpEnabled = autoPumpEnabled,
 
-            pumpEnabled = pumpEnabled,
-            pumpProfile = pumpProfile,
-            autoPumpEnabled = autoPumpEnabled,
+                fanLedEnabled = fanLedEnabled,
+                fanLedEffect = fanLedEffect,
+                fanLedColor = fanLedColor,
 
-            fanLedEnabled = fanLedEnabled,
-            fanLedEffect = fanLedEffect,
-            fanLedColor = fanLedColor,
+                logoLedEnabled = logoLedEnabled,
+                logoLedEffect = logoLedEffect,
+                logoLedColor = logoLedColor,
 
-            logoLedEnabled = logoLedEnabled,
-            logoLedEffect = logoLedEffect,
-            logoLedColor = logoLedColor,
+                shoulderLedEnabled = shoulderLedEnabled,
+                shoulderLedEffect = shoulderLedEffect,
+                shoulderLedColor = shoulderLedColor,
 
-            shoulderLedEnabled = shoulderLedEnabled,
-            shoulderLedEffect = shoulderLedEffect,
-            shoulderLedColor = shoulderLedColor,
-
-            triggerEnabled = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("triggers_auto_start", false),
-            hapticsEnabled = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("haptics_enabled", true),
-            leftTriggerAction = getSharedPreferences("triggers", MODE_PRIVATE).getString("left_trigger", "NONE") ?: "NONE",
-            rightTriggerAction = getSharedPreferences("triggers", MODE_PRIVATE).getString("right_trigger", "NONE") ?: "NONE",
-            intentUnlockRightTrigger = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("intent_unlock_right_trigger", true),
-            triggersAutoStart = getSharedPreferences("triggers", MODE_PRIVATE).getBoolean("triggers_auto_start", false)
+                triggerEnabled = triggerPrefs.getBoolean("triggers_auto_start", false),
+                hapticsEnabled = triggerPrefs.getBoolean("haptics_enabled", true),
+                leftTriggerAction = triggerPrefs.getString("left_trigger", "NONE") ?: "NONE",
+                rightTriggerAction = triggerPrefs.getString("right_trigger", "NONE") ?: "NONE",
+                intentUnlockRightTrigger = triggerPrefs.getBoolean("intent_unlock_right_trigger", true),
+                triggersAutoStart = triggerPrefs.getBoolean("triggers_auto_start", false)
+            )
         )
     }
 

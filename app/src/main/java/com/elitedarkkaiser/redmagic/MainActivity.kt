@@ -884,7 +884,7 @@ if (!isSupportedDevice()) {
             activity = this,
             dontShowAgainChecked = shouldSkipSupportedDialog(),
             onDontShowAgainChanged = { checked -> setSkipSupportedDialog(checked) },
-            onAcknowledge = { },
+            onAcknowledge = { launchMainUi() },
             deps = DeviceGateDialogs.Deps(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,

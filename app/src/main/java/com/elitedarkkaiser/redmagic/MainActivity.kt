@@ -1288,8 +1288,8 @@ if (!isSupportedDevice()) {
             space = { value -> space(value) },
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
-            fanPresetBubble = { h1, h2, h3, h4, value, onClick ->
-                fanPresetBubble(h1, h2, h3, h4, presetValue = value, onClick = onClick)
+            fanPresetBubble = { h1, h2, h3, h4, value, selected, onClick ->
+                fanPresetBubble(h1, h2, h3, h4, presetValue = value, selectedOverride = selected, onClick = onClick)
             }
         )
     }
@@ -1622,6 +1622,7 @@ if (!isSupportedDevice()) {
     private fun fanPresetBubble(
         vararg hexes: String,
         presetValue: String,
+        selectedOverride: Boolean? = null,
         onClick: () -> Unit
     ): View {
         require(hexes.size == 4) { "fanPresetBubble requires exactly 4 colors" }
@@ -1675,7 +1676,8 @@ if (!isSupportedDevice()) {
 
                 canvas.restoreToCount(saveCount)
 
-                ringPaint.color = if (fanLedEffect == "preset:$presetValue") {
+                val selected = selectedOverride ?: (fanLedEffect == "preset:$presetValue")
+                ringPaint.color = if (selected) {
                     Color.WHITE
                 } else {
                     Color.TRANSPARENT

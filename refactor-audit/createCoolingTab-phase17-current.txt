@@ -1,0 +1,57 @@
+    private fun createCoolingTab(): LinearLayout {
+        val result = com.elitedarkkaiser.redmagic.ui.CoolingTabUi.create(
+            com.elitedarkkaiser.redmagic.ui.CoolingTabDeps(
+                scrollTabContainer = { scrollTabContainer() },
+                sectionPanel = { sectionPanel() },
+                sectionHeader = { icon, text -> sectionHeader(icon, text) },
+                subtleLabel = { text -> subtleLabel(text) },
+                bodyText = { text -> bodyText(text) },
+                segmentedChip = { label, selected, onClick -> segmentedChip(label, selected, onClick) },
+                actionButton = { text, isDanger, onClick -> actionButton(text, isDanger, onClick) },
+                row = { left, right -> row(left, right) },
+                singleRow = { button -> singleRow(button) },
+                space = { width -> space(width) },
+                spacer = { height -> spacer(height) },
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radiusDp -> roundedBg(fill, stroke, radiusDp) },
+
+                getSelectedCurve = { selectedCurve },
+                setSelectedCurve = { value -> selectedCurve = value },
+                setSelectedCurveSaved = { value -> setSelectedCurveSaved(value) },
+
+                getAutoFanCurveEnabled = { autoFanCurveEnabled },
+                setAutoFanCurveEnabled = { value -> autoFanCurveEnabled = value },
+                setAutoFanEnabledSaved = { value -> setAutoFanEnabledSaved(value) },
+
+                getUseFahrenheit = { useFahrenheit },
+                setUseFahrenheit = { value -> useFahrenheit = value },
+                saveUseFahrenheit = { value -> saveUseFahrenheit(value) },
+
+                getPumpEnabled = { pumpEnabled },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                getPumpProfile = { pumpProfile },
+                setPumpProfileValue = { value -> pumpProfile = value },
+                getAutoPumpEnabled = { autoPumpEnabled },
+                setAutoPumpEnabled = { value -> autoPumpEnabled = value },
+
+                setSelectedFanProgress = { value -> fanSeek.progress = value },
+                startAutoFanService = { startAutoFanService() },
+                stopAutoFanService = { stopAutoFanService() },
+                startAutoPumpService = { startAutoPumpService() },
+                stopAutoPumpService = { stopAutoPumpService() },
+                savePumpState = { savePumpState() },
+                saveAutoPumpState = { saveAutoPumpState() },
+                refreshStatus = { refreshStatus() },
+                refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() },
+                buildAutoPumpStatusText = { buildAutoPumpStatusText() },
+                applyPumpProfile = { profile -> applyPumpProfile(profile) },
+                confirmExperimentalPumpThenApply = { confirmExperimentalPumpThenApply() },
+                updateManualCurveUiState = { updateManualCurveUiState() }
+            )
+        )
+
+        assignCoolingRefs(result.refs)
+
+        return result.view
+    }
+

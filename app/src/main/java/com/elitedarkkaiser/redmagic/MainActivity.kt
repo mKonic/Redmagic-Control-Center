@@ -1908,49 +1908,22 @@ if (!isSupportedDevice()) {
     }
 
     private fun modeCard(title: String, subtitle: String, onClick: () -> Unit): LinearLayout {
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = roundedBg(panelColor, borderColor, 18)
-            layoutParams = LinearLayout.LayoutParams(dp(170), ViewGroup.LayoutParams.WRAP_CONTENT)
-            minimumHeight = dp(108)
-            isClickable = true
-            isFocusable = true
-        }
-
-        val titleView = TextView(this).apply {
-            text = title
-            textSize = 16f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val subtitleView = TextView(this).apply {
-            text = subtitle
-            textSize = 12f
-            setTextColor(textSecondary)
-            setPadding(0, dp(4), 0, dp(10))
-        }
-
-        val chooseBtn = Button(this).apply {
-            text = "CHOOSE"
-            textSize = 12f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(Color.parseColor("#1E2633"), 12)
-            setPadding(dp(10), dp(10), dp(10), dp(10))
-            setOnClickListener { onClick() }
-            applyPressEffect(this)
-        }
-
-        card.addView(titleView)
-        card.addView(subtitleView)
-        card.addView(chooseBtn)
-
-        card.setOnClickListener { onClick() }
-        applyPressEffect(card)
-
-        return card
+        return ModeCardUi.create(
+            activity = this,
+            title = title,
+            subtitle = subtitle,
+            onClick = onClick,
+            deps = ModeCardUi.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                applyPressEffect = { view -> applyPressEffect(view) }
+            )
+        )
     }
 
     private fun setActiveMode(active: LinearLayout) {

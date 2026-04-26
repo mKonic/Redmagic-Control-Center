@@ -1670,146 +1670,33 @@ if (!isSupportedDevice()) {
     }
 
     private fun createLightingTab(): LinearLayout {
-        val container = scrollTabContainer()
+        return com.elitedarkkaiser.redmagic.ui.LightingTabUi.create(
+            this,
+            com.elitedarkkaiser.redmagic.ui.LightingTabDeps(
+                scrollTabContainer = { scrollTabContainer() },
+                sectionPanel = { sectionPanel() },
+                sectionHeader = { icon, text -> sectionHeader(icon, text) },
+                bodyText = { text -> bodyText(text) },
+                subtleLabel = { text -> subtleLabel(text) },
+                infoRow = { label, valueView -> infoRow(label, valueView) },
+                actionButton = { text, isDanger, onClick -> actionButton(text, isDanger, onClick) },
+                singleRow = { button -> singleRow(button) },
+                row = { left, right -> row(left, right) },
+                dp = { value -> dp(value) },
 
-        val previewCard = sectionPanel().apply {
-            addView(sectionHeader("⚡", "PREVIEW"))
-            addView(TextView(this@MainActivity).apply {
-                text = "Apply LED color/effect changes instantly while selecting"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            })
+                getRealTimePreviewEnabled = { realTimePreviewEnabled },
+                setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
+                saveRealTimePreviewEnabled = { value -> saveRealTimePreviewEnabled(value) },
 
-            val previewSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = realTimePreviewEnabled
-                setOnCheckedChangeListener { _, checked ->
-                    realTimePreviewEnabled = checked
-                    saveRealTimePreviewEnabled(checked)
-                }
-            }
-
-            val previewRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                addView(TextView(this@MainActivity).apply {
-                    text = "Real-time LED preview"
-                    textSize = 14f
-                    setTextColor(textPrimary)
-                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                addView(previewSwitch)
-            }
-
-            addView(previewRow)
-        }
-
-        container.addView(previewCard)
-
-        val fanLedCard = sectionPanel().apply {
-            addView(sectionHeader("✦", "FAN LED"))
-
-            val fanLedSummary = TextView(this@MainActivity).apply {
-                text = "Customize fan LED effect and color"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val customizeFanBtn = actionButton("CUSTOMIZE FAN LED") {
-                showFanLedDialog()
-            }
-            addView(fanLedSummary)
-            addView(singleRow(customizeFanBtn))
-        }
-
-        val logoCard = sectionPanel().apply {
-            addView(sectionHeader("◈", "LOGO LED"))
-
-            val logoSummary = TextView(this@MainActivity).apply {
-                text = "Customize logo LED effect and color"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val customizeLogoBtn = actionButton("CUSTOMIZE LOGO LED") {
-                showLogoLedDialog()
-            }
-
-            addView(logoSummary)
-            addView(singleRow(customizeLogoBtn))
-        }
-
-        val shoulderCard = sectionPanel().apply {
-            addView(sectionHeader("⟫", "SHOULDER LEDS"))
-
-            val shoulderSummary = TextView(this@MainActivity).apply {
-                text = "Customize shoulder LED strips effect and color"
-                textSize = 13f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(10))
-            }
-
-            val customizeShoulderBtn = actionButton("CUSTOMIZE SHOULDER LEDS") {
-                showShoulderLedDialog()
-            }
-
-            addView(shoulderSummary)
-            addView(singleRow(customizeShoulderBtn))
-        }
-
-        container.addView(fanLedCard)
-        container.addView(logoCard)
-        container.addView(shoulderCard)
-
-
-        val gameModeStatusText = TextView(this).apply {
-            text = "Status: Inactive"
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(6), 0, dp(4))
-        }
-
-        val gameModeAppsText = TextView(this).apply {
-            text = gameModeAppsSummary()
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(2), 0, dp(10))
-        }.also { gameModeAppsTextRef = it }
-
-        val chooseGamesBtn = actionButton("CHOOSE GAMES") {
-            showGameModeAppPicker()
-        }
-
-        val editGameProfileBtn = actionButton("EDIT GAME PROFILE") {
-            showGameModeProfileDialog()
-        }
-
-        val gameModeCard = sectionPanel().apply {
-            addView(sectionHeader("🎮", "GAME MODE"))
-            addView(bodyText("Automatically applies a separate hardware profile when a selected game is launched. When the game closes or goes to background, your normal profile remains in control."))
-            addView(gameModeStatusText)
-            addView(infoRow("Apps", gameModeAppsText))
-            addView(row(chooseGamesBtn, editGameProfileBtn))
-            addView(subtleLabel("This is automatic behavior only. There is no manual toggle here."))
-        }
-
-        container.addView(gameModeCard)
-        return container
+                showFanLedDialog = { showFanLedDialog() },
+                showLogoLedDialog = { showLogoLedDialog() },
+                showShoulderLedDialog = { showShoulderLedDialog() },
+                showGameModeAppPicker = { showGameModeAppPicker() },
+                showGameModeProfileDialog = { showGameModeProfileDialog() },
+                gameModeAppsSummary = { gameModeAppsSummary() }
+            )
+        )
     }
-
-
-
-    private var dialogRefreshLogoLed: (() -> Unit)? = null
-
-
-    private var dialogRefreshShoulderLed: (() -> Unit)? = null
-
-
-    private var dialogRefreshPump: (() -> Unit)? = null
-    private var magicKeyStatusLabelRef: TextView? = null
-
-
 
     private fun showTriggerSetupDialog() {
         val prefs = getSharedPreferences("triggers", MODE_PRIVATE)

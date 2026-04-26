@@ -1,0 +1,187 @@
+
+## home_device_status
+47: private fun formatDisplayTempFromF(
+349: private fun shouldSkipSupportedDialog(
+354: private fun setSkipSupportedDialog(
+807: private fun buildAutoPumpStatusText(
+944: private fun refreshSmartPumpStatusViews(
+1126: private fun showSupportedDeviceDialog(
+1212: private fun showRootRequiredDialog(
+1278: private fun showUnsupportedDeviceDialog(
+1351: private fun isSupportedDevice(
+3574: private fun refreshStatus(
+3775: private fun statusChip(
+4027: private fun getStatusBarHeight(
+4093: private fun updateGameModeStatusUI(
+
+## cooling_fan_pump
+358: private fun setSelectedCurveSaved(
+362: private fun getSelectedCurveSaved(
+366: private fun isAutoFanEnabledSaved(
+371: private fun setAutoFanEnabledSaved(
+682: private fun isFanLedEnabledSaved(
+686: private fun savedFanLedEffect(
+690: private fun savedFanLedColor(
+694: private fun applyFanLedSelection(
+702: private fun saveFanLedState(
+710: private fun applySavedFanLedStateOnLaunch(
+768: private fun isPumpEnabledSaved(
+772: private fun savedPumpProfile(
+776: private fun savePumpState(
+783: private fun applySavedPumpStateOnLaunch(
+791: private fun isPumpExperimentalAccepted(
+795: private fun setPumpExperimentalAccepted(
+799: private fun isAutoPumpEnabledSaved(
+803: private fun saveAutoPumpState(
+807: private fun buildAutoPumpStatusText(
+944: private fun refreshSmartPumpStatusViews(
+968: private fun applyPumpProfile(
+980: private fun confirmExperimentalPumpThenApply(
+1074: private fun startAutoFanService(
+1083: private fun stopAutoFanService(
+1087: private fun startFanLedService(
+1096: private fun stopFanLedService(
+1100: private fun startAutoPumpService(
+1109: private fun stopAutoPumpService(
+1113: private fun enqueueFanLedRestore(
+1667: private fun createCoolingTab(
+1929: fun setPumpManualControlsEnabled(
+1943: fun refreshAutoPumpUi(
+2024: private fun applyFanLedPreviewIfEnabled(
+2702: private fun showPumpProfileDialog(
+3040: private fun showFanLedDialog(
+3371: private fun applyFanPreset(
+3381: private fun fanPresetBubble(
+3558: private fun updateManualCurveUiState(
+
+## lighting_led
+366: private fun isAutoFanEnabledSaved(
+371: private fun setAutoFanEnabledSaved(
+375: private fun isRealTimePreviewEnabledSaved(
+379: private fun saveRealTimePreviewEnabled(
+682: private fun isFanLedEnabledSaved(
+686: private fun savedFanLedEffect(
+690: private fun savedFanLedColor(
+694: private fun applyFanLedSelection(
+702: private fun saveFanLedState(
+710: private fun applySavedFanLedStateOnLaunch(
+716: private fun isLogoLedEnabledSaved(
+720: private fun savedLogoLedEffect(
+724: private fun savedLogoLedColor(
+728: private fun saveLogoLedState(
+736: private fun applySavedLogoLedStateOnLaunch(
+742: private fun isShoulderLedEnabledSaved(
+746: private fun savedShoulderLedEffect(
+750: private fun savedShoulderLedColor(
+754: private fun saveShoulderLedState(
+762: private fun applySavedShoulderLedStateOnLaunch(
+768: private fun isPumpEnabledSaved(
+799: private fun isAutoPumpEnabledSaved(
+917: private fun showSaveProfileDialog(
+936: private fun showDeleteProfileDialog(
+1087: private fun startFanLedService(
+1096: private fun stopFanLedService(
+1113: private fun enqueueFanLedRestore(
+1929: fun setPumpManualControlsEnabled(
+2024: private fun applyFanLedPreviewIfEnabled(
+2033: private fun applyLogoLedPreviewIfEnabled(
+2042: private fun applyShoulderLedPreviewIfEnabled(
+2678: private fun showGameModeProfileDialog(
+2702: private fun showPumpProfileDialog(
+2731: private fun showShoulderLedDialog(
+2770: private fun showLogoLedDialog(
+3012: fun updateColorDots(
+3040: private fun showFanLedDialog(
+3310: fun updateColorDots(
+3447: private fun colorDot(
+3456: private fun colorDotDrawable(
+3464: private fun colorDotGeneric(
+3650: private fun ledTitleText(
+3973: private fun applyPressEffect(
+
+## hardware_triggers_magic_key
+383: private fun savedMagicKeyAppPackage(
+387: private fun saveMagicKeyAppPackage(
+391: private fun resolveMagicKeyAppLabel(
+401: private fun readMagicKeyModeLabel(
+415: private fun applyStockMagicKeyMode(
+433: private fun applyLaunchAppMagicKeyMode(
+451: private fun disableMagicKeyMode(
+464: private fun showMagicKeyAppPicker(
+2491: private fun showTriggerSetupDialog(
+2667: private fun initDefaultTriggerMappings(
+
+## profiles
+153: private fun getSavedGameModeProfile(
+171: private fun saveGameModeProfile(
+189: private fun applySavedGameModeProfileNow(
+215: private fun restoreNormalProfileNow(
+235: private fun gameModeProfileSummary(
+772: private fun savedPumpProfile(
+829: private fun buildCurrentHardwareProfile(
+864: private fun applyProfileToUiState(
+917: private fun showSaveProfileDialog(
+936: private fun showDeleteProfileDialog(
+968: private fun applyPumpProfile(
+2312: fun renderProfiles(
+2678: private fun showGameModeProfileDialog(
+2702: private fun showPumpProfileDialog(
+4072: private fun saveProfileForPackage(
+
+## gamemode
+136: private fun getGameModePackagesSaved(
+140: private fun saveGameModePackages(
+144: private fun gameModeAppsSummary(
+153: private fun getSavedGameModeProfile(
+171: private fun saveGameModeProfile(
+189: private fun applySavedGameModeProfileNow(
+235: private fun gameModeProfileSummary(
+262: private fun refreshGameModeCardUi(
+266: private fun showGameModeAppPicker(
+336: private fun startGameModeService(
+2678: private fun showGameModeProfileDialog(
+4065: private fun showGamePickerDialog(
+4089: private fun getSavedGamePackages(
+4093: private fun updateGameModeStatusUI(
+
+## ui_helpers
+262: private fun refreshGameModeCardUi(
+349: private fun shouldSkipSupportedDialog(
+354: private fun setSkipSupportedDialog(
+604: override fun beforeTextChanged(
+605: override fun onTextChanged(
+608: override fun afterTextChanged(
+807: private fun buildAutoPumpStatusText(
+917: private fun showSaveProfileDialog(
+936: private fun showDeleteProfileDialog(
+1126: private fun showSupportedDeviceDialog(
+1212: private fun showRootRequiredDialog(
+1278: private fun showUnsupportedDeviceDialog(
+2491: private fun showTriggerSetupDialog(
+2678: private fun showGameModeProfileDialog(
+2702: private fun showPumpProfileDialog(
+2731: private fun showShoulderLedDialog(
+2770: private fun showLogoLedDialog(
+3040: private fun showFanLedDialog(
+3350: private fun filterChip(
+3549: private fun roundedTopBar(
+3631: private fun titleText(
+3641: private fun subtitleText(
+3650: private fun ledTitleText(
+3680: private fun bodyText(
+3689: private fun infoRow(
+3725: private fun sectionHeader(
+3754: private fun sectionPanel(
+3775: private fun statusChip(
+3791: private fun setChipState(
+3796: private fun modeCard(
+3862: private fun premiumToggleRow(
+3904: private fun segmentedChip(
+3924: private fun actionButton(
+3937: private fun row(
+3957: private fun singleRow(
+3995: private fun roundedBg(
+4004: private fun roundedFill(
+4036: private fun smallActionButton(
+4049: private fun flowRow(
+4065: private fun showGamePickerDialog(

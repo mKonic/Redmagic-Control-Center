@@ -1130,242 +1130,63 @@ if (!isSupportedDevice()) {
     }
 
     private fun showSupportedDeviceDialog() {
-        val buildModel = Build.MODEL ?: "Unknown"
-        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(10))
-            background = roundedBg(panelColor, borderColor, 22)
-        }
-
-        val titleView = TextView(this).apply {
-            text = "Supported Device Detected"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val bodyView = TextView(this).apply {
-            text = """
-                Model check passed.
-
-                Required model: NX809J
-                Detected Build.MODEL: $buildModel
-                Detected ro.product.model: $propModel
-
-                Tap OK to continue launching Redmagic HW Controls.
-            """.trimIndent()
-            textSize = 14f
-            setTextColor(textSecondary)
-            setLineSpacing(0f, 1.15f)
-            setPadding(0, dp(14), 0, 0)
-        }
-
-        val neverShowAgain = CheckBox(this).apply {
-            text = "Never show again"
-            textSize = 14f
-            setTextColor(textPrimary)
-            setPadding(0, dp(14), 0, 0)
-            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
-        }
-
-        val buttonRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-            setPadding(0, dp(18), 0, 0)
-        }
-
-        val okButton = Button(this).apply {
-            text = "OK"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(panelPressed, 14)
-            setPadding(dp(20), dp(10), dp(20), dp(10))
-        }
-
-        buttonRow.addView(okButton)
-
-        container.addView(titleView)
-        container.addView(bodyView)
-        container.addView(neverShowAgain)
-        container.addView(buttonRow)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(false)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(
-            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        DeviceGateDialogs.showSupportedDeviceDialog(
+            activity = this,
+            dontShowAgainChecked = isSupportedDialogDisabled(),
+            onDontShowAgainChanged = { checked -> setSupportedDialogDisabled(checked) },
+            onAcknowledge = { },
+            deps = DeviceGateDialogs.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                panelPressed = panelPressed,
+                accent = accent,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                roundedFill = { color, radius -> roundedFill(color, radius) }
+            )
         )
-
-        okButton.setOnClickListener {
-            setSkipSupportedDialog(neverShowAgain.isChecked)
-            dialog.dismiss()
-            launchMainUi()
-        }
-
-        dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
-
     private fun showRootRequiredDialog() {
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(10))
-            background = roundedBg(panelColor, borderColor, 22)
-        }
-
-        val titleView = TextView(this).apply {
-            text = "Root Required"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val bodyView = TextView(this).apply {
-            text = "This app requires root access to launch.\n\nGrant root in Magisk, KernelSU, or APatch, then reopen the app."
-            textSize = 14f
-            setTextColor(textSecondary)
-            setLineSpacing(0f, 1.15f)
-            setPadding(0, dp(14), 0, 0)
-        }
-
-        val buttonRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-            setPadding(0, dp(18), 0, 0)
-        }
-
-        val closeButton = Button(this).apply {
-            text = "Close App"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(danger, 14)
-            setPadding(dp(20), dp(10), dp(20), dp(10))
-        }
-
-        buttonRow.addView(closeButton)
-
-        container.addView(titleView)
-        container.addView(bodyView)
-        container.addView(buttonRow)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(false)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(
-            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        DeviceGateDialogs.showRootRequiredDialog(
+            activity = this,
+            onClose = { finish() },
+            deps = DeviceGateDialogs.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                panelPressed = panelPressed,
+                accent = accent,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                roundedFill = { color, radius -> roundedFill(color, radius) }
+            )
         )
-
-        closeButton.setOnClickListener {
-            dialog.dismiss()
-            finishAffinity()
-        }
-
-        dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun showUnsupportedDeviceDialog() {
-        val buildModel = Build.MODEL ?: "Unknown"
-        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: "Unknown"
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(10))
-            background = roundedBg(panelColor, borderColor, 22)
-        }
-
-        val titleView = TextView(this).apply {
-            text = "Unsupported Device"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val bodyView = TextView(this).apply {
-            text = """
-                This app only supports model NX809J.
-
-                Detected Build.MODEL: $buildModel
-                Detected ro.product.model: $propModel
-            """.trimIndent()
-            textSize = 14f
-            setTextColor(textSecondary)
-            setLineSpacing(0f, 1.15f)
-            setPadding(0, dp(14), 0, 0)
-        }
-
-        val buttonRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-            setPadding(0, dp(18), 0, 0)
-        }
-
-        val closeButton = Button(this).apply {
-            text = "Close App"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(danger, 14)
-            setPadding(dp(20), dp(10), dp(20), dp(10))
-        }
-
-        buttonRow.addView(closeButton)
-
-        container.addView(titleView)
-        container.addView(bodyView)
-        container.addView(buttonRow)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(false)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(
-            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        DeviceGateDialogs.showUnsupportedDeviceDialog(
+            activity = this,
+            model = Build.MODEL ?: "Unknown",
+            onClose = { finish() },
+            deps = DeviceGateDialogs.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                panelPressed = panelPressed,
+                accent = accent,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                roundedFill = { color, radius -> roundedFill(color, radius) }
+            )
         )
-
-        closeButton.setOnClickListener {
-            dialog.dismiss()
-            finishAffinity()
-        }
-
-        dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
-    }
-
-    private fun isSupportedDevice(): Boolean {
-        val required = "NX809J"
-
-        val buildModel = Build.MODEL ?: ""
-        val propModel = RootShell.execForOutput("getprop ro.product.model")?.trim() ?: ""
-        val propVendorModel = RootShell.execForOutput("getprop ro.product.vendor.model")?.trim() ?: ""
-        val propMarketName = RootShell.execForOutput("getprop ro.product.marketname")?.trim() ?: ""
-
-        return buildModel.contains(required, ignoreCase = true) ||
-            propModel.contains(required, ignoreCase = true) ||
-            propVendorModel.contains(required, ignoreCase = true) ||
-            propMarketName.contains(required, ignoreCase = true)
     }
 
     private fun launchMainUi() {

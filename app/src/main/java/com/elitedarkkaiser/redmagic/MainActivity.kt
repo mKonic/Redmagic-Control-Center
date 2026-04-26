@@ -708,16 +708,7 @@ if (!isSupportedDevice()) {
             setShoulderLedColor = { value -> shoulderLedColor = value },
 
             setFanLevel = { value -> fanSeek.progress = value },
-            saveTriggerPrefs = { applied ->
-                getSharedPreferences("triggers", MODE_PRIVATE)
-                    .edit()
-                    .putString("left_trigger", applied.leftTriggerAction)
-                    .putString("right_trigger", applied.rightTriggerAction)
-                    .putBoolean("haptics_enabled", applied.hapticsEnabled)
-                    .putBoolean("intent_unlock_right_trigger", applied.intentUnlockRightTrigger)
-                    .putBoolean("triggers_auto_start", applied.triggersAutoStart)
-                    .apply()
-            },
+            saveTriggerPrefs = { applied -> saveTriggerPrefs(applied) },
             enableTriggersIfNeeded = { applied ->
                 if (applied.triggersAutoStart) {
                     HardwareController.enableTriggers()
@@ -742,6 +733,17 @@ if (!isSupportedDevice()) {
                 )
             }
         )
+    }
+
+    private fun saveTriggerPrefs(profile: HardwareProfile) {
+        getSharedPreferences("triggers", MODE_PRIVATE)
+            .edit()
+            .putString("left_trigger", profile.leftTriggerAction)
+            .putString("right_trigger", profile.rightTriggerAction)
+            .putBoolean("haptics_enabled", profile.hapticsEnabled)
+            .putBoolean("intent_unlock_right_trigger", profile.intentUnlockRightTrigger)
+            .putBoolean("triggers_auto_start", profile.triggersAutoStart)
+            .apply()
     }
 
     private fun showSaveProfileDialog(onSaved: () -> Unit) {

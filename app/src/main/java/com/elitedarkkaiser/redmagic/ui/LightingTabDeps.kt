@@ -1,0 +1,29 @@
+package com.elitedarkkaiser.redmagic.ui
+
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+
+data class LightingTabDeps(
+    val scrollTabContainer: () -> LinearLayout,
+    val sectionPanel: () -> LinearLayout,
+    val sectionHeader: (String, String) -> LinearLayout,
+    val bodyText: (String) -> TextView,
+    val subtleLabel: (String) -> TextView,
+    val infoRow: (String, TextView) -> LinearLayout,
+    val actionButton: (String, Boolean, () -> Unit) -> Button,
+    val singleRow: (Button) -> LinearLayout,
+    val row: (Button, Button) -> LinearLayout,
+    val dp: (Int) -> Int,
+
+    val getRealTimePreviewEnabled: () -> Boolean,
+    val setRealTimePreviewEnabled: (Boolean) -> Unit,
+    val saveRealTimePreviewEnabled: (Boolean) -> Unit,
+
+    val showFanLedDialog: () -> Unit,
+    val showLogoLedDialog: () -> Unit,
+    val showShoulderLedDialog: () -> Unit,
+    val showGameModeAppPicker: () -> Unit,
+    val showGameModeProfileDialog: () -> Unit,
+    val gameModeAppsSummary: () -> String
+)

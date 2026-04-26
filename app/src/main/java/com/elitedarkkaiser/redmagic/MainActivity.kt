@@ -1102,17 +1102,21 @@ if (!isSupportedDevice()) {
             )
         )
 
-        tempText = result.refs.tempText
-        curveStatusText = result.refs.curveStatusText
-        fanSeek = result.refs.fanSeek
-        autoCurveCheck = result.refs.autoCurveCheck
-        quietCardRef = result.refs.quietCardRef
-        balancedCardRef = result.refs.balancedCardRef
-        turboCardRef = result.refs.turboCardRef
-        smartPumpStatusView = result.refs.smartPumpStatusView
-        smartPumpSpeedView = result.refs.smartPumpSpeedView
+        assignCoolingRefs(result.refs)
 
         return result.view
+    }
+
+    private fun assignCoolingRefs(refs: com.elitedarkkaiser.redmagic.ui.CoolingTabUi.Refs) {
+        tempText = refs.tempText
+        curveStatusText = refs.curveStatusText
+        fanSeek = refs.fanSeek
+        autoCurveCheck = refs.autoCurveCheck
+        quietCardRef = refs.quietCardRef
+        balancedCardRef = refs.balancedCardRef
+        turboCardRef = refs.turboCardRef
+        smartPumpStatusView = refs.smartPumpStatusView
+        smartPumpSpeedView = refs.smartPumpSpeedView
     }
 
     private fun applyFanLedPreviewIfEnabled() {

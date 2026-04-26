@@ -1259,7 +1259,22 @@ if (!isSupportedDevice()) {
                 showShoulderLedDialog = { showShoulderLedDialog() },
                 showGameModeAppPicker = { showGameModeAppPicker() },
                 showGameModeProfileDialog = { showGameModeProfileDialog() },
-                gameModeAppsSummary = { gameModeAppsSummary() }
+                gameModeAppsSummary = { gameModeAppsSummary() },
+
+                getChargingLedEnabled = { ChargingLedState.isEnabled(this) },
+                setChargingLedEnabled = { enabled ->
+                    prefs().edit().putBoolean(ChargingLedState.ENABLED_KEY, enabled).apply()
+                    startService(Intent(this, ChargingModeService::class.java))
+                },
+                showChargingFanLedDialog = {
+                    android.widget.Toast.makeText(this, "Charging Fan LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
+                },
+                showChargingLogoLedDialog = {
+                    android.widget.Toast.makeText(this, "Charging Logo LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
+                },
+                showChargingShoulderLedDialog = {
+                    android.widget.Toast.makeText(this, "Charging Shoulder LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
+                }
             )
         )
     }

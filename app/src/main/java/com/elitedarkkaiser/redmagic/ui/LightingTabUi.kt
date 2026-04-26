@@ -63,9 +63,43 @@ object LightingTabUi {
             ))
         }
 
+        val chargingModeCard = deps.sectionPanel().apply {
+            addView(deps.sectionHeader("⚡", "CHARGING MODE"))
+            addView(deps.bodyText("Applies only while the device is plugged in and charging. Charging Mode takes LED priority over Game Mode and normal LED profiles."))
+
+            val chargingSwitch = android.widget.Switch(activity).apply {
+                isChecked = deps.getChargingLedEnabled()
+                setOnCheckedChangeListener { _, checked ->
+                    deps.setChargingLedEnabled(checked)
+                }
+            }
+
+            val chargingRow = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(TextView(activity).apply {
+                    text = "Enable charging LED profile"
+                    textSize = 14f
+                    setTextColor(AppTheme.textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(chargingSwitch)
+            }
+
+            addView(chargingRow)
+            addView(deps.infoRow("Priority", deps.subtleLabel("Charging Mode > Game Mode > Normal LEDs")))
+            addView(deps.singleRow(deps.actionButton("CHARGING FAN LED", false) {
+                deps.showChargingFanLedDialog()
+            }))
+            addView(deps.row(
+                deps.actionButton("CHARGING LOGO LED", false) { deps.showChargingLogoLedDialog() },
+                deps.actionButton("CHARGING SHOULDER LEDS", false) { deps.showChargingShoulderLedDialog() }
+            ))
+        }
+
         container.addView(previewCard)
         container.addView(zonesCard)
         container.addView(gameModeCard)
+        container.addView(chargingModeCard)
 
         return container
     }

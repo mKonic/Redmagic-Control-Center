@@ -25,5 +25,11 @@ data class LightingTabDeps(
     val showShoulderLedDialog: () -> Unit,
     val showGameModeAppPicker: () -> Unit,
     val showGameModeProfileDialog: () -> Unit,
-    val gameModeAppsSummary: () -> String
+    val gameModeAppsSummary: () -> String,
+
+    val getChargingLedEnabled: () -> Boolean,
+    val setChargingLedEnabled: (Boolean) -> Unit,
+    val showChargingFanLedDialog: () -> Unit,
+    val showChargingLogoLedDialog: () -> Unit,
+    val showChargingShoulderLedDialog: () -> Unit
 )

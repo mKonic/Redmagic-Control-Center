@@ -812,92 +812,26 @@ if (!isSupportedDevice()) {
             return
         }
 
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(22), dp(18), dp(22), dp(10))
-            background = roundedBg(panelColor, borderColor, 22)
-        }
-
-        val titleView = TextView(this).apply {
-            text = "Experimental Pump Mode"
-            textSize = 20f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val bodyView = TextView(this).apply {
-            text = "This mode overclocks the liquid cooling pump beyond the standard profiles. It may provide thermal or performance benefits under heavy load, but it can also increase wear, instability, heat, noise, and possible pump failure or reduced lifespan.\n\nUse only if you understand the risks."
-            textSize = 14f
-            setTextColor(textSecondary)
-            setLineSpacing(0f, 1.15f)
-            setPadding(0, dp(14), 0, 0)
-        }
-
-        val helperView = TextView(this).apply {
-            text = "Recommended only for gaming or sustained high-performance workloads."
-            textSize = 12f
-            setTextColor(textSecondary)
-            setPadding(0, dp(10), 0, 0)
-        }
-
-        val buttonRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
-            setPadding(0, dp(18), 0, 0)
-        }
-
-        val cancelBtn = Button(this).apply {
-            text = "Cancel"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(Color.parseColor("#1E2633"), 14)
-            setPadding(dp(18), dp(10), dp(18), dp(10))
-        }
-
-        val acceptBtn = Button(this).apply {
-            text = "I Understand"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(panelPressed, 14)
-            setPadding(dp(18), dp(10), dp(18), dp(10))
-        }
-
-        buttonRow.addView(cancelBtn)
-        buttonRow.addView(space(dp(10)))
-        buttonRow.addView(acceptBtn)
-
-        container.addView(titleView)
-        container.addView(bodyView)
-        container.addView(helperView)
-        container.addView(buttonRow)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(container)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawable(
-            android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+        ExperimentalPumpDialog.show(
+            activity = this,
+            onCancel = { },
+            onConfirm = {
+                setPumpExperimentalAccepted(true)
+                applyPumpProfile("experimental")
+            },
+            deps = ExperimentalPumpDialog.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                panelPressed = panelPressed,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                space = { value -> space(value) }
+            )
         )
-
-        cancelBtn.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        acceptBtn.setOnClickListener {
-            setPumpExperimentalAccepted(true)
-            applyPumpProfile("experimental")
-            dialog.dismiss()
-        }
-
-        dialog.show()
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
     }
 
     private fun startAutoFanService() {

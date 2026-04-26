@@ -320,6 +320,10 @@ if (!isSupportedDevice()) {
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
+    private fun isSupportedDevice(): Boolean {
+        return Build.MODEL.equals("NX809J", ignoreCase = true)
+    }
+
     private fun hasUsageStatsPermission(): Boolean {
         val appOps = getSystemService(android.app.AppOpsManager::class.java)
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
@@ -1132,8 +1136,8 @@ if (!isSupportedDevice()) {
     private fun showSupportedDeviceDialog() {
         DeviceGateDialogs.showSupportedDeviceDialog(
             activity = this,
-            dontShowAgainChecked = isSupportedDialogDisabled(),
-            onDontShowAgainChanged = { checked -> setSupportedDialogDisabled(checked) },
+            dontShowAgainChecked = shouldSkipSupportedDialog(),
+            onDontShowAgainChanged = { checked -> setSkipSupportedDialog(checked) },
             onAcknowledge = { },
             deps = DeviceGateDialogs.Deps(
                 textPrimary = textPrimary,

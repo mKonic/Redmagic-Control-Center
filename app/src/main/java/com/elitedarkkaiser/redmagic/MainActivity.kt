@@ -1302,10 +1302,19 @@ if (!isSupportedDevice()) {
         effect: String,
         color: Int
     ) {
+        val savedColor = if (
+            effectKey == ChargingLedState.FAN_EFFECT_KEY &&
+            effect.startsWith("preset:")
+        ) {
+            -1
+        } else {
+            color
+        }
+
         prefs().edit()
             .putBoolean(enabledKey, enabled)
             .putString(effectKey, effect)
-            .putInt(colorKey, color)
+            .putInt(colorKey, savedColor)
             .apply()
 
         startService(Intent(this, ChargingModeService::class.java))
@@ -1319,6 +1328,10 @@ if (!isSupportedDevice()) {
         var chargingFanEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true)
         var chargingFanEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady"
         var chargingFanColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5)
+
+        if (chargingFanEffect.startsWith("preset:")) {
+            chargingFanColor = -1
+        }
 
         FanLedDialogUi.showFanLedDialog(
             activity = this,

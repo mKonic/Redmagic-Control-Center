@@ -875,55 +875,62 @@ if (!isSupportedDevice()) {
     }
 
     private fun applyProfileToUiState(profile: HardwareProfile) {
-        autoFanCurveEnabled = profile.autoFanEnabled
-        selectedCurve = profile.fanCurveMode
-
-        pumpEnabled = profile.pumpEnabled
-        pumpProfile = profile.pumpProfile
-        autoPumpEnabled = profile.autoPumpEnabled
-
-        fanLedEnabled = profile.fanLedEnabled
-        fanLedEffect = profile.fanLedEffect
-        fanLedColor = profile.fanLedColor
-
-        logoLedEnabled = profile.logoLedEnabled
-        logoLedEffect = profile.logoLedEffect
-        logoLedColor = profile.logoLedColor
-
-        shoulderLedEnabled = profile.shoulderLedEnabled
-        shoulderLedEffect = profile.shoulderLedEffect
-        shoulderLedColor = profile.shoulderLedColor
-
-        fanSeek.progress = profile.fanLevel
-
-        getSharedPreferences("triggers", MODE_PRIVATE)
-            .edit()
-            .putString("left_trigger", profile.leftTriggerAction)
-            .putString("right_trigger", profile.rightTriggerAction)
-            .putBoolean("haptics_enabled", profile.hapticsEnabled)
-            .putBoolean("intent_unlock_right_trigger", profile.intentUnlockRightTrigger)
-            .putBoolean("triggers_auto_start", profile.triggersAutoStart)
-            .apply()
-
-        if (profile.triggersAutoStart) {
-            HardwareController.enableTriggers()
-            startService(Intent(this, TriggerRootService::class.java))
-        }
-
-        ProfileActions.afterProfileApplied(
+        ProfileStateHelpers.applyProfileToUiState(
             profile = profile,
-            setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
-            savePumpState = { savePumpState() },
-            saveAutoPumpState = { saveAutoPumpState() },
-            saveFanLedState = { saveFanLedState() },
-            saveLogoLedState = { saveLogoLedState() },
-            saveShoulderLedState = { saveShoulderLedState() },
-            startAutoFanService = { startAutoFanService() },
-            stopAutoFanService = { stopAutoFanService() },
-            startAutoPumpService = { startAutoPumpService() },
-            stopAutoPumpService = { stopAutoPumpService() },
-            refreshStatus = { refreshStatus() },
-            refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() }
+
+            setAutoFanEnabled = { value -> autoFanCurveEnabled = value },
+            setFanCurveMode = { value -> selectedCurve = value },
+
+            setPumpEnabled = { value -> pumpEnabled = value },
+            setPumpProfile = { value -> pumpProfile = value },
+            setAutoPumpEnabled = { value -> autoPumpEnabled = value },
+
+            setFanLedEnabled = { value -> fanLedEnabled = value },
+            setFanLedEffect = { value -> fanLedEffect = value },
+            setFanLedColor = { value -> fanLedColor = value },
+
+            setLogoLedEnabled = { value -> logoLedEnabled = value },
+            setLogoLedEffect = { value -> logoLedEffect = value },
+            setLogoLedColor = { value -> logoLedColor = value },
+
+            setShoulderLedEnabled = { value -> shoulderLedEnabled = value },
+            setShoulderLedEffect = { value -> shoulderLedEffect = value },
+            setShoulderLedColor = { value -> shoulderLedColor = value },
+
+            setFanLevel = { value -> fanSeek.progress = value },
+            saveTriggerPrefs = { applied ->
+                getSharedPreferences("triggers", MODE_PRIVATE)
+                    .edit()
+                    .putString("left_trigger", applied.leftTriggerAction)
+                    .putString("right_trigger", applied.rightTriggerAction)
+                    .putBoolean("haptics_enabled", applied.hapticsEnabled)
+                    .putBoolean("intent_unlock_right_trigger", applied.intentUnlockRightTrigger)
+                    .putBoolean("triggers_auto_start", applied.triggersAutoStart)
+                    .apply()
+            },
+            enableTriggersIfNeeded = { applied ->
+                if (applied.triggersAutoStart) {
+                    HardwareController.enableTriggers()
+                    startService(Intent(this, TriggerRootService::class.java))
+                }
+            },
+            afterProfileApplied = { applied ->
+                ProfileActions.afterProfileApplied(
+                    profile = applied,
+                    setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
+                    savePumpState = { savePumpState() },
+                    saveAutoPumpState = { saveAutoPumpState() },
+                    saveFanLedState = { saveFanLedState() },
+                    saveLogoLedState = { saveLogoLedState() },
+                    saveShoulderLedState = { saveShoulderLedState() },
+                    startAutoFanService = { startAutoFanService() },
+                    stopAutoFanService = { stopAutoFanService() },
+                    startAutoPumpService = { startAutoPumpService() },
+                    stopAutoPumpService = { stopAutoPumpService() },
+                    refreshStatus = { refreshStatus() },
+                    refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() }
+                )
+            }
         )
     }
 

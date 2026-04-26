@@ -128,6 +128,11 @@ class GameModeService : Service() {
     private fun applyGameModeProfile() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
+        if (ChargingLedState.isActive(this)) {
+            android.util.Log.i("RedmagicChargingMode", "GameModeService skipped game LED apply because Charging Mode owns LEDs")
+            return
+        }
+
         val pkg = gameModeActiveFor ?: return
         val profile = getProfileForPackage(pkg)
 

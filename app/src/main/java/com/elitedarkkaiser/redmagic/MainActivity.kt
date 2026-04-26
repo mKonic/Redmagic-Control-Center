@@ -62,6 +62,10 @@ class MainActivity : Activity() {
     private lateinit var deviceRomValue: TextView
     private lateinit var deviceCpuValue: TextView
     private lateinit var deviceRamValue: TextView
+    private lateinit var rootChip: TextView
+    private lateinit var fanChip: TextView
+    private lateinit var rpmChip: TextView
+    private lateinit var tempChip: TextView
 
     private lateinit var homeTab: LinearLayout
     private lateinit var coolingTab: LinearLayout

@@ -1285,7 +1285,9 @@ if (!isSupportedDevice()) {
             dp = { value -> dp(value) },
             roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
             roundedFill = { color, radius -> roundedFill(color, radius) },
-            space = { value -> space(value) }
+            space = { value -> space(value) },
+            colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
+            colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) }
         )
     }
 

@@ -25,7 +25,9 @@ internal object ChargingLedProfileDialog {
         val dp: (Int) -> Int,
         val roundedBg: (Int, Int, Int) -> Drawable,
         val roundedFill: (Int, Int) -> Drawable,
-        val space: (Int) -> View
+        val space: (Int) -> View,
+        val colorDotGeneric: (String, Boolean, () -> Unit) -> View,
+        val colorDotDrawable: (String, Boolean) -> Drawable
     )
 
     fun show(
@@ -89,16 +91,21 @@ internal object ChargingLedProfileDialog {
         lateinit var steadyBtn: Button
         lateinit var breatheBtn: Button
         lateinit var flashingBtn: Button
-        val colorButtons = mutableListOf<Button>()
-
         fun refreshButtons() {
             steadyBtn.background = deps.roundedFill(if (effect == "steady") deps.panelPressed else Color.parseColor("#1E2633"), 999)
             breatheBtn.background = deps.roundedFill(if (effect == "breathe") deps.panelPressed else Color.parseColor("#1E2633"), 999)
             flashingBtn.background = deps.roundedFill(if (effect == "flashing") deps.panelPressed else Color.parseColor("#1E2633"), 999)
 
-            colorButtons.forEachIndexed { index, btn ->
-                val value = index + 1
-                btn.background = deps.roundedFill(if (color == value) deps.panelPressed else Color.parseColor("#1E2633"), 999)
+            if (::colorRow.isInitialized) {
+                colorRow.getChildAt(0).background = deps.colorDotDrawable("#FF0000", color == 1)
+                colorRow.getChildAt(2).background = deps.colorDotDrawable("#FF8C00", color == 3)
+                colorRow.getChildAt(4).background = deps.colorDotDrawable("#FFD600", color == 4)
+                colorRow.getChildAt(6).background = deps.colorDotDrawable("#00E676", color == 5)
+
+                colorRow2.getChildAt(0).background = deps.colorDotDrawable("#00E5FF", color == 6)
+                colorRow2.getChildAt(2).background = deps.colorDotDrawable("#1565FF", color == 7)
+                colorRow2.getChildAt(4).background = deps.colorDotDrawable("#A020F0", color == 8)
+                colorRow2.getChildAt(6).background = deps.colorDotDrawable("#FF69B4", color == 9)
             }
         }
 
@@ -130,14 +137,36 @@ internal object ChargingLedProfileDialog {
             setPadding(0, deps.dp(10), 0, 0)
         }
 
-        for (i in 1..8) {
-            val btn = chip(i.toString(), color == i) {
-                color = i
+        val colorRow2 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(10), 0, 0)
+        }
+
+        val chargingColors = listOf(
+            1 to "#FF0000",
+            3 to "#FF8C00",
+            4 to "#FFD600",
+            5 to "#00E676",
+            6 to "#00E5FF",
+            7 to "#1565FF",
+            8 to "#A020F0",
+            9 to "#FF69B4"
+        )
+
+        fun addColor(row: LinearLayout, colorId: Int, hex: String) {
+            row.addView(deps.colorDotGeneric(hex, color == colorId) {
+                color = colorId
                 refreshButtons()
-            }
-            colorButtons.add(btn)
-            colorRow.addView(btn, LinearLayout.LayoutParams(0, deps.dp(40), 1f))
-            if (i != 8) colorRow.addView(deps.space(deps.dp(4)))
+            })
+            row.addView(deps.space(deps.dp(10)))
+        }
+
+        chargingColors.take(4).forEach { (colorId, hex) ->
+            addColor(colorRow, colorId, hex)
+        }
+
+        chargingColors.drop(4).forEach { (colorId, hex) ->
+            addColor(colorRow2, colorId, hex)
         }
 
         val buttonRow = LinearLayout(activity).apply {
@@ -183,6 +212,7 @@ internal object ChargingLedProfileDialog {
             setPadding(0, deps.dp(14), 0, 0)
         })
         container.addView(colorRow)
+        container.addView(colorRow2)
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(activity)

@@ -52,7 +52,10 @@ internal object FanLedDialogUi {
         anyLedEnabled: () -> Boolean,
         applyFanPreset: (String) -> Unit,
         setDialogRefresh: (((() -> Unit)?) -> Unit),
-        deps: Deps
+        deps: Deps,
+        title: String = "Fan LED",
+        subtitle: String = "Confirmed working options for fan LED",
+        enableLabel: String = "Enable fan light"
     ) {
         var dialogRefresh: (() -> Unit)? = null
 
@@ -63,21 +66,21 @@ internal object FanLedDialogUi {
         }
 
         val titleView = TextView(activity).apply {
-            text = "Fan LED"
+            text = title
             textSize = 20f
             setTextColor(deps.textPrimary)
             setTypeface(deps.typeface, Typeface.BOLD)
         }
 
         val subtitleView = TextView(activity).apply {
-            text = "Confirmed working options for fan LED"
+            text = subtitle
             textSize = 13f
             setTextColor(deps.textSecondary)
             setPadding(0, deps.dp(8), 0, 0)
         }
 
         val enableCheck = CheckBox(activity).apply {
-            text = "Enable fan light"
+            text = enableLabel
             isChecked = currentEnabled()
             textSize = 14f
             setTextColor(deps.textPrimary)
@@ -293,15 +296,17 @@ internal object FanLedDialogUi {
         }
 
         fun updateColorDots() {
-            (colorRow.getChildAt(0) as View).background = deps.colorDotDrawable("#FF0000", currentColor() == 1)
-            (colorRow.getChildAt(2) as View).background = deps.colorDotDrawable("#FF8C00", currentColor() == 3)
-            (colorRow.getChildAt(4) as View).background = deps.colorDotDrawable("#FFD600", currentColor() == 4)
-            (colorRow.getChildAt(6) as View).background = deps.colorDotDrawable("#00E676", currentColor() == 5)
+            val presetActive = currentEffect().startsWith("preset:")
 
-            (colorRow2.getChildAt(0) as View).background = deps.colorDotDrawable("#00E5FF", currentColor() == 6)
-            (colorRow2.getChildAt(2) as View).background = deps.colorDotDrawable("#1565FF", currentColor() == 7)
-            (colorRow2.getChildAt(4) as View).background = deps.colorDotDrawable("#A020F0", currentColor() == 8)
-            (colorRow2.getChildAt(6) as View).background = deps.colorDotDrawable("#FF69B4", currentColor() == 9)
+            (colorRow.getChildAt(0) as View).background = deps.colorDotDrawable("#FF0000", !presetActive && currentColor() == 1)
+            (colorRow.getChildAt(2) as View).background = deps.colorDotDrawable("#FF8C00", !presetActive && currentColor() == 3)
+            (colorRow.getChildAt(4) as View).background = deps.colorDotDrawable("#FFD600", !presetActive && currentColor() == 4)
+            (colorRow.getChildAt(6) as View).background = deps.colorDotDrawable("#00E676", !presetActive && currentColor() == 5)
+
+            (colorRow2.getChildAt(0) as View).background = deps.colorDotDrawable("#00E5FF", !presetActive && currentColor() == 6)
+            (colorRow2.getChildAt(2) as View).background = deps.colorDotDrawable("#1565FF", !presetActive && currentColor() == 7)
+            (colorRow2.getChildAt(4) as View).background = deps.colorDotDrawable("#A020F0", !presetActive && currentColor() == 8)
+            (colorRow2.getChildAt(6) as View).background = deps.colorDotDrawable("#FF69B4", !presetActive && currentColor() == 9)
         }
 
         fun refreshUi() {

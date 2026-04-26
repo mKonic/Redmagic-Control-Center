@@ -1391,7 +1391,10 @@ if (!isSupportedDevice()) {
                 fanPresetBubble = { c1, c2, c3, c4, presetValue, onClick ->
                     fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = chargingFanEffect == "preset:$presetValue", onClick = onClick)
                 }
-            )
+            ),
+            title = "Charging Fan LED",
+            subtitle = "Fan LED profile used only while plugged in and charging.",
+            enableLabel = "Enable for charging mode"
         )
     }
 

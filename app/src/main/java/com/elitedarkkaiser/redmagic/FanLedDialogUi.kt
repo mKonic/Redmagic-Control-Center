@@ -1,0 +1,331 @@
+package com.elitedarkkaiser.redmagic
+
+import android.app.AlertDialog
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.view.Gravity
+import android.view.View
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.TextView
+
+internal object FanLedDialogUi {
+    data class Deps(
+        val textPrimary: Int,
+        val textSecondary: Int,
+        val panelColor: Int,
+        val borderColor: Int,
+        val panelPressed: Int,
+        val accent: Int,
+        val typeface: Typeface?,
+        val dp: (Int) -> Int,
+        val roundedBg: (Int, Int, Int) -> Drawable,
+        val roundedFill: (Int, Int) -> Drawable,
+        val space: (Int) -> View,
+        val filterChip: (String, Boolean, () -> Unit) -> Button,
+        val colorDot: (Int, String, () -> Unit) -> View,
+        val colorDotDrawable: (String, Boolean) -> Drawable,
+        val fanPresetBubble: (String, String, String, String, String, () -> Unit) -> View
+    )
+
+    fun showFanLedDialog(
+        activity: MainActivity,
+        originalEnabled: Boolean,
+        originalEffect: String,
+        originalColor: Int,
+        currentEnabled: () -> Boolean,
+        currentEffect: () -> String,
+        currentColor: () -> Int,
+        setEnabled: (Boolean) -> Unit,
+        setEffect: (String) -> Unit,
+        setColor: (Int) -> Unit,
+        applyPreviewIfEnabled: () -> Unit,
+        applySelection: (String, Int) -> Unit,
+        disableLed: () -> Unit,
+        saveState: () -> Unit,
+        startFanLedService: () -> Unit,
+        stopFanLedService: () -> Unit,
+        anyLedEnabled: () -> Boolean,
+        applyFanPreset: (String) -> Unit,
+        setDialogRefresh: (((() -> Unit)?) -> Unit),
+        deps: Deps
+    ) {
+        var dialogRefresh: (() -> Unit)? = null
+
+        val container = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(deps.dp(22), deps.dp(18), deps.dp(22), deps.dp(12))
+            background = deps.roundedBg(deps.panelColor, deps.borderColor, 22)
+        }
+
+        val titleView = TextView(activity).apply {
+            text = "Fan LED"
+            textSize = 20f
+            setTextColor(deps.textPrimary)
+            setTypeface(deps.typeface, Typeface.BOLD)
+        }
+
+        val subtitleView = TextView(activity).apply {
+            text = "Confirmed working options for fan LED"
+            textSize = 13f
+            setTextColor(deps.textSecondary)
+            setPadding(0, deps.dp(8), 0, 0)
+        }
+
+        val enableCheck = CheckBox(activity).apply {
+            text = "Enable fan light"
+            isChecked = currentEnabled()
+            textSize = 14f
+            setTextColor(deps.textPrimary)
+            buttonTintList = ColorStateList.valueOf(deps.accent)
+            setPadding(0, deps.dp(14), 0, 0)
+            setOnCheckedChangeListener { _, checked ->
+                setEnabled(checked)
+                if (checked) {
+                    applySelection(currentEffect(), currentColor())
+                } else {
+                    disableLed()
+                }
+            }
+        }
+
+        val effectLabel = TextView(activity).apply {
+            text = "Effect"
+            textSize = 12f
+            setTextColor(deps.textSecondary)
+            setPadding(0, deps.dp(16), 0, deps.dp(8))
+        }
+
+        val effectsRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val steadyBtn = deps.filterChip("Steady", currentEffect() == "steady") {
+            setEffect("steady")
+            applyPreviewIfEnabled()
+            dialogRefresh?.invoke()
+        }
+
+        val breatheBtn = deps.filterChip("Breathe", currentEffect() == "breathe") {
+            setEffect("breathe")
+            applyPreviewIfEnabled()
+            dialogRefresh?.invoke()
+        }
+
+        val flashingBtn = deps.filterChip("Flashing", currentEffect() == "flashing") {
+            setEffect("flashing")
+            applyPreviewIfEnabled()
+            dialogRefresh?.invoke()
+        }
+
+        effectsRow.addView(steadyBtn)
+        effectsRow.addView(deps.space(deps.dp(8)))
+        effectsRow.addView(breatheBtn)
+        effectsRow.addView(deps.space(deps.dp(8)))
+        effectsRow.addView(flashingBtn)
+
+        val colorLabel = TextView(activity).apply {
+            text = "Color"
+            textSize = 12f
+            setTextColor(deps.textSecondary)
+            setPadding(0, deps.dp(16), 0, deps.dp(10))
+        }
+
+        val colorRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val colorRow2 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(10), 0, 0)
+        }
+
+        fun addColor(row: LinearLayout, colorId: Int, hex: String) {
+            row.addView(deps.colorDot(colorId, hex) {
+                setColor(colorId)
+                if (currentEffect().startsWith("preset:")) setEffect("steady")
+                applyPreviewIfEnabled()
+                dialogRefresh?.invoke()
+            })
+        }
+
+        addColor(colorRow, 1, "#FF0000")
+        colorRow.addView(deps.space(deps.dp(10)))
+        addColor(colorRow, 3, "#FF8C00")
+        colorRow.addView(deps.space(deps.dp(10)))
+        addColor(colorRow, 4, "#FFD600")
+        colorRow.addView(deps.space(deps.dp(10)))
+        addColor(colorRow, 5, "#00E676")
+
+        addColor(colorRow2, 6, "#00E5FF")
+        colorRow2.addView(deps.space(deps.dp(10)))
+        addColor(colorRow2, 7, "#1565FF")
+        colorRow2.addView(deps.space(deps.dp(10)))
+        addColor(colorRow2, 8, "#A020F0")
+        colorRow2.addView(deps.space(deps.dp(10)))
+        addColor(colorRow2, 9, "#FF69B4")
+
+        val buttonRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, deps.dp(18), 0, 0)
+        }
+
+        val cancelBtn = Button(activity).apply {
+            text = "Cancel"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(deps.textPrimary)
+            background = deps.roundedFill(Color.parseColor("#1E2633"), 14)
+            setPadding(deps.dp(18), deps.dp(10), deps.dp(18), deps.dp(10))
+        }
+
+        val saveBtn = Button(activity).apply {
+            text = "Save"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(deps.textPrimary)
+            background = deps.roundedFill(deps.panelPressed, 14)
+            setPadding(deps.dp(20), deps.dp(10), deps.dp(20), deps.dp(10))
+        }
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(deps.space(deps.dp(10)))
+        buttonRow.addView(saveBtn)
+
+        container.addView(titleView)
+        container.addView(subtitleView)
+        container.addView(enableCheck)
+        container.addView(effectLabel)
+        container.addView(effectsRow)
+
+        val presetBubbleRow1 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(10), 0, 0)
+            addView(deps.fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", "0x3002101") { applyFanPreset("0x3002101") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4", "0x3002102") { applyFanPreset("0x3002102") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4", "0x3002103") { applyFanPreset("0x3002103") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE", "0x3002104") { applyFanPreset("0x3002104") })
+        }
+
+        val presetBubbleRow2 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(10), 0, 0)
+            addView(deps.fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4", "0x3002105") { applyFanPreset("0x3002105") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000", "0x3002106") { applyFanPreset("0x3002106") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0", "0x3002107") { applyFanPreset("0x3002107") })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676", "0x3002108") { applyFanPreset("0x3002108") })
+        }
+
+        container.addView(colorLabel)
+        container.addView(colorRow)
+        container.addView(colorRow2)
+        container.addView(presetBubbleRow1)
+        container.addView(presetBubbleRow2)
+        container.addView(buttonRow)
+
+        val dialog = AlertDialog.Builder(activity)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        fun restoreOriginal() {
+            setEnabled(originalEnabled)
+            setEffect(originalEffect)
+            setColor(originalColor)
+
+            if (currentEnabled()) {
+                applySelection(currentEffect(), currentColor())
+            } else {
+                disableLed()
+            }
+        }
+
+        cancelBtn.setOnClickListener {
+            restoreOriginal()
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            saveState()
+            if (currentEnabled()) {
+                applySelection(currentEffect(), currentColor())
+            } else {
+                disableLed()
+            }
+            if (anyLedEnabled()) {
+                startFanLedService()
+            } else {
+                stopFanLedService()
+            }
+            dialog.dismiss()
+        }
+
+        dialog.setOnCancelListener {
+            restoreOriginal()
+        }
+
+        fun repaint() {
+            steadyBtn.background = deps.roundedFill(
+                if (currentEffect() == "steady") deps.panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            breatheBtn.background = deps.roundedFill(
+                if (currentEffect() == "breathe") deps.panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+            flashingBtn.background = deps.roundedFill(
+                if (currentEffect() == "flashing") deps.panelPressed else Color.parseColor("#1E2633"),
+                999
+            )
+        }
+
+        fun updateColorDots() {
+            (colorRow.getChildAt(0) as View).background = deps.colorDotDrawable("#FF0000", currentColor() == 1)
+            (colorRow.getChildAt(2) as View).background = deps.colorDotDrawable("#FF8C00", currentColor() == 3)
+            (colorRow.getChildAt(4) as View).background = deps.colorDotDrawable("#FFD600", currentColor() == 4)
+            (colorRow.getChildAt(6) as View).background = deps.colorDotDrawable("#00E676", currentColor() == 5)
+
+            (colorRow2.getChildAt(0) as View).background = deps.colorDotDrawable("#00E5FF", currentColor() == 6)
+            (colorRow2.getChildAt(2) as View).background = deps.colorDotDrawable("#1565FF", currentColor() == 7)
+            (colorRow2.getChildAt(4) as View).background = deps.colorDotDrawable("#A020F0", currentColor() == 8)
+            (colorRow2.getChildAt(6) as View).background = deps.colorDotDrawable("#FF69B4", currentColor() == 9)
+        }
+
+        fun refreshUi() {
+            repaint()
+            updateColorDots()
+            presetBubbleRow1.invalidate()
+            presetBubbleRow2.invalidate()
+            for (i in 0 until presetBubbleRow1.childCount) {
+                presetBubbleRow1.getChildAt(i).invalidate()
+            }
+            for (i in 0 until presetBubbleRow2.childCount) {
+                presetBubbleRow2.getChildAt(i).invalidate()
+            }
+        }
+
+        dialogRefresh = { refreshUi() }
+        setDialogRefresh(dialogRefresh)
+
+        refreshUi()
+        dialog.show()
+
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
+    }
+}

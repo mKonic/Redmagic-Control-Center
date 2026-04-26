@@ -1328,6 +1328,7 @@ if (!isSupportedDevice()) {
         var chargingFanEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true)
         var chargingFanEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady"
         var chargingFanColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5)
+        var chargingFanDialogRefresh: (() -> Unit)? = null
 
         if (chargingFanEffect.startsWith("preset:")) {
             chargingFanColor = -1
@@ -1384,8 +1385,9 @@ if (!isSupportedDevice()) {
                 chargingFanColor = -1
                 HardwareController.setFanLedEnabled(true)
                 HardwareController.setFanLedStockPreset(value)
+                chargingFanDialogRefresh?.invoke()
             },
-            setDialogRefresh = { },
+            setDialogRefresh = { callback -> chargingFanDialogRefresh = callback },
             deps = FanLedDialogUi.Deps(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,

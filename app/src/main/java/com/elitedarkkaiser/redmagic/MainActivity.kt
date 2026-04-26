@@ -1006,6 +1006,7 @@ if (!isSupportedDevice()) {
         switchTab("home")
         refreshStatus()
         startGameModeService()
+        startService(Intent(this, ChargingModeService::class.java))
     }
 
     private fun restoreFanCurveUiState() {

@@ -56,6 +56,7 @@ class BootReceiver : BroadcastReceiver() {
         val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
         if (tracked.isNotEmpty() && hasUsageStatsPermission(context)) {
             context.startService(Intent(context, GameModeService::class.java))
+        context.startService(Intent(context, ChargingModeService::class.java))
         }
     }
 

@@ -184,8 +184,14 @@ object CoolingTabUi {
             addView(deps.row(fanOnBtn, fanOffBtn))
             addView(deps.singleRow(rpmBtn))
             addView(deps.spacer(deps.dp(16)))
-            addView(deps.spacer(deps.dp(6)))
-            addView(deps.bodyText("Pump controls have moved to the dedicated Pump hardware card."))
+            addView(deps.spacer(deps.dp(16)))
+
+            val pumpCard = deps.sectionPanel().apply {
+                addView(deps.sectionHeader("◉", "PUMP"))
+                addView(deps.bodyText("Liquid cooling pump controls will live here as a dedicated Cooling card."))
+            }
+
+            addView(pumpCard)
 
             addView(deps.spacer(deps.dp(16)))
             addView(deps.sectionHeader("▦", "FAN CURVE"))

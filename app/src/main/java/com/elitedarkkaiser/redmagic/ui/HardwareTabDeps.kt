@@ -24,5 +24,6 @@ data class HardwareTabDeps(
     val loadProfiles: () -> List<HardwareProfile>,
     val applyHardwareProfile: (HardwareProfile) -> Unit,
     val applyProfileToUiState: (HardwareProfile) -> Unit,
+    val showSaveProfileDialog: (() -> Unit) -> Unit,
     val showDeleteProfileDialog: (String, () -> Unit) -> Unit
 )

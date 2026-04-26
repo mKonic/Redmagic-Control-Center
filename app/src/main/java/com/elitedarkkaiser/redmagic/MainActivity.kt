@@ -947,54 +947,23 @@ if (!isSupportedDevice()) {
     }
 
     private fun launchMainUi() {
-        val topInset = getStatusBarHeight()
+        val result = MainUiLauncher.launch(
+            activity = this,
+            topInset = getStatusBarHeight(),
+            bgColor = bgColor,
+            dp = { value -> dp(value) },
+            createHomeTab = { createHomeTab() },
+            createCoolingTab = { createCoolingTab() },
+            createControlsTab = { createControlsTab() },
+            createHardwareTab = { createHardwareTab() },
+            createLightingTab = { createLightingTab() },
+            bottomNavBar = { bottomNavBar() }
+        )
 
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(bgColor)
-        }
-
-        val contentFrame = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), topInset + dp(10), dp(16), dp(96))
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        val contentScroll = ScrollView(this).apply {
-            isFillViewport = true
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-            addView(contentFrame)
-        }
-
-        homeTab = createHomeTab()
-        coolingTab = createCoolingTab()
-        controlsTab = createControlsTab()
-        val hardwareTab = createHardwareTab()
-        lightingTab = createLightingTab()
-
-        contentFrame.addView(homeTab)
-        contentFrame.addView(coolingTab)
-        contentFrame.addView(controlsTab)
-        contentFrame.addView(hardwareTab)
-        contentFrame.addView(lightingTab)
-
-        val navWrap = LinearLayout(this).apply {
-            gravity = Gravity.CENTER
-            setPadding(dp(18), 0, dp(18), dp(18))
-            addView(bottomNavBar())
-        }
-
-        root.addView(contentScroll)
-        root.addView(navWrap)
-
-        setContentView(root)
+        homeTab = result.homeTab
+        coolingTab = result.coolingTab
+        controlsTab = result.controlsTab
+        lightingTab = result.lightingTab
 
         applySavedFanLedStateOnLaunch()
         applySavedLogoLedStateOnLaunch()

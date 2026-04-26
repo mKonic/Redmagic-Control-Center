@@ -208,6 +208,14 @@ class MainActivity : Activity() {
 
         if (p.logoLedEnabled) {
             HardwareController.setLogoLedEffect(p.logoLedEffect, p.logoLedColor)
+        } else {
+            HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (p.shoulderLedEnabled) {
+            HardwareController.setShoulderLedEffect(p.shoulderLedEffect, p.shoulderLedColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
         }
     }
 
@@ -1452,7 +1460,11 @@ if (!isSupportedDevice()) {
                 colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
                 colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             ),
-            onSaveProfile = { profile -> saveGameModeProfile(profile) }
+            onSaveProfile = { profile ->
+                saveGameModeProfile(profile)
+                applySavedGameModeProfileNow()
+                startGameModeService()
+            }
         )
     }
 

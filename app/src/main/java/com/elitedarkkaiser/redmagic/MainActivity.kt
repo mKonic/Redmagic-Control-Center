@@ -1287,7 +1287,8 @@ if (!isSupportedDevice()) {
             roundedFill = { color, radius -> roundedFill(color, radius) },
             space = { value -> space(value) },
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
-            colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) }
+            colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
+            fanPresetBubble = { h1, h2, h3, h4, value, onClick -> fanPresetBubble(h1, h2, h3, h4, value, onClick) }
         )
     }
 
@@ -1330,7 +1331,8 @@ if (!isSupportedDevice()) {
                     color
                 )
             },
-            deps = chargingLedDialogDeps()
+            deps = chargingLedDialogDeps(),
+            showFanPresets = true
         )
     }
 

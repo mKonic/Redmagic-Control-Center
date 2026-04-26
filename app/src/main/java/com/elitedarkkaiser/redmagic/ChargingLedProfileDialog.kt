@@ -27,7 +27,8 @@ internal object ChargingLedProfileDialog {
         val roundedFill: (Int, Int) -> Drawable,
         val space: (Int) -> View,
         val colorDotGeneric: (String, Boolean, () -> Unit) -> View,
-        val colorDotDrawable: (String, Boolean) -> Drawable
+        val colorDotDrawable: (String, Boolean) -> Drawable,
+        val fanPresetBubble: (String, String, String, String, String, () -> Unit) -> View
     )
 
     fun show(
@@ -38,7 +39,8 @@ internal object ChargingLedProfileDialog {
         originalEffect: String,
         originalColor: Int,
         onSave: (enabled: Boolean, effect: String, color: Int) -> Unit,
-        deps: Deps
+        deps: Deps,
+        showFanPresets: Boolean = false
     ) {
         var enabled = originalEnabled
         var effect = originalEffect
@@ -175,6 +177,30 @@ internal object ChargingLedProfileDialog {
 
         colorRowsReady = true
 
+        val presetBubbleRow1 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(12), 0, 0)
+            addView(deps.fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", "0x3002101") { effect = "preset:0x3002101"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4", "0x3002102") { effect = "preset:0x3002102"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4", "0x3002103") { effect = "preset:0x3002103"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE", "0x3002104") { effect = "preset:0x3002104"; color = -1; refreshButtons() })
+        }
+
+        val presetBubbleRow2 = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, deps.dp(10), 0, 0)
+            addView(deps.fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4", "0x3002105") { effect = "preset:0x3002105"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000", "0x3002106") { effect = "preset:0x3002106"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0", "0x3002107") { effect = "preset:0x3002107"; color = -1; refreshButtons() })
+            addView(deps.space(deps.dp(10)))
+            addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676", "0x3002108") { effect = "preset:0x3002108"; color = -1; refreshButtons() })
+        }
+
         val buttonRow = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.END
@@ -219,6 +245,16 @@ internal object ChargingLedProfileDialog {
         })
         container.addView(colorRow)
         container.addView(colorRow2)
+        if (showFanPresets) {
+            container.addView(TextView(activity).apply {
+                text = "Fan presets"
+                textSize = 12f
+                setTextColor(deps.textSecondary)
+                setPadding(0, deps.dp(14), 0, 0)
+            })
+            container.addView(presetBubbleRow1)
+            container.addView(presetBubbleRow2)
+        }
         container.addView(buttonRow)
 
         val dialog = AlertDialog.Builder(activity)

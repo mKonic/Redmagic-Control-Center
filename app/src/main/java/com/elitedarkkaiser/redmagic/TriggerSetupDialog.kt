@@ -1,6 +1,7 @@
 package com.elitedarkkaiser.redmagic
 
 import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -30,7 +31,7 @@ internal object TriggerSetupDialog {
     )
 
     fun show(activity: MainActivity, deps: Deps) {
-        val prefs = activity.getSharedPreferences("triggers", MainActivity.MODE_PRIVATE)
+        val prefs = activity.getSharedPreferences("triggers", Context.MODE_PRIVATE)
 
         val labels = arrayOf(
             "None",

@@ -196,7 +196,7 @@ object CoolingTabUi {
                 text = "Liquid cooling circulation"
                 textSize = 15f
                 setTextColor(AppTheme.textPrimary)
-                setTypeface(AppTheme.appTypeface, Typeface.BOLD)
+                typeface = Typeface.create(AppTheme.appTypeface, Typeface.BOLD)
             }
 
             val pumpSubtitle = TextView(context).apply {
@@ -274,7 +274,7 @@ object CoolingTabUi {
                 text = "Smart Pump Control"
                 textSize = 14f
                 setTextColor(AppTheme.textPrimary)
-                setTypeface(AppTheme.appTypeface, Typeface.BOLD)
+                typeface = Typeface.create(AppTheme.appTypeface, Typeface.BOLD)
                 setPadding(0, deps.dp(14), 0, deps.dp(4))
             }
 

@@ -36,7 +36,7 @@ object HomeTabUi {
                     text = "Game Mode Permission Required"
                     textSize = 16f
                     setTextColor(AppTheme.textPrimary)
-                    setTypeface(AppTheme.appTypeface, android.graphics.Typeface.BOLD)
+                    typeface = android.graphics.Typeface.create(AppTheme.appTypeface, android.graphics.Typeface.BOLD)
                 }
 
                 val desc = TextView(context).apply {

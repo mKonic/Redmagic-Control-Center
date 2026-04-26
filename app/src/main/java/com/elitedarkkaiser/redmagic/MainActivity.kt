@@ -1506,360 +1506,68 @@ if (!isSupportedDevice()) {
     }
 
     private fun createCoolingTab(): LinearLayout {
-        val container = scrollTabContainer()
+        val result = com.elitedarkkaiser.redmagic.ui.CoolingTabUi.create(
+            com.elitedarkkaiser.redmagic.ui.CoolingTabDeps(
+                scrollTabContainer = { scrollTabContainer() },
+                sectionPanel = { sectionPanel() },
+                sectionHeader = { icon, text -> sectionHeader(icon, text) },
+                subtleLabel = { text -> subtleLabel(text) },
+                bodyText = { text -> bodyText(text) },
+                segmentedChip = { label, selected, onClick -> segmentedChip(label, selected, onClick) },
+                actionButton = { text, isDanger, onClick -> actionButton(text, isDanger, onClick) },
+                row = { left, right -> row(left, right) },
+                singleRow = { button -> singleRow(button) },
+                space = { width -> space(width) },
+                spacer = { height -> spacer(height) },
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radiusDp -> roundedBg(fill, stroke, radiusDp) },
 
-        tempText = TextView(this).apply {
-            text = "Current temp: --"
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(6), 0, dp(4))
-        }
+                getSelectedCurve = { selectedCurve },
+                setSelectedCurve = { value -> selectedCurve = value },
+                setSelectedCurveSaved = { value -> setSelectedCurveSaved(value) },
 
-        fanSeek = SeekBar(this).apply {
-            max = 5
-            progress = 0
-            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    if (fromUser && !autoFanCurveEnabled) {
-                        HardwareController.setFanLevel(progress)
-                        refreshStatus()
-                    }
-                }
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-            })
-        }
+                getAutoFanCurveEnabled = { autoFanCurveEnabled },
+                setAutoFanCurveEnabled = { value -> autoFanCurveEnabled = value },
+                setAutoFanEnabledSaved = { value -> setAutoFanEnabledSaved(value) },
 
-        val fanOnBtn = actionButton("FAN ON") {
-            HardwareController.enableFan(true)
-            refreshStatus()
-        }
+                getUseFahrenheit = { useFahrenheit },
+                setUseFahrenheit = { value -> useFahrenheit = value },
+                saveUseFahrenheit = { value -> saveUseFahrenheit(value) },
 
-        val fanOffBtn = actionButton("FAN OFF", isDanger = true) {
-            HardwareController.enableFan(false)
-            refreshStatus()
-        }
+                getPumpEnabled = { pumpEnabled },
+                setPumpEnabled = { value -> pumpEnabled = value },
+                getPumpProfile = { pumpProfile },
+                setPumpProfileValue = { value -> pumpProfile = value },
+                getAutoPumpEnabled = { autoPumpEnabled },
+                setAutoPumpEnabled = { value -> autoPumpEnabled = value },
 
-        val rpmBtn = actionButton("READ RPM") {
-            refreshStatus()
-        }
+                setSelectedFanProgress = { value -> fanSeek.progress = value },
+                startAutoFanService = { startAutoFanService() },
+                stopAutoFanService = { stopAutoFanService() },
+                startAutoPumpService = { startAutoPumpService() },
+                stopAutoPumpService = { stopAutoPumpService() },
+                savePumpState = { savePumpState() },
+                saveAutoPumpState = { saveAutoPumpState() },
+                refreshStatus = { refreshStatus() },
+                refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() },
+                buildAutoPumpStatusText = { buildAutoPumpStatusText() },
+                applyPumpProfile = { profile -> applyPumpProfile(profile) },
+                confirmExperimentalPumpThenApply = { confirmExperimentalPumpThenApply() },
+                updateManualCurveUiState = { updateManualCurveUiState() }
+            )
+        )
 
-        quietCardRef = LinearLayout(this)
-        balancedCardRef = LinearLayout(this)
-        turboCardRef = LinearLayout(this)
+        tempText = result.refs.tempText
+        curveStatusText = result.refs.curveStatusText
+        fanSeek = result.refs.fanSeek
+        autoCurveCheck = result.refs.autoCurveCheck
+        quietCardRef = result.refs.quietCardRef
+        balancedCardRef = result.refs.balancedCardRef
+        turboCardRef = result.refs.turboCardRef
+        smartPumpStatusView = result.refs.smartPumpStatusView
+        smartPumpSpeedView = result.refs.smartPumpSpeedView
 
-        val modeRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-        }
-
-        val quietChip = segmentedChip("Quiet", selectedCurve == "quiet") {
-            if (autoFanCurveEnabled) return@segmentedChip
-            selectedCurve = "quiet"
-            setSelectedCurveSaved(selectedCurve)
-            val level = HardwareController.applyFanCurve(selectedCurve)
-            if (level != null) fanSeek.progress = level
-            curveStatusText.text = "Selected curve: Quiet • Applied immediately"
-        }
-
-        val balancedChip = segmentedChip("Balanced", selectedCurve == "balanced") {
-            if (autoFanCurveEnabled) return@segmentedChip
-            selectedCurve = "balanced"
-            setSelectedCurveSaved(selectedCurve)
-            val level = HardwareController.applyFanCurve(selectedCurve)
-            if (level != null) fanSeek.progress = level
-            curveStatusText.text = "Selected curve: Balanced • Applied immediately"
-        }
-
-        val turboChip = segmentedChip("Turbo", selectedCurve == "turbo") {
-            if (autoFanCurveEnabled) return@segmentedChip
-            selectedCurve = "turbo"
-            setSelectedCurveSaved(selectedCurve)
-            val level = HardwareController.applyFanCurve(selectedCurve)
-            if (level != null) fanSeek.progress = level
-            curveStatusText.text = "Selected curve: Turbo • Applied immediately"
-        }
-
-        modeRow.addView(quietChip)
-        modeRow.addView(space(dp(8)))
-        modeRow.addView(balancedChip)
-        modeRow.addView(space(dp(8)))
-        modeRow.addView(turboChip)
-
-        curveStatusText = TextView(this).apply {
-            text = "Selected curve: ${selectedCurve.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(6), 0, dp(4))
-        }
-
-        autoCurveCheck = CheckBox(this).apply {
-            text = "Automatic fan control based on temperature"
-            setTextColor(textPrimary)
-            textSize = 13f
-            setPadding(0, dp(6), 0, dp(4))
-            setOnCheckedChangeListener { _, checked ->
-                autoFanCurveEnabled = checked
-                setAutoFanEnabledSaved(checked)
-                updateManualCurveUiState()
-
-                if (checked) {
-                    startAutoFanService()
-                    curveStatusText.text = "Auto fan curve active • Running in background service"
-                } else {
-                    stopAutoFanService()
-                    curveStatusText.text = "Selected curve: $selectedCurve • Manual control"
-                }
-
-                refreshStatus()
-            }
-        }
-
-        val coolingCard = sectionPanel().apply {
-            addView(sectionHeader("❄", "COOLING"))
-            addView(tempText)
-
-            val tempUnitRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, dp(8), 0, dp(4))
-            }
-
-            val tempUnitLabel = TextView(this@MainActivity).apply {
-                text = "Use Fahrenheit"
-                textSize = 13f
-                setTextColor(textPrimary)
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            }
-
-            val tempUnitSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = useFahrenheit
-                setOnCheckedChangeListener { _, checked ->
-                    useFahrenheit = checked
-                    saveUseFahrenheit(checked)
-                    refreshStatus()
-                }
-            }
-
-            tempUnitRow.addView(tempUnitLabel)
-            tempUnitRow.addView(tempUnitSwitch)
-
-            addView(tempUnitRow)
-            addView(subtleLabel("Fan level"))
-            addView(fanSeek)
-            addView(row(fanOnBtn, fanOffBtn))
-            addView(singleRow(rpmBtn))
-            addView(spacer(dp(16)))
-            addView(sectionHeader("◉", "PUMP"))
-
-            val pumpSection = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(14), dp(14), dp(14), dp(14))
-                background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 18)
-            }
-
-            val pumpTitle = TextView(this@MainActivity).apply {
-                text = "Liquid cooling circulation"
-                textSize = 15f
-                setTextColor(textPrimary)
-                setTypeface(typeface, Typeface.BOLD)
-            }
-
-            val pumpSubtitle = TextView(this@MainActivity).apply {
-                text = "Enable or disable the micropump"
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, dp(4), 0, dp(12))
-            }
-
-            val circulationSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = pumpEnabled
-                setOnCheckedChangeListener { _, checked ->
-                    pumpEnabled = checked
-                    savePumpState()
-                    if (pumpEnabled) {
-                        HardwareController.setPumpProfile(pumpProfile)
-                    } else {
-                        HardwareController.enablePump(false)
-                    }
-                    refreshStatus()
-                    refreshSmartPumpStatusViews()
-                }
-            }
-
-            val circulationRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                addView(LinearLayout(this@MainActivity).apply {
-                    orientation = LinearLayout.VERTICAL
-                    addView(pumpTitle)
-                    addView(pumpSubtitle)
-                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                addView(circulationSwitch)
-            }
-
-            val flowRateLabel = TextView(this@MainActivity).apply {
-                text = "Flow rate"
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, dp(4), 0, dp(8))
-            }
-
-            val pumpRateRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-            }
-
-            val slowBtn = segmentedChip("Slow", pumpProfile == "slow") {
-                applyPumpProfile("slow")
-            }
-
-            val mediumBtn = segmentedChip("Medium", pumpProfile == "medium") {
-                applyPumpProfile("medium")
-            }
-
-            val quickBtn = segmentedChip("Quick", pumpProfile == "quick") {
-                applyPumpProfile("quick")
-            }
-
-            val experimentalBtn = segmentedChip("⚠ Exp", pumpProfile == "experimental") {
-                confirmExperimentalPumpThenApply()
-            }
-
-            val chipParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            val gapParams = LinearLayout.LayoutParams(dp(6), ViewGroup.LayoutParams.WRAP_CONTENT)
-
-            pumpRateRow.addView(slowBtn, chipParams)
-            pumpRateRow.addView(space(dp(6)), gapParams)
-            pumpRateRow.addView(mediumBtn, chipParams)
-            pumpRateRow.addView(space(dp(6)), gapParams)
-            pumpRateRow.addView(quickBtn, chipParams)
-            pumpRateRow.addView(space(dp(6)), gapParams)
-            pumpRateRow.addView(experimentalBtn, chipParams)
-
-            val autoPumpTitle = TextView(this@MainActivity).apply {
-                text = "Smart Pump Control"
-                textSize = 14f
-                setTextColor(textPrimary)
-                setTypeface(typeface, Typeface.BOLD)
-                setPadding(0, dp(14), 0, dp(4))
-            }
-
-            val autoPumpDesc = TextView(this@MainActivity).apply {
-                text = "Dynamically adjusts pump speed based on device temperature."
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, 0, 0, dp(8))
-            }
-
-            val autoPumpStatus = TextView(this@MainActivity).apply {
-                textSize = 12f
-                setTextColor(textSecondary)
-                alpha = 0.95f
-            }.also {
-                smartPumpStatusView = it
-            }
-
-            val autoPumpSpeedInfo = TextView(this@MainActivity).apply {
-                textSize = 12f
-                setTextColor(textSecondary)
-                setPadding(0, dp(2), 0, 0)
-                alpha = 0.90f
-            }.also {
-                smartPumpSpeedView = it
-            }
-
-            fun setPumpManualControlsEnabled(enabled: Boolean) {
-                val alphaValue = if (enabled) 1f else 0.40f
-
-                slowBtn.isEnabled = enabled
-                mediumBtn.isEnabled = enabled
-                quickBtn.isEnabled = enabled
-                experimentalBtn.isEnabled = enabled
-
-                slowBtn.alpha = alphaValue
-                mediumBtn.alpha = alphaValue
-                quickBtn.alpha = alphaValue
-                experimentalBtn.alpha = alphaValue
-            }
-
-            fun refreshAutoPumpUi() {
-                if (autoPumpEnabled) {
-                    val status = buildAutoPumpStatusText()
-                    autoPumpStatus.text = status.first
-                    autoPumpSpeedInfo.text = status.second
-                    autoPumpStatus.visibility = View.VISIBLE
-                    autoPumpSpeedInfo.visibility = View.VISIBLE
-                    setPumpManualControlsEnabled(false)
-                } else {
-                    autoPumpStatus.text = "Pump Mode: MANUAL • ${pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
-                    val manualSpeed = when (pumpProfile.lowercase()) {
-                        "slow" -> 40
-                        "medium" -> 60
-                        "quick" -> 80
-                        "experimental" -> 90
-                        else -> 60
-                    }
-                    autoPumpSpeedInfo.text = "Speed: $manualSpeed • Freq: 4"
-                    autoPumpStatus.visibility = View.VISIBLE
-                    autoPumpSpeedInfo.visibility = View.VISIBLE
-                    setPumpManualControlsEnabled(true)
-                }
-                refreshSmartPumpStatusViews()
-            }
-
-            val autoPumpSwitch = android.widget.Switch(this@MainActivity).apply {
-                isChecked = autoPumpEnabled
-                setOnCheckedChangeListener { _, checked ->
-                    autoPumpEnabled = checked
-                    saveAutoPumpState()
-                    if (checked) {
-                        pumpEnabled = true
-                        savePumpState()
-                        HardwareController.setPumpProfile(pumpProfile)
-                        startAutoPumpService()
-                    } else {
-                        stopAutoPumpService()
-                    }
-                    refreshAutoPumpUi()
-                    refreshStatus()
-                    refreshSmartPumpStatusViews()
-                }
-            }
-
-            val autoPumpRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                addView(LinearLayout(this@MainActivity).apply {
-                    orientation = LinearLayout.VERTICAL
-                    addView(autoPumpTitle)
-                    addView(autoPumpDesc)
-                    addView(autoPumpStatus)
-                    addView(autoPumpSpeedInfo)
-                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                addView(autoPumpSwitch)
-            }
-
-            refreshAutoPumpUi()
-
-            pumpSection.addView(circulationRow)
-            pumpSection.addView(flowRateLabel)
-            pumpSection.addView(pumpRateRow)
-            pumpSection.addView(autoPumpRow)
-
-            addView(pumpSection)
-            addView(spacer(dp(16)))
-            addView(sectionHeader("▦", "FAN CURVE"))
-            addView(autoCurveCheck)
-            addView(curveStatusText)
-            addView(modeRow)
-            addView(subtleLabel("Auto mode ramps fan by temperature and disables manual curve cards"))
-            addView(subtleLabel("Quiet → low noise, stays between fan 0-1"))
-            addView(subtleLabel("Balanced → moderate cooling, stays between fan 2-3"))
-            addView(subtleLabel("Turbo → max cooling and sound, stays between fan 4-5"))
-        }
-
-        container.addView(coolingCard)
-
-        return container
+        return result.view
     }
 
     private fun applyFanLedPreviewIfEnabled() {

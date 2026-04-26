@@ -91,15 +91,18 @@ internal object TriggerSetupDialog {
 
         labels.forEachIndexed { index, label ->
             leftGroup.addView(android.widget.RadioButton(activity).apply {
+                id = View.generateViewId()
+                tag = index
                 text = label
                 textSize = 14f
                 setTextColor(deps.textPrimary)
                 buttonTintList = android.content.res.ColorStateList.valueOf(deps.accent)
                 isChecked = index == leftChoice
-                setOnCheckedChangeListener { _, checked ->
-                    if (checked) leftChoice = index
-                }
             })
+        }
+        leftGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selected = group.findViewById<android.widget.RadioButton>(checkedId)
+            leftChoice = selected?.tag as? Int ?: leftChoice
         }
 
         val rightLabel = TextView(activity).apply {
@@ -115,15 +118,18 @@ internal object TriggerSetupDialog {
 
         labels.forEachIndexed { index, label ->
             rightGroup.addView(android.widget.RadioButton(activity).apply {
+                id = View.generateViewId()
+                tag = index
                 text = label
                 textSize = 14f
                 setTextColor(deps.textPrimary)
                 buttonTintList = android.content.res.ColorStateList.valueOf(deps.accent)
                 isChecked = index == rightChoice
-                setOnCheckedChangeListener { _, checked ->
-                    if (checked) rightChoice = index
-                }
             })
+        }
+        rightGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selected = group.findViewById<android.widget.RadioButton>(checkedId)
+            rightChoice = selected?.tag as? Int ?: rightChoice
         }
 
         val buttonRow = LinearLayout(activity).apply {

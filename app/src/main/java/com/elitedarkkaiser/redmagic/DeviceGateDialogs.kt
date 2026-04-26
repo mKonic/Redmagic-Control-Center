@@ -63,6 +63,7 @@ internal object DeviceGateDialogs {
             .create()
 
         okButton.setOnClickListener {
+            onDontShowAgainChanged(dontShowAgain.isChecked)
             onAcknowledge()
             dialog.dismiss()
         }

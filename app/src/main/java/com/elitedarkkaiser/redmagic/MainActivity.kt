@@ -1469,200 +1469,40 @@ if (!isSupportedDevice()) {
     }
 
     private fun createHomeTab(): LinearLayout {
-        val container = scrollTabContainer()
-        // Usage Access Permission Card
-        if (!hasUsageStatsPermission()) {
-            val usageCard = sectionPanel().apply {
+        val result = com.elitedarkkaiser.redmagic.ui.HomeTabUi.create(
+            com.elitedarkkaiser.redmagic.ui.HomeTabDeps(
+                scrollTabContainer = { scrollTabContainer() },
+                sectionPanel = { sectionPanel() },
+                sectionHeader = { icon, text -> sectionHeader(icon, text) },
+                subtitleText = { text -> subtitleText(text) },
+                bodyText = { text -> bodyText(text) },
+                ledTitleText = { text -> ledTitleText(text) },
+                infoValue = { infoValue() },
+                infoRow = { label, valueView -> infoRow(label, valueView) },
+                statusChip = { text -> statusChip(text) },
+                actionButton = { text, isDanger, onClick -> actionButton(text, isDanger, onClick) },
+                singleRow = { button -> singleRow(button) },
+                segmentedChip = { label, selected, onClick -> segmentedChip(label, selected, onClick) },
+                space = { width -> space(width) },
+                dp = { value -> dp(value) },
+                hasUsageStatsPermission = { hasUsageStatsPermission() },
+                openUsageStatsAccessSettings = { openUsageStatsAccessSettings() },
+                showGamePickerDialog = { showGamePickerDialog() },
+                updateGameModeStatusUI = { textView -> updateGameModeStatusUI(textView) },
+                openUrl = { url -> openUrl(url) }
+            )
+        )
 
-                val title = TextView(this@MainActivity).apply {
-                    text = "Game Mode Permission Required"
-                    textSize = 16f
-                    setTextColor(textPrimary)
-                    setTypeface(typeface, android.graphics.Typeface.BOLD)
-                }
+        deviceModelValue = result.refs.deviceModelValue
+        deviceRomValue = result.refs.deviceRomValue
+        deviceCpuValue = result.refs.deviceCpuValue
+        deviceRamValue = result.refs.deviceRamValue
+        rootChip = result.refs.rootChip
+        fanChip = result.refs.fanChip
+        rpmChip = result.refs.rpmChip
+        tempChip = result.refs.tempChip
 
-                val desc = TextView(this@MainActivity).apply {
-                    text = "Grant Usage Access so Game Mode can detect running games."
-                    textSize = 13f
-                    setTextColor(textSecondary)
-                    setPadding(0, dp(6), 0, dp(10))
-                }
-
-                val btn = Button(this@MainActivity).apply {
-                    text = "Grant Usage Access"
-                    textSize = 13f
-                    setAllCaps(false)
-                    setTextColor(textPrimary)
-                    background = roundedFill(panelPressed, 14)
-                    setOnClickListener {
-                        openUsageStatsAccessSettings()
-                    }
-                }
-
-                addView(title)
-                addView(desc)
-                addView(btn)
-            }
-
-            container.addView(usageCard)
-        val gameSelectBtn = Button(this@MainActivity).apply {
-            text = "Select Games for Game Mode"
-            textSize = 13f
-            setAllCaps(false)
-            setTextColor(textPrimary)
-            background = roundedFill(panelPressed, 14)
-            setOnClickListener {
-                showGamePickerDialog()
-            }
-        }
-
-        container.addView(gameSelectBtn)
-        val gameStatus = TextView(this@MainActivity).apply {
-            textSize = 13f
-            setTextColor(textSecondary)
-            setPadding(0, dp(8), 0, dp(8))
-        }
-
-        updateGameModeStatusUI(gameStatus)
-        container.addView(gameStatus)
-
-
-        }
-
-
-        val welcomeCard = sectionPanel().apply {
-
-            val headerRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-
-            val iconView = ImageView(this@MainActivity).apply {
-                setImageResource(R.mipmap.ic_launcher)
-                layoutParams = LinearLayout.LayoutParams(dp(60), dp(60))
-            }
-
-            val titleView = ledTitleText("Redmagic Control Center")
-
-            headerRow.addView(iconView)
-            headerRow.addView(titleView)
-
-            addView(headerRow)
-            addView(subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
-        }
-
-        val summaryCard = sectionPanel().apply {
-            addView(sectionHeader("⌂", "WELCOME"))
-
-            addView(bodyText("RedMagic HW Controls is a root-powered control center for RedMagic 11 Pro that brings key hardware features into one place with a cleaner interface than stock tools."))
-
-            addView(bodyText("It lets you manage cooling behavior, fan profiles, micropump control, fan LED effects, logo lighting, shoulder LED strips, trigger tools, slider actions, and haptics directly from the app."))
-
-            addView(bodyText("The app is built around real device paths and behavior confirmed on hardware so the controls feel practical, focused, and close to an OEM-style utility."))
-
-            val linksRow = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, dp(14), 0, 0)
-            }
-
-            val githubBtn = segmentedChip("GitHub", false) {
-                openUrl("https://github.com/austineyoung2000/Red")
-            }
-
-            val referenceBtn = segmentedChip("Reference", false) {
-                openUrl("https://www.reddit.com/r/RedMagic/comments/1rtoako/red_magic_11_pro_hardware_control_guide_for/")
-            }
-
-            linksRow.addView(githubBtn)
-            linksRow.addView(space(dp(8)))
-            linksRow.addView(referenceBtn)
-
-            addView(linksRow)
-        }
-
-        deviceModelValue = infoValue()
-        deviceRomValue = infoValue()
-        deviceCpuValue = infoValue()
-        deviceRamValue = infoValue()
-
-        val infoCard = sectionPanel().apply {
-            addView(sectionHeader("ⓘ", "DEVICE INFO"))
-            addView(infoRow("Model", deviceModelValue))
-            addView(infoRow("ROM", deviceRomValue))
-            addView(infoRow("CPU", deviceCpuValue))
-            addView(infoRow("RAM", deviceRamValue))
-        }
-
-        rootChip = statusChip("ROOT --")
-        fanChip = statusChip("FAN --")
-        rpmChip = statusChip("RPM --")
-        tempChip = statusChip("TEMP --")
-
-        val statusRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-
-            addView(rootChip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(6) })
-
-            addView(fanChip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(6) })
-
-            addView(rpmChip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = dp(6) })
-
-            addView(tempChip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ))
-        }
-
-        val statusScroller = HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(statusRow)
-        }
-
-        val statusCard = sectionPanel().apply {
-            addView(sectionHeader("◎", "LIVE STATUS"))
-            addView(statusScroller)
-        }
-
-        container.addView(welcomeCard)
-        val dashboardCard = sectionPanel().apply {
-            addView(sectionHeader("◈", "LIVE DASHBOARD"))
-
-            val dashboardText = TextView(this@MainActivity).apply {
-                text = DashboardSnapshot.buildSummary(this@MainActivity)
-                textSize = 13f
-                setTextColor(textPrimary)
-                setLineSpacing(0f, 1.15f)
-                setPadding(0, 0, 0, dp(12))
-            }
-
-            val refreshBtn = actionButton("REFRESH DASHBOARD") {
-                dashboardText.text = DashboardSnapshot.buildSummary(this@MainActivity)
-            }
-
-            addView(dashboardText)
-            addView(singleRow(refreshBtn))
-        }
-
-        val automationCard = sectionPanel().apply {
-            addView(sectionHeader("⚙", "AUTOMATION"))
-            addView(bodyText("Auto Pump uses safe temperature rules and automatically shifts between Slow, Medium, and Quick."))
-        }
-
-        
-        container.addView(summaryCard)
-        container.addView(infoCard)
-        container.addView(statusCard)
-
-        return container
+        return result.view
     }
 
     private fun createCoolingTab(): LinearLayout {

@@ -91,6 +91,9 @@ internal object ChargingLedProfileDialog {
         lateinit var steadyBtn: Button
         lateinit var breatheBtn: Button
         lateinit var flashingBtn: Button
+        lateinit var colorRow: LinearLayout
+        lateinit var colorRow2: LinearLayout
+
         fun refreshButtons() {
             steadyBtn.background = deps.roundedFill(if (effect == "steady") deps.panelPressed else Color.parseColor("#1E2633"), 999)
             breatheBtn.background = deps.roundedFill(if (effect == "breathe") deps.panelPressed else Color.parseColor("#1E2633"), 999)
@@ -132,12 +135,12 @@ internal object ChargingLedProfileDialog {
         effectRow.addView(deps.space(deps.dp(6)))
         effectRow.addView(flashingBtn, LinearLayout.LayoutParams(0, deps.dp(42), 1f))
 
-        val colorRow = LinearLayout(activity).apply {
+        colorRow = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, deps.dp(10), 0, 0)
         }
 
-        val colorRow2 = LinearLayout(activity).apply {
+        colorRow2 = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, deps.dp(10), 0, 0)
         }

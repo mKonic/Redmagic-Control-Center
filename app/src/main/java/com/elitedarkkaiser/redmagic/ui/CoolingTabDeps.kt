@@ -17,9 +17,28 @@ data class CoolingTabDeps(
     val space: (Int) -> TextView,
     val spacer: (Int) -> TextView,
     val dp: (Int) -> Int,
+    val roundedBg: (Int, Int, Int) -> android.graphics.drawable.GradientDrawable,
 
+    val getSelectedCurve: () -> String,
+    val setSelectedCurve: (String) -> Unit,
     val setSelectedCurveSaved: (String) -> Unit,
+
+    val getAutoFanCurveEnabled: () -> Boolean,
+    val setAutoFanCurveEnabled: (Boolean) -> Unit,
     val setAutoFanEnabledSaved: (Boolean) -> Unit,
+
+    val getUseFahrenheit: () -> Boolean,
+    val setUseFahrenheit: (Boolean) -> Unit,
+    val saveUseFahrenheit: (Boolean) -> Unit,
+
+    val getPumpEnabled: () -> Boolean,
+    val setPumpEnabled: (Boolean) -> Unit,
+    val getPumpProfile: () -> String,
+    val setPumpProfileValue: (String) -> Unit,
+    val getAutoPumpEnabled: () -> Boolean,
+    val setAutoPumpEnabled: (Boolean) -> Unit,
+
+    val setSelectedFanProgress: (Int) -> Unit,
     val startAutoFanService: () -> Unit,
     val stopAutoFanService: () -> Unit,
     val startAutoPumpService: () -> Unit,
@@ -31,10 +50,5 @@ data class CoolingTabDeps(
     val buildAutoPumpStatusText: () -> Pair<String, String>,
     val applyPumpProfile: (String) -> Unit,
     val confirmExperimentalPumpThenApply: () -> Unit,
-    val setPumpManualControlsEnabled: (Boolean) -> Unit,
-    val refreshAutoPumpUi: () -> Unit,
-    val updateManualCurveUiState: () -> Unit,
-    val applyFanLedPreviewIfEnabled: () -> Unit,
-    val applyLogoLedPreviewIfEnabled: () -> Unit,
-    val applyShoulderLedPreviewIfEnabled: () -> Unit
+    val updateManualCurveUiState: () -> Unit
 )

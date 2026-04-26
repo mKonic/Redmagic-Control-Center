@@ -1061,8 +1061,15 @@ if (!isSupportedDevice()) {
     }
 
     private fun createCoolingTab(): LinearLayout {
-        val result = com.elitedarkkaiser.redmagic.ui.CoolingTabUi.create(
-            com.elitedarkkaiser.redmagic.ui.CoolingTabDeps(
+        val result = com.elitedarkkaiser.redmagic.ui.CoolingTabUi.create(coolingTabDeps())
+
+        assignCoolingRefs(result.refs)
+
+        return result.view
+    }
+
+    private fun coolingTabDeps(): com.elitedarkkaiser.redmagic.ui.CoolingTabDeps {
+        return com.elitedarkkaiser.redmagic.ui.CoolingTabDeps(
                 scrollTabContainer = { scrollTabContainer() },
                 sectionPanel = { sectionPanel() },
                 sectionHeader = { icon, text -> sectionHeader(icon, text) },
@@ -1110,11 +1117,6 @@ if (!isSupportedDevice()) {
                 confirmExperimentalPumpThenApply = { confirmExperimentalPumpThenApply() },
                 updateManualCurveUiState = { updateManualCurveUiState() }
             )
-        )
-
-        assignCoolingRefs(result.refs)
-
-        return result.view
     }
 
     private fun assignCoolingRefs(refs: com.elitedarkkaiser.redmagic.ui.CoolingTabUi.Refs) {

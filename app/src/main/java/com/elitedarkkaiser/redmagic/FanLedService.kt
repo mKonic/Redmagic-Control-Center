@@ -102,7 +102,12 @@ class FanLedService : Service() {
         val shoulderColor = prefs.getInt("shoulder_led_color", 8)
 
         if (fanEnabled) {
-            HardwareController.setFanLedEffect(fanEffect, fanColor)
+            if (fanEffect.startsWith("preset:")) {
+                HardwareController.setFanLedEnabled(true)
+                HardwareController.setFanLedStockPreset(fanEffect.removePrefix("preset:"))
+            } else {
+                HardwareController.setFanLedEffect(fanEffect, fanColor)
+            }
         } else {
             HardwareController.setFanLedEnabled(false)
         }

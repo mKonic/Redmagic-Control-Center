@@ -950,6 +950,19 @@ if (!isSupportedDevice()) {
     }
 
     private fun launchMainUi() {
+        MainUiStartup.applySavedHardwareState(
+            applySavedFanLedStateOnLaunch = { applySavedFanLedStateOnLaunch() },
+            applySavedLogoLedStateOnLaunch = { applySavedLogoLedStateOnLaunch() },
+            applySavedShoulderLedStateOnLaunch = { applySavedShoulderLedStateOnLaunch() },
+            applySavedPumpStateOnLaunch = { applySavedPumpStateOnLaunch() },
+            setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
+            isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
+            setUseFahrenheit = { value -> useFahrenheit = value },
+            isUseFahrenheitSaved = { isUseFahrenheitSaved() },
+            setAutoPumpEnabled = { value -> autoPumpEnabled = value },
+            isAutoPumpEnabledSaved = { isAutoPumpEnabledSaved() }
+        )
+
         val result = MainUiLauncher.launch(
             activity = this,
             topInset = getStatusBarHeight(),
@@ -968,19 +981,6 @@ if (!isSupportedDevice()) {
         controlsTab = result.controlsTab
         lightingTab = result.lightingTab
 
-        MainUiStartup.applySavedHardwareState(
-            applySavedFanLedStateOnLaunch = { applySavedFanLedStateOnLaunch() },
-            applySavedLogoLedStateOnLaunch = { applySavedLogoLedStateOnLaunch() },
-            applySavedShoulderLedStateOnLaunch = { applySavedShoulderLedStateOnLaunch() },
-            applySavedPumpStateOnLaunch = { applySavedPumpStateOnLaunch() },
-            setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
-            isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
-            setUseFahrenheit = { value -> useFahrenheit = value },
-            isUseFahrenheitSaved = { isUseFahrenheitSaved() },
-            setAutoPumpEnabled = { value -> autoPumpEnabled = value },
-            isAutoPumpEnabledSaved = { isAutoPumpEnabledSaved() }
-        )
-
         MainUiStartup.applyLaunchHardware(
             fanLedEnabled = fanLedEnabled,
             fanLedEffect = fanLedEffect,
@@ -997,6 +997,10 @@ if (!isSupportedDevice()) {
             startFanLedService = { startFanLedService() },
             stopFanLedService = { stopFanLedService() }
         )
+
+        if (autoPumpEnabled) {
+            startAutoPumpService()
+        }
 
         restoreFanCurveUiState()
         switchTab("home")

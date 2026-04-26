@@ -2160,7 +2160,7 @@ if (!isSupportedDevice()) {
 
     private fun showGamePickerDialog() {
         showGamePickerDialogUI(this) {
-            updateGameModeStatusUI(magicKeyStatusLabelRef ?: return@showGamePickerDialogUI)
+            refreshGameModeCardUi()
         }
     }
 

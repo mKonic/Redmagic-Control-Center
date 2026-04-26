@@ -966,39 +966,35 @@ if (!isSupportedDevice()) {
         controlsTab = result.controlsTab
         lightingTab = result.lightingTab
 
-        applySavedFanLedStateOnLaunch()
-        applySavedLogoLedStateOnLaunch()
-        applySavedShoulderLedStateOnLaunch()
-        applySavedPumpStateOnLaunch()
-        realTimePreviewEnabled = isRealTimePreviewEnabledSaved()
-        useFahrenheit = isUseFahrenheitSaved()
-        autoPumpEnabled = isAutoPumpEnabledSaved()
+        MainUiStartup.applySavedHardwareState(
+            applySavedFanLedStateOnLaunch = { applySavedFanLedStateOnLaunch() },
+            applySavedLogoLedStateOnLaunch = { applySavedLogoLedStateOnLaunch() },
+            applySavedShoulderLedStateOnLaunch = { applySavedShoulderLedStateOnLaunch() },
+            applySavedPumpStateOnLaunch = { applySavedPumpStateOnLaunch() },
+            setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
+            isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
+            setUseFahrenheit = { value -> useFahrenheit = value },
+            isUseFahrenheitSaved = { isUseFahrenheitSaved() },
+            setAutoPumpEnabled = { value -> autoPumpEnabled = value },
+            isAutoPumpEnabledSaved = { isAutoPumpEnabledSaved() }
+        )
 
-        if (fanLedEnabled) {
-            applyFanLedSelection(fanLedEffect, fanLedColor)
-            startFanLedService()
-        } else {
-            HardwareController.setFanLedEnabled(false)
-            stopFanLedService()
-        }
-
-        if (logoLedEnabled) {
-            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
-        } else {
-            HardwareController.setLogoLedEnabled(false)
-        }
-
-        if (shoulderLedEnabled) {
-            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
-        } else {
-            HardwareController.setShoulderLedEnabled(false)
-        }
-
-        if (pumpEnabled) {
-            HardwareController.setPumpProfile(pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
+        MainUiStartup.applyLaunchHardware(
+            fanLedEnabled = fanLedEnabled,
+            fanLedEffect = fanLedEffect,
+            fanLedColor = fanLedColor,
+            logoLedEnabled = logoLedEnabled,
+            logoLedEffect = logoLedEffect,
+            logoLedColor = logoLedColor,
+            shoulderLedEnabled = shoulderLedEnabled,
+            shoulderLedEffect = shoulderLedEffect,
+            shoulderLedColor = shoulderLedColor,
+            pumpEnabled = pumpEnabled,
+            pumpProfile = pumpProfile,
+            applyFanLedSelection = { effect, color -> applyFanLedSelection(effect, color) },
+            startFanLedService = { startFanLedService() },
+            stopFanLedService = { stopFanLedService() }
+        )
 
         selectedCurve = getSelectedCurveSaved()
         autoFanCurveEnabled = isAutoFanEnabledSaved()

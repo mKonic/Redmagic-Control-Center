@@ -392,8 +392,6 @@ object CoolingTabUi {
                 refreshPumpDiagnostics()
             }
 
-            addView(pumpCard)
-
             addView(deps.spacer(deps.dp(16)))
             addView(deps.sectionHeader("▦", "FAN CURVE"))
             addView(autoCurveCheck)
@@ -406,6 +404,8 @@ object CoolingTabUi {
         }
 
         container.addView(coolingCard)
+        container.addView(deps.spacer(deps.dp(16)))
+        container.addView(pumpCard)
 
         return Result(
             view = container,

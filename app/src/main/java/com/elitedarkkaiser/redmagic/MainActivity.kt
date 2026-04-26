@@ -82,6 +82,7 @@ class MainActivity : Activity() {
     private var dialogRefreshPump: (() -> Unit)? = null
     private var dialogRefreshShoulderLed: (() -> Unit)? = null
     private var dialogRefreshLogoLed: (() -> Unit)? = null
+    private var dialogRefreshFanLed: (() -> Unit)? = null
     private var gameModeAppsTextRef: TextView? = null
 
     private var smartPumpStatusView: TextView? = null
@@ -2055,10 +2056,31 @@ if (!isSupportedDevice()) {
                 colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
                 colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
                 fanPresetBubble = { c1, c2, c3, c4, presetValue, onClick ->
-                    fanPresetBubble(c1, c2, c3, c4, presetValue, onClick)
+                    fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, onClick = onClick)
                 }
             )
         )
+    }
+
+    private fun filterChip(label: String, selected: Boolean, onClick: () -> Unit): Button {
+        return Button(this).apply {
+            text = label
+            textSize = 11f
+            setAllCaps(false)
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            isSingleLine = true
+            minWidth = 0
+            minimumWidth = 0
+            setTextColor(textPrimary)
+            background = roundedFill(
+                if (selected) panelPressed else Color.parseColor("#1E2633"),
+                16
+            )
+            setPadding(dp(10), dp(6), dp(10), dp(6))
+            setOnClickListener { onClick() }
+            applyPressEffect(this)
+        }
     }
 
     private fun applyFanPreset(effectValue: String) {

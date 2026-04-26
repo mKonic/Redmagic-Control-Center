@@ -1288,7 +1288,9 @@ if (!isSupportedDevice()) {
             space = { value -> space(value) },
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
-            fanPresetBubble = { h1, h2, h3, h4, value, onClick -> fanPresetBubble(h1, h2, h3, h4, value, onClick) }
+            fanPresetBubble = { h1, h2, h3, h4, value, onClick ->
+                fanPresetBubble(h1, h2, h3, h4, presetValue = value, onClick = onClick)
+            }
         )
     }
 

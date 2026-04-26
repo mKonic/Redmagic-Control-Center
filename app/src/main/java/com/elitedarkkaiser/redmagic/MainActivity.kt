@@ -1266,16 +1266,113 @@ if (!isSupportedDevice()) {
                     prefs().edit().putBoolean(ChargingLedState.ENABLED_KEY, enabled).apply()
                     startService(Intent(this, ChargingModeService::class.java))
                 },
-                showChargingFanLedDialog = {
-                    android.widget.Toast.makeText(this, "Charging Fan LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
-                },
-                showChargingLogoLedDialog = {
-                    android.widget.Toast.makeText(this, "Charging Logo LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
-                },
-                showChargingShoulderLedDialog = {
-                    android.widget.Toast.makeText(this, "Charging Shoulder LED profile coming next", android.widget.Toast.LENGTH_SHORT).show()
-                }
+                showChargingFanLedDialog = { showChargingFanLedDialog() },
+                showChargingLogoLedDialog = { showChargingLogoLedDialog() },
+                showChargingShoulderLedDialog = { showChargingShoulderLedDialog() }
             )
+        )
+    }
+
+    private fun chargingLedDialogDeps(): ChargingLedProfileDialog.Deps {
+        return ChargingLedProfileDialog.Deps(
+            textPrimary = textPrimary,
+            textSecondary = textSecondary,
+            panelColor = panelColor,
+            borderColor = borderColor,
+            panelPressed = panelPressed,
+            accent = accent,
+            typeface = typeface,
+            dp = { value -> dp(value) },
+            roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+            roundedFill = { color, radius -> roundedFill(color, radius) },
+            space = { value -> space(value) }
+        )
+    }
+
+    private fun saveChargingLedProfile(
+        enabledKey: String,
+        effectKey: String,
+        colorKey: String,
+        enabled: Boolean,
+        effect: String,
+        color: Int
+    ) {
+        prefs().edit()
+            .putBoolean(enabledKey, enabled)
+            .putString(effectKey, effect)
+            .putInt(colorKey, color)
+            .apply()
+
+        startService(Intent(this, ChargingModeService::class.java))
+        if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
+            ChargingLedState.setActive(this, true)
+            ChargingLedState.applyChargingProfile(this)
+        }
+    }
+
+    private fun showChargingFanLedDialog() {
+        ChargingLedProfileDialog.show(
+            activity = this,
+            title = "Charging Fan LED",
+            subtitle = "Fan LED profile used only while plugged in and charging.",
+            originalEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true),
+            originalEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady",
+            originalColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5),
+            onSave = { enabled, effect, color ->
+                saveChargingLedProfile(
+                    ChargingLedState.FAN_ENABLED_KEY,
+                    ChargingLedState.FAN_EFFECT_KEY,
+                    ChargingLedState.FAN_COLOR_KEY,
+                    enabled,
+                    effect,
+                    color
+                )
+            },
+            deps = chargingLedDialogDeps()
+        )
+    }
+
+    private fun showChargingLogoLedDialog() {
+        ChargingLedProfileDialog.show(
+            activity = this,
+            title = "Charging Logo LED",
+            subtitle = "Logo LED profile used only while plugged in and charging.",
+            originalEnabled = prefs().getBoolean(ChargingLedState.LOGO_ENABLED_KEY, true),
+            originalEffect = prefs().getString(ChargingLedState.LOGO_EFFECT_KEY, "steady") ?: "steady",
+            originalColor = prefs().getInt(ChargingLedState.LOGO_COLOR_KEY, 1),
+            onSave = { enabled, effect, color ->
+                saveChargingLedProfile(
+                    ChargingLedState.LOGO_ENABLED_KEY,
+                    ChargingLedState.LOGO_EFFECT_KEY,
+                    ChargingLedState.LOGO_COLOR_KEY,
+                    enabled,
+                    effect,
+                    color
+                )
+            },
+            deps = chargingLedDialogDeps()
+        )
+    }
+
+    private fun showChargingShoulderLedDialog() {
+        ChargingLedProfileDialog.show(
+            activity = this,
+            title = "Charging Shoulder LEDs",
+            subtitle = "Shoulder LED profile used only while plugged in and charging.",
+            originalEnabled = prefs().getBoolean(ChargingLedState.SHOULDER_ENABLED_KEY, true),
+            originalEffect = prefs().getString(ChargingLedState.SHOULDER_EFFECT_KEY, "breathe") ?: "breathe",
+            originalColor = prefs().getInt(ChargingLedState.SHOULDER_COLOR_KEY, 8),
+            onSave = { enabled, effect, color ->
+                saveChargingLedProfile(
+                    ChargingLedState.SHOULDER_ENABLED_KEY,
+                    ChargingLedState.SHOULDER_EFFECT_KEY,
+                    ChargingLedState.SHOULDER_COLOR_KEY,
+                    enabled,
+                    effect,
+                    color
+                )
+            },
+            deps = chargingLedDialogDeps()
         )
     }
 

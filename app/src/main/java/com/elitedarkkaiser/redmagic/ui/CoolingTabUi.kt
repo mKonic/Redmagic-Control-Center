@@ -149,6 +149,8 @@ object CoolingTabUi {
         lateinit var smartPumpStatusView: TextView
         lateinit var smartPumpSpeedView: TextView
 
+        lateinit var pumpCard: LinearLayout
+
         val coolingCard = deps.sectionPanel().apply {
             addView(deps.sectionHeader("❄", "COOLING"))
             addView(tempText)
@@ -186,7 +188,7 @@ object CoolingTabUi {
             addView(deps.spacer(deps.dp(16)))
             addView(deps.spacer(deps.dp(16)))
 
-            val pumpCard = deps.sectionPanel().apply {
+            pumpCard = deps.sectionPanel().apply {
                 addView(deps.sectionHeader("◉", "PUMP"))
                 addView(deps.bodyText("Liquid cooling pump control with manual speed, auto temperature control, and live diagnostics."))
                 addView(deps.spacer(deps.dp(10)))

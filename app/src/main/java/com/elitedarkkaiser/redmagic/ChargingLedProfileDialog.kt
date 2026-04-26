@@ -93,13 +93,14 @@ internal object ChargingLedProfileDialog {
         lateinit var flashingBtn: Button
         lateinit var colorRow: LinearLayout
         lateinit var colorRow2: LinearLayout
+        var colorRowsReady = false
 
         fun refreshButtons() {
             steadyBtn.background = deps.roundedFill(if (effect == "steady") deps.panelPressed else Color.parseColor("#1E2633"), 999)
             breatheBtn.background = deps.roundedFill(if (effect == "breathe") deps.panelPressed else Color.parseColor("#1E2633"), 999)
             flashingBtn.background = deps.roundedFill(if (effect == "flashing") deps.panelPressed else Color.parseColor("#1E2633"), 999)
 
-            if (::colorRow.isInitialized) {
+            if (colorRowsReady) {
                 colorRow.getChildAt(0).background = deps.colorDotDrawable("#FF0000", color == 1)
                 colorRow.getChildAt(2).background = deps.colorDotDrawable("#FF8C00", color == 3)
                 colorRow.getChildAt(4).background = deps.colorDotDrawable("#FFD600", color == 4)
@@ -171,6 +172,8 @@ internal object ChargingLedProfileDialog {
         chargingColors.drop(4).forEach { (colorId, hex) ->
             addColor(colorRow2, colorId, hex)
         }
+
+        colorRowsReady = true
 
         val buttonRow = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL

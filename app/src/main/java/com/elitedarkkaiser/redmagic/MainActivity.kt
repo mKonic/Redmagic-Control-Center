@@ -1289,7 +1289,7 @@ if (!isSupportedDevice()) {
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
             fanPresetBubble = { h1, h2, h3, h4, value, selected, onClick ->
-                fanPresetBubble(h1, h2, h3, h4, presetValue = value, selectedOverride = selected, onClick = onClick)
+                fanPresetBubble(h1, h2, h3, h4, presetValue = value, selectedOverride = { selected }, onClick = onClick)
             }
         )
     }
@@ -1404,7 +1404,7 @@ if (!isSupportedDevice()) {
                 colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
                 colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
                 fanPresetBubble = { c1, c2, c3, c4, presetValue, onClick ->
-                    fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = chargingFanEffect == "preset:$presetValue", onClick = onClick)
+                    fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { chargingFanEffect == "preset:$presetValue" }, onClick = onClick)
                 }
             ),
             title = "Charging Fan LED",
@@ -1697,7 +1697,7 @@ if (!isSupportedDevice()) {
     private fun fanPresetBubble(
         vararg hexes: String,
         presetValue: String,
-        selectedOverride: Boolean? = null,
+        selectedOverride: (() -> Boolean)? = null,
         onClick: () -> Unit
     ): View {
         require(hexes.size == 4) { "fanPresetBubble requires exactly 4 colors" }
@@ -1751,7 +1751,7 @@ if (!isSupportedDevice()) {
 
                 canvas.restoreToCount(saveCount)
 
-                val selected = selectedOverride ?: (fanLedEffect == "preset:$presetValue")
+                val selected = selectedOverride?.invoke() ?: (fanLedEffect == "preset:$presetValue")
                 ringPaint.color = if (selected) {
                     Color.WHITE
                 } else {

@@ -46,19 +46,8 @@ class MainActivity : Activity() {
     }
 
     private fun formatDisplayTempFromF(tempF: Float?): String {
-        if (tempF == null) return "--"
-        return if (useFahrenheit) {
-            "${tempF.toInt()}°F"
-        } else {
-            "${((tempF - 32f) * 5f / 9f).toInt()}°C"
-        }
+        return TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)
     }
-
-
-    private lateinit var rootChip: TextView
-    private lateinit var fanChip: TextView
-    private lateinit var rpmChip: TextView
-    private lateinit var tempChip: TextView
 
     private lateinit var tempText: TextView
     private lateinit var curveStatusText: TextView

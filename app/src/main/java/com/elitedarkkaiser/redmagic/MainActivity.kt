@@ -78,6 +78,10 @@ class MainActivity : Activity() {
     private lateinit var coolingTab: LinearLayout
     private lateinit var controlsTab: LinearLayout
     private lateinit var lightingTab: LinearLayout
+    private var magicKeyStatusLabelRef: TextView? = null
+    private var dialogRefreshPump: (() -> Unit)? = null
+    private var dialogRefreshShoulderLed: (() -> Unit)? = null
+    private var dialogRefreshLogoLed: (() -> Unit)? = null
     private var gameModeAppsTextRef: TextView? = null
 
     private var smartPumpStatusView: TextView? = null

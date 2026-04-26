@@ -1316,25 +1316,82 @@ if (!isSupportedDevice()) {
     }
 
     private fun showChargingFanLedDialog() {
-        ChargingLedProfileDialog.show(
+        var chargingFanEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true)
+        var chargingFanEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady"
+        var chargingFanColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5)
+
+        FanLedDialogUi.showFanLedDialog(
             activity = this,
-            title = "Charging Fan LED",
-            subtitle = "Fan LED profile used only while plugged in and charging.",
-            originalEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true),
-            originalEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady",
-            originalColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5),
-            onSave = { enabled, effect, color ->
+            originalEnabled = chargingFanEnabled,
+            originalEffect = chargingFanEffect,
+            originalColor = chargingFanColor,
+            currentEnabled = { chargingFanEnabled },
+            currentEffect = { chargingFanEffect },
+            currentColor = { chargingFanColor },
+            setEnabled = { value -> chargingFanEnabled = value },
+            setEffect = { value -> chargingFanEffect = value },
+            setColor = { value -> chargingFanColor = value },
+            applyPreviewIfEnabled = {
+                if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
+                    saveChargingLedProfile(
+                        ChargingLedState.FAN_ENABLED_KEY,
+                        ChargingLedState.FAN_EFFECT_KEY,
+                        ChargingLedState.FAN_COLOR_KEY,
+                        chargingFanEnabled,
+                        chargingFanEffect,
+                        chargingFanColor
+                    )
+                }
+            },
+            applySelection = { effect, color ->
+                if (effect.startsWith("preset:")) {
+                    HardwareController.setFanLedEnabled(true)
+                    HardwareController.setFanLedStockPreset(effect.removePrefix("preset:"))
+                } else {
+                    HardwareController.setFanLedEffect(effect, color)
+                }
+            },
+            disableLed = { HardwareController.setFanLedEnabled(false) },
+            saveState = {
                 saveChargingLedProfile(
                     ChargingLedState.FAN_ENABLED_KEY,
                     ChargingLedState.FAN_EFFECT_KEY,
                     ChargingLedState.FAN_COLOR_KEY,
-                    enabled,
-                    effect,
-                    color
+                    chargingFanEnabled,
+                    chargingFanEffect,
+                    chargingFanColor
                 )
             },
-            deps = chargingLedDialogDeps(),
-            showFanPresets = true
+            startFanLedService = { startService(Intent(this, ChargingModeService::class.java)) },
+            stopFanLedService = { startService(Intent(this, ChargingModeService::class.java)) },
+            anyLedEnabled = { ChargingLedState.isEnabled(this) },
+            applyFanPreset = { value ->
+                chargingFanEnabled = true
+                chargingFanEffect = "preset:$value"
+                chargingFanColor = -1
+                HardwareController.setFanLedEnabled(true)
+                HardwareController.setFanLedStockPreset(value)
+            },
+            setDialogRefresh = { },
+            deps = FanLedDialogUi.Deps(
+                textPrimary = textPrimary,
+                textSecondary = textSecondary,
+                panelColor = panelColor,
+                borderColor = borderColor,
+                panelPressed = panelPressed,
+                accent = accent,
+                typeface = typeface,
+                dp = { value -> dp(value) },
+                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                roundedFill = { color, radius -> roundedFill(color, radius) },
+                space = { value -> space(value) },
+                filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
+                colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
+                colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
+                fanPresetBubble = { c1, c2, c3, c4, presetValue, onClick ->
+                    fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = chargingFanEffect == "preset:$presetValue", onClick = onClick)
+                }
+            )
         )
     }
 

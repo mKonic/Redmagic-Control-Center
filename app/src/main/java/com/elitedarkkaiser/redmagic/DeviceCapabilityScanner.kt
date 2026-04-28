@@ -18,7 +18,7 @@ data class DeviceCapabilityReport(
 
 object DeviceCapabilityScanner {
     private fun output(command: String): String {
-        return RootShell.execForOutput(command).trim()
+        return RootShell.execForOutput(command)?.trim().orEmpty()
     }
 
     private fun exists(path: String): Boolean {

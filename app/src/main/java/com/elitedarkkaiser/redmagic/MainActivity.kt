@@ -1091,7 +1091,10 @@ class MainActivity : Activity() {
                 openUsageStatsAccessSettings = { openUsageStatsAccessSettings() },
                 showGamePickerDialog = { showGamePickerDialog() },
                 updateGameModeStatusUI = { textView -> updateGameModeStatusUI(textView) },
-                openUrl = { url -> openUrl(url) }
+                openUrl = { url -> openUrl(url) },
+                deviceScanSummary = {
+                    prefs().getString("device_scan_summary", "Device scan pending…") ?: "Device scan pending…"
+                }
             )
         )
 

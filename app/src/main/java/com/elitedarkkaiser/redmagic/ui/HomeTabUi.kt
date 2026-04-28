@@ -193,6 +193,11 @@ object HomeTabUi {
             addView(statusScroller)
         }
 
+        val diagnosticsCard = deps.sectionPanel().apply {
+            addView(deps.sectionHeader("⌁", "DIAGNOSTICS"))
+            addView(deps.bodyText(deps.deviceScanSummary()))
+        }
+
         container.addView(welcomeCard)
 
         val dashboardCard = deps.sectionPanel().apply {
@@ -222,6 +227,7 @@ object HomeTabUi {
         container.addView(summaryCard)
         container.addView(infoCard)
         container.addView(statusCard)
+        container.addView(diagnosticsCard)
 
         return Result(
             view = container,

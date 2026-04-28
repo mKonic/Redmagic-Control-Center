@@ -315,11 +315,7 @@ class MainActivity : Activity() {
             return
         }
 
-        if (shouldSkipSupportedDialog()) {
-            launchMainUi()
-        } else {
-            showSupportedDeviceDialog()
-        }
+        launchMainUi()
     }
 
 
@@ -360,11 +356,7 @@ class MainActivity : Activity() {
 
                 openUsageStatsAccessSettings()
 
-                if (shouldSkipSupportedDialog()) {
-                    launchMainUi()
-                } else {
-                    showSupportedDeviceDialog()
-                }
+                launchMainUi()
             }
             .show()
     }

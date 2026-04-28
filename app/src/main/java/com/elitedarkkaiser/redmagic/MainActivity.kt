@@ -36,6 +36,7 @@ class MainActivity : Activity() {
 
     private var useFahrenheit = true
     private val tempUnitPrefKey = "temp_unit_fahrenheit"
+    private val firstInstallPermissionsPromptedKey = "first_install_permissions_prompted"
 
     private fun isUseFahrenheitSaved(): Boolean {
         return prefs().getBoolean(tempUnitPrefKey, true)
@@ -312,11 +313,46 @@ if (!isSupportedDevice()) {
             return
         }
 
+        if (!prefs().getBoolean(firstInstallPermissionsPromptedKey, false)) {
+            showFirstInstallPermissionsDialog()
+            return
+        }
+
         if (shouldSkipSupportedDialog()) {
             launchMainUi()
         } else {
             showSupportedDeviceDialog()
         }
+    }
+
+    private fun showFirstInstallPermissionsDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("App permissions setup")
+            .setMessage(
+                "RedMagic Control needs notification permission for foreground services and Usage Access for Game Mode detection. " +
+                    "These are requested now so permission prompts do not appear later throughout the UI. " +
+                    "\n\nAfter granting Usage Access, return to the app."
+            )
+            .setCancelable(false)
+            .setPositiveButton("Start setup") { _, _ ->
+                prefs().edit().putBoolean(firstInstallPermissionsPromptedKey, true).apply()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestPermissions(
+                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                        4101
+                    )
+                }
+
+                openUsageStatsAccessSettings()
+
+                if (shouldSkipSupportedDialog()) {
+                    launchMainUi()
+                } else {
+                    showSupportedDeviceDialog()
+                }
+            }
+            .show()
     }
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)

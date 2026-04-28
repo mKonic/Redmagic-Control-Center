@@ -303,10 +303,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         
         initDefaultTriggerMappings()
-if (!isSupportedDevice()) {
-            showUnsupportedDeviceDialog()
-            return
-        }
+        runBackgroundDeviceScan()
 
         if (!RootShell.hasRoot()) {
             showRootRequiredDialog()
@@ -323,6 +320,23 @@ if (!isSupportedDevice()) {
         } else {
             showSupportedDeviceDialog()
         }
+    }
+
+
+    private fun runBackgroundDeviceScan() {
+        Thread {
+            val report = DeviceCapabilityScanner.scan()
+            prefs().edit()
+                .putString("device_scan_model", report.model)
+                .putString("device_scan_summary", report.summary)
+                .putBoolean("device_scan_supported_model", report.isKnownRedmagic11Pro)
+                .putBoolean("device_scan_fan_available", report.fanAvailable)
+                .putBoolean("device_scan_pump_available", report.pumpAvailable)
+                .putBoolean("device_scan_led_available", report.ledAvailable)
+                .putBoolean("device_scan_triggers_available", report.triggersAvailable)
+                .putLong("device_scan_last_run", System.currentTimeMillis())
+                .apply()
+        }.start()
     }
 
     private fun showFirstInstallPermissionsDialog() {

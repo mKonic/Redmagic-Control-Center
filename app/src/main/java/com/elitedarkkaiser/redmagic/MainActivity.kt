@@ -124,18 +124,6 @@ class MainActivity : Activity() {
     private val shoulderLedColorKey = "shoulder_led_color"
 
 
-    private fun getGameModePackagesSaved(): Set<String> {
-        return getSavedGamePackagesStorage(this)
-    }
-
-    private fun saveGameModePackages(packages: Set<String>) {
-        setSavedGamePackagesStorage(this, packages)
-    }
-
-    private fun gameModeAppsSummary(): String {
-        return gameModeAppsSummaryStorage(this)
-    }
-
     private fun getSavedGameModeProfile(): GameModeProfile {
         return getSavedGameModeProfileStorage(this)
     }
@@ -222,7 +210,7 @@ class MainActivity : Activity() {
     }
 
     private fun refreshGameModeCardUi() {
-        gameModeAppsTextRef?.text = gameModeAppsSummary()
+        gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
     }
 
     private fun showGameModeAppPicker() {
@@ -1202,7 +1190,7 @@ class MainActivity : Activity() {
                 showShoulderLedDialog = { showShoulderLedDialog() },
                 showGameModeAppPicker = { showGameModeAppPicker() },
                 showGameModeProfileDialog = { showGameModeProfileDialog() },
-                gameModeAppsSummary = { gameModeAppsSummary() },
+                gameModeAppsSummary = { gameModeAppsSummaryStorage(this) },
 
                 getChargingLedEnabled = { ChargingLedState.isEnabled(this) },
                 setChargingLedEnabled = { enabled ->

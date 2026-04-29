@@ -122,13 +122,9 @@ class MainActivity : Activity() {
     private val shoulderLedEnabledKey = "shoulder_led_enabled"
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
-    private fun refreshGameModeCardUi() {
-        gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
-    }
-
     private fun showGameModeAppPicker() {
         showGamePickerDialogUI(this) {
-            refreshGameModeCardUi()
+            gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
         }
     }
 
@@ -2200,7 +2196,7 @@ class MainActivity : Activity() {
 
     private fun showGamePickerDialog() {
         showGamePickerDialogUI(this) {
-            refreshGameModeCardUi()
+            gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
         }
     }
 

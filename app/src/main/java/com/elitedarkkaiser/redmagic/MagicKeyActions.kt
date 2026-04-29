@@ -14,4 +14,14 @@ object MagicKeyActions {
             else -> "Unknown"
         }
     }
+    fun resolveAppLabel(context: android.content.Context, pkg: String?): String {
+        if (pkg.isNullOrBlank()) return "Choose App"
+        return try {
+            val appInfo = context.packageManager.getApplicationInfo(pkg, 0)
+            context.packageManager.getApplicationLabel(appInfo).toString()
+        } catch (_: Throwable) {
+            pkg
+        }
+    }
+
 }

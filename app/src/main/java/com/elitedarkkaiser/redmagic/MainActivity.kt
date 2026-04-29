@@ -246,16 +246,6 @@ class MainActivity : Activity() {
         prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
     }
 
-    private fun resolveMagicKeyAppLabel(pkg: String?): String {
-        if (pkg.isNullOrBlank()) return "Choose App"
-        return try {
-            val appInfo = packageManager.getApplicationInfo(pkg, 0)
-            packageManager.getApplicationLabel(appInfo).toString()
-        } catch (_: Throwable) {
-            pkg
-        }
-    }
-
     private fun applyStockMagicKeyMode(
         label: String,
         applyMode: () -> Boolean,
@@ -982,7 +972,7 @@ class MainActivity : Activity() {
                 disableMagicKeyMode = { statusLabel, sliderButton ->
                     disableMagicKeyMode(statusLabel, sliderButton)
                 },
-                resolveMagicKeyAppLabel = { pkg -> resolveMagicKeyAppLabel(pkg) },
+                resolveMagicKeyAppLabel = { pkg -> MagicKeyActions.resolveAppLabel(this, pkg) },
                 savedMagicKeyAppPackage = { savedMagicKeyAppPackageStorage(this) },
                 showMagicKeyAppPicker = { button -> showMagicKeyAppPicker(button) }
             )

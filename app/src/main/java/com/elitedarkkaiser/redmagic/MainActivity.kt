@@ -246,14 +246,6 @@ class MainActivity : Activity() {
         prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
     }
 
-    private fun savedMagicKeyAppPackage(): String? {
-        return prefs().getString(AppPrefs.MAGIC_KEY_APP_PACKAGE, null)
-    }
-
-    private fun saveMagicKeyAppPackage(pkg: String?) {
-        prefs().edit().putString(AppPrefs.MAGIC_KEY_APP_PACKAGE, pkg).apply()
-    }
-
     private fun resolveMagicKeyAppLabel(pkg: String?): String {
         if (pkg.isNullOrBlank()) return "Choose App"
         return try {
@@ -286,7 +278,7 @@ class MainActivity : Activity() {
     ) {
         val ok = applyMode()
         if (ok) {
-            saveMagicKeyAppPackage(null)
+            saveMagicKeyAppPackageStorage(this, null)
             sliderButton?.text = "MAGIC KEY APP: Choose App"
             statusLabel.text = "Current: $label"
             refreshStatus()
@@ -304,7 +296,7 @@ class MainActivity : Activity() {
     ) {
         val ok = HardwareController.setSliderLaunchApp(pkg)
         if (ok) {
-            saveMagicKeyAppPackage(pkg)
+            saveMagicKeyAppPackageStorage(this, pkg)
             sliderButton.text = "MAGIC KEY APP: $label"
             statusLabel.text = "Current: Launch App"
             refreshStatus()
@@ -317,7 +309,7 @@ class MainActivity : Activity() {
     private fun disableMagicKeyMode(statusLabel: TextView, sliderButton: Button? = null) {
         val ok = HardwareController.disableSliderSystemHandling()
         if (ok) {
-            saveMagicKeyAppPackage(null)
+            saveMagicKeyAppPackageStorage(this, null)
             sliderButton?.text = "MAGIC KEY APP: Choose App"
             statusLabel.text = "Current: Disabled"
             refreshStatus()
@@ -1005,7 +997,7 @@ class MainActivity : Activity() {
                     disableMagicKeyMode(statusLabel, sliderButton)
                 },
                 resolveMagicKeyAppLabel = { pkg -> resolveMagicKeyAppLabel(pkg) },
-                savedMagicKeyAppPackage = { savedMagicKeyAppPackage() },
+                savedMagicKeyAppPackage = { savedMagicKeyAppPackageStorage(this) },
                 showMagicKeyAppPicker = { button -> showMagicKeyAppPicker(button) }
             )
         )

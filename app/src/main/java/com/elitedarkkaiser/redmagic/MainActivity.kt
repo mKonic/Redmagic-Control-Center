@@ -1678,16 +1678,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun titleText(text: String): TextView {
-        return TextView(this).apply {
-            this.text = text
-            textSize = 22f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-            letterSpacing = 0.04f
-        }
-    }
-
     private fun subtitleText(text: String): TextView {
         return TextView(this).apply {
             this.text = text

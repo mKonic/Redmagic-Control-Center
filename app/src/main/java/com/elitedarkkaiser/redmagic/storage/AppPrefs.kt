@@ -42,7 +42,6 @@ class AppPrefs(context: Context) {
     companion object {
         const val PREFS_NAME = "redmagic_hw_controls_prefs"
 
-        const val SKIP_SUPPORTED_DIALOG = "skip_supported_dialog"
         const val SELECTED_CURVE = "selected_curve"
         const val AUTO_FAN_ENABLED = "auto_fan_enabled"
         const val REALTIME_PREVIEW_ENABLED = "realtime_preview_enabled"
@@ -68,6 +67,5 @@ class AppPrefs(context: Context) {
         const val MAGIC_KEY_APP_PACKAGE = "magic_key_app_package"
 
         const val GAME_MODE_PACKAGES = "game_mode_packages"
-        const val GAME_MODE_NORMAL_PROFILE = "game_mode_normal_profile"
     }
 }

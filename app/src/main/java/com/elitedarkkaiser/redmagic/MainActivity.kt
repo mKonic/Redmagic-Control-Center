@@ -32,6 +32,7 @@ import android.animation.ValueAnimator
 import android.animation.ArgbEvaluator
 import android.widget.Toast
 import com.elitedarkkaiser.redmagic.storage.AppPrefs
+import com.elitedarkkaiser.redmagic.state.LedState
 
 class MainActivity : Activity() {
 
@@ -275,16 +276,8 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun isFanLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.FAN_LED_ENABLED, false)
-    }
-
-    private fun savedFanLedEffect(): String {
-        return prefs().getString(AppPrefs.FAN_LED_EFFECT, "steady") ?: "steady"
-    }
-
-    private fun savedFanLedColor(): Int {
-        return prefs().getInt(AppPrefs.FAN_LED_COLOR, 5)
+    private fun savedFanLedState(): LedState {
+        return savedFanLedStateStorage(this)
     }
 
     private fun applyFanLedSelection(effect: String, color: Int) {
@@ -296,69 +289,44 @@ class MainActivity : Activity() {
     }
 
     private fun saveFanLedState() {
-        prefs().edit()
-            .putBoolean(AppPrefs.FAN_LED_ENABLED, fanLedEnabled)
-            .putString(AppPrefs.FAN_LED_EFFECT, fanLedEffect)
-            .putInt(AppPrefs.FAN_LED_COLOR, fanLedColor)
-            .commit()
+        saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor))
     }
 
     private fun applySavedFanLedStateOnLaunch() {
-        fanLedEnabled = isFanLedEnabledSaved()
-        fanLedEffect = savedFanLedEffect()
-        fanLedColor = savedFanLedColor()
+        val state = savedFanLedState()
+        fanLedEnabled = state.enabled
+        fanLedEffect = state.effect
+        fanLedColor = state.color
     }
 
-    private fun isLogoLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.LOGO_LED_ENABLED, true)
-    }
-
-    private fun savedLogoLedEffect(): String {
-        return prefs().getString(AppPrefs.LOGO_LED_EFFECT, "steady") ?: "steady"
-    }
-
-    private fun savedLogoLedColor(): Int {
-        return prefs().getInt(AppPrefs.LOGO_LED_COLOR, 1)
+    private fun savedLogoLedState(): LedState {
+        return savedLogoLedStateStorage(this)
     }
 
     private fun saveLogoLedState() {
-        prefs().edit()
-            .putBoolean(AppPrefs.LOGO_LED_ENABLED, logoLedEnabled)
-            .putString(AppPrefs.LOGO_LED_EFFECT, logoLedEffect)
-            .putInt(AppPrefs.LOGO_LED_COLOR, logoLedColor)
-            .commit()
+        saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor))
     }
 
     private fun applySavedLogoLedStateOnLaunch() {
-        logoLedEnabled = isLogoLedEnabledSaved()
-        logoLedEffect = savedLogoLedEffect()
-        logoLedColor = savedLogoLedColor()
+        val state = savedLogoLedState()
+        logoLedEnabled = state.enabled
+        logoLedEffect = state.effect
+        logoLedColor = state.color
     }
 
-    private fun isShoulderLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.SHOULDER_LED_ENABLED, true)
-    }
-
-    private fun savedShoulderLedEffect(): String {
-        return prefs().getString(AppPrefs.SHOULDER_LED_EFFECT, "breathe") ?: "breathe"
-    }
-
-    private fun savedShoulderLedColor(): Int {
-        return prefs().getInt(AppPrefs.SHOULDER_LED_COLOR, 8)
+    private fun savedShoulderLedState(): LedState {
+        return savedShoulderLedStateStorage(this)
     }
 
     private fun saveShoulderLedState() {
-        prefs().edit()
-            .putBoolean(AppPrefs.SHOULDER_LED_ENABLED, shoulderLedEnabled)
-            .putString(AppPrefs.SHOULDER_LED_EFFECT, shoulderLedEffect)
-            .putInt(AppPrefs.SHOULDER_LED_COLOR, shoulderLedColor)
-            .commit()
+        saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor))
     }
 
     private fun applySavedShoulderLedStateOnLaunch() {
-        shoulderLedEnabled = isShoulderLedEnabledSaved()
-        shoulderLedEffect = savedShoulderLedEffect()
-        shoulderLedColor = savedShoulderLedColor()
+        val state = savedShoulderLedState()
+        shoulderLedEnabled = state.enabled
+        shoulderLedEffect = state.effect
+        shoulderLedColor = state.color
     }
 
     private fun isPumpEnabledSaved(): Boolean {

@@ -124,16 +124,8 @@ class MainActivity : Activity() {
     private val shoulderLedColorKey = "shoulder_led_color"
 
 
-    private fun getSavedGameModeProfile(): GameModeProfile {
-        return getSavedGameModeProfileStorage(this)
-    }
-
-    private fun saveGameModeProfile(profile: GameModeProfile) {
-        saveGameModeProfileStorage(this, profile)
-    }
-
     private fun applySavedGameModeProfileNow() {
-        val p = getSavedGameModeProfile()
+        val p = getSavedGameModeProfileStorage(this)
 
         if (p.fanEnabled) {
             HardwareController.setFanLevel(p.fanLevel)
@@ -1398,7 +1390,7 @@ class MainActivity : Activity() {
     private fun showGameModeProfileDialog() {
         GameModeUi.showGameModeProfileDialog(
             activity = this,
-            current = getSavedGameModeProfile(),
+            current = getSavedGameModeProfileStorage(this),
             deps = GameModeUi.Deps(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,
@@ -1416,7 +1408,7 @@ class MainActivity : Activity() {
                 colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             ),
             onSaveProfile = { profile ->
-                saveGameModeProfile(profile)
+                saveGameModeProfileStorage(this, profile)
                 applySavedGameModeProfileNow()
                 startGameModeService()
             }

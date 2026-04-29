@@ -52,4 +52,32 @@ object MagicKeyActions {
         }
     }
 
+    fun applyLaunchAppMode(
+        activity: android.app.Activity,
+        pkg: String,
+        label: String,
+        statusLabel: android.widget.TextView,
+        sliderButton: android.widget.Button,
+        refreshStatus: () -> Unit
+    ) {
+        val ok = HardwareController.setSliderLaunchApp(pkg)
+        if (ok) {
+            saveMagicKeyAppPackageStorage(activity, pkg)
+            sliderButton.text = "MAGIC KEY APP: $label"
+            statusLabel.text = "Current: Launch App"
+            refreshStatus()
+            android.widget.Toast.makeText(
+                activity,
+                "Magic Key set to launch $label",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            android.widget.Toast.makeText(
+                activity,
+                "Failed to set Magic Key app",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
 }

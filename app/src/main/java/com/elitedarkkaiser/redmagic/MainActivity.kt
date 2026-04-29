@@ -246,24 +246,6 @@ class MainActivity : Activity() {
         prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
     }
 
-    private fun applyLaunchAppMagicKeyMode(
-        pkg: String,
-        label: String,
-        statusLabel: TextView,
-        sliderButton: Button
-    ) {
-        val ok = HardwareController.setSliderLaunchApp(pkg)
-        if (ok) {
-            saveMagicKeyAppPackageStorage(this, pkg)
-            sliderButton.text = "MAGIC KEY APP: $label"
-            statusLabel.text = "Current: Launch App"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to launch $label", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed to set Magic Key app", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun disableMagicKeyMode(statusLabel: TextView, sliderButton: Button? = null) {
         val ok = HardwareController.disableSliderSystemHandling()
         if (ok) {
@@ -283,11 +265,13 @@ class MainActivity : Activity() {
             targetButton = targetButton,
             statusLabel = magicKeyStatusLabelRef,
             applyLaunchAppMagicKeyMode = { pkg, label, statusLabel, sliderButton ->
-                applyLaunchAppMagicKeyMode(
+                MagicKeyActions.applyLaunchAppMode(
+                    activity = this,
                     pkg = pkg,
                     label = label,
                     statusLabel = statusLabel,
-                    sliderButton = sliderButton
+                    sliderButton = sliderButton,
+                    refreshStatus = { refreshStatus() }
                 )
             },
             deps = MagicKeyAppPickerDialog.Deps(

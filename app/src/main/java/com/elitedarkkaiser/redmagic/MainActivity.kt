@@ -317,43 +317,31 @@ class MainActivity : Activity() {
         shoulderLedColor = state.color
     }
 
-    private fun isPumpEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.PUMP_ENABLED, false)
-    }
-
-    private fun savedPumpProfile(): String {
-        return prefs().getString(AppPrefs.PUMP_PROFILE, "quick") ?: "quick"
-    }
-
     private fun savePumpState() {
-        prefs().edit()
-            .putBoolean(AppPrefs.PUMP_ENABLED, pumpEnabled)
-            .putString(AppPrefs.PUMP_PROFILE, pumpProfile)
-            .commit()
+        savePumpStateStorage(this, pumpEnabled, pumpProfile)
     }
 
     private fun applySavedPumpStateOnLaunch() {
-        pumpEnabled = isPumpEnabledSaved()
-        pumpProfile = savedPumpProfile().lowercase()
-        if (pumpProfile != "slow" && pumpProfile != "medium" && pumpProfile != "quick" && pumpProfile != "experimental") {
-            pumpProfile = "quick"
-        }
+        val state = savedPumpStateStorage(this)
+        pumpEnabled = state.enabled
+        pumpProfile = state.profile
+        autoPumpEnabled = state.autoEnabled
     }
 
     private fun isPumpExperimentalAccepted(): Boolean {
-        return prefs().getBoolean(AppPrefs.PUMP_EXPERIMENTAL_ACCEPTED, false)
+        return savedPumpStateStorage(this).experimentalAccepted
     }
 
     private fun setPumpExperimentalAccepted(accepted: Boolean) {
-        prefs().edit().putBoolean(AppPrefs.PUMP_EXPERIMENTAL_ACCEPTED, accepted).commit()
+        setPumpExperimentalAcceptedStorage(this, accepted)
     }
 
     private fun isAutoPumpEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.AUTO_PUMP_ENABLED, false)
+        return savedPumpStateStorage(this).autoEnabled
     }
 
     private fun saveAutoPumpState() {
-        prefs().edit().putBoolean(AppPrefs.AUTO_PUMP_ENABLED, autoPumpEnabled).commit()
+        saveAutoPumpStateStorage(this, autoPumpEnabled)
     }
 
     private fun buildAutoPumpStatusText(): Pair<String, String> {

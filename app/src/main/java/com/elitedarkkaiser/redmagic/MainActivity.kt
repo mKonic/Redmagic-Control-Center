@@ -108,7 +108,6 @@ class MainActivity : Activity() {
     private var autoPumpEnabled = false
 
     private val prefsName = "redmagic_hw_controls_prefs"
-    private val skipSupportedDialogKey = "skip_supported_dialog"
     private val autoFanEnabledKey = "auto_fan_enabled"
     private val realTimePreviewEnabledKey = "realtime_preview_enabled"
     private val selectedCurveKey = "selected_curve"
@@ -394,14 +393,6 @@ class MainActivity : Activity() {
         startService(Intent(this, GameModeService::class.java))
     }
 
-
-    private fun shouldSkipSupportedDialog(): Boolean {
-        return prefs().getBoolean(skipSupportedDialogKey, false)
-    }
-
-    private fun setSkipSupportedDialog(skip: Boolean) {
-        prefs().edit().putBoolean(skipSupportedDialogKey, skip).apply()
-    }
 
     private fun setSelectedCurveSaved(value: String) {
         prefs().edit().putString(selectedCurveKey, value).apply()

@@ -123,66 +123,25 @@ class MainActivity : Activity() {
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
 
-    private val gameModePackagesKey = "game_mode_packages"
-    private val gameModeFanEnabledKey = "game_mode_fan_enabled"
-    private val gameModeFanLevelKey = "game_mode_fan_level"
-    private val gameModePumpEnabledKey = "game_mode_pump_enabled"
-    private val gameModePumpProfileKey = "game_mode_pump_profile"
-    private val gameModeFanLedEnabledKey = "game_mode_fan_led_enabled"
-    private val gameModeFanLedEffectKey = "game_mode_fan_led_effect"
-    private val gameModeFanLedColorKey = "game_mode_fan_led_color"
 
     private fun getGameModePackagesSaved(): Set<String> {
-        return prefs().getStringSet(gameModePackagesKey, emptySet()) ?: emptySet()
+        return getSavedGamePackagesStorage(this)
     }
 
     private fun saveGameModePackages(packages: Set<String>) {
-        prefs().edit().putStringSet(gameModePackagesKey, packages).apply()
+        setSavedGamePackagesStorage(this, packages)
     }
 
     private fun gameModeAppsSummary(): String {
-        val count = getGameModePackagesSaved().size
-        return when {
-            count <= 0 -> "No games selected"
-            count == 1 -> "1 game selected"
-            else -> "$count games selected"
-        }
+        return gameModeAppsSummaryStorage(this)
     }
 
     private fun getSavedGameModeProfile(): GameModeProfile {
-        return GameModeProfile(
-            fanEnabled = prefs().getBoolean(gameModeFanEnabledKey, true),
-            fanLevel = prefs().getInt(gameModeFanLevelKey, 3),
-            pumpEnabled = prefs().getBoolean(gameModePumpEnabledKey, false),
-            pumpProfile = prefs().getString(gameModePumpProfileKey, "quick") ?: "quick",
-            fanLedEnabled = prefs().getBoolean(gameModeFanLedEnabledKey, true),
-            fanLedEffect = prefs().getString(gameModeFanLedEffectKey, "steady") ?: "steady",
-            fanLedColor = prefs().getInt(gameModeFanLedColorKey, 5),
-            logoLedEnabled = prefs().getBoolean("game_mode_logo_led_enabled", true),
-            logoLedEffect = prefs().getString("game_mode_logo_led_effect", "steady") ?: "steady",
-            logoLedColor = prefs().getInt("game_mode_logo_led_color", 1),
-            shoulderLedEnabled = prefs().getBoolean("game_mode_shoulder_led_enabled", true),
-            shoulderLedEffect = prefs().getString("game_mode_shoulder_led_effect", "breathe") ?: "breathe",
-            shoulderLedColor = prefs().getInt("game_mode_shoulder_led_color", 8)
-        )
+        return getSavedGameModeProfileStorage(this)
     }
 
     private fun saveGameModeProfile(profile: GameModeProfile) {
-        prefs().edit()
-            .putBoolean(gameModeFanEnabledKey, profile.fanEnabled)
-            .putInt(gameModeFanLevelKey, profile.fanLevel)
-            .putBoolean(gameModePumpEnabledKey, profile.pumpEnabled)
-            .putString(gameModePumpProfileKey, profile.pumpProfile)
-            .putBoolean(gameModeFanLedEnabledKey, profile.fanLedEnabled)
-            .putString(gameModeFanLedEffectKey, profile.fanLedEffect)
-            .putInt(gameModeFanLedColorKey, profile.fanLedColor)
-            .putBoolean("game_mode_logo_led_enabled", profile.logoLedEnabled)
-            .putString("game_mode_logo_led_effect", profile.logoLedEffect)
-            .putInt("game_mode_logo_led_color", profile.logoLedColor)
-            .putBoolean("game_mode_shoulder_led_enabled", profile.shoulderLedEnabled)
-            .putString("game_mode_shoulder_led_effect", profile.shoulderLedEffect)
-            .putInt("game_mode_shoulder_led_color", profile.shoulderLedColor)
-            .apply()
+        saveGameModeProfileStorage(this, profile)
     }
 
     private fun applySavedGameModeProfileNow() {
@@ -241,11 +200,7 @@ class MainActivity : Activity() {
 
 
     private fun gameModeProfileSummary(): String {
-        val p = getSavedGameModeProfile()
-        val fanText = if (p.fanEnabled) "Fan ${p.fanLevel}" else "Fan Off"
-        val pumpText = if (p.pumpEnabled) "Pump ${p.pumpProfile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}" else "Pump Off"
-        val ledText = if (p.fanLedEnabled) "Fan LED ${p.fanLedEffect}" else "Fan LED Off"
-        return "$fanText • $pumpText • $ledText"
+        return gameModeProfileSummaryStorage(this)
     }
 
     private data class GameAppEntry(

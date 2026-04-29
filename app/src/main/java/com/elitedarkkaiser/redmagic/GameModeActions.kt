@@ -201,4 +201,39 @@ internal object GameModeActions {
         onColorChanged(id)
         refreshColorDots()
     }
+    fun applyProfileNow(
+        profile: GameModeProfile,
+        applyFanLed: (String, Int) -> Unit
+    ) {
+        if (profile.fanEnabled) {
+            HardwareController.setFanLevel(profile.fanLevel)
+        } else {
+            HardwareController.enableFan(false)
+        }
+
+        if (profile.pumpEnabled) {
+            HardwareController.setPumpProfile(profile.pumpProfile)
+        } else {
+            HardwareController.enablePump(false)
+        }
+
+        if (profile.fanLedEnabled) {
+            applyFanLed(profile.fanLedEffect, profile.fanLedColor)
+        } else {
+            HardwareController.setFanLedEnabled(false)
+        }
+
+        if (profile.logoLedEnabled) {
+            HardwareController.setLogoLedEffect(profile.logoLedEffect, profile.logoLedColor)
+        } else {
+            HardwareController.setLogoLedEnabled(false)
+        }
+
+        if (profile.shoulderLedEnabled) {
+            HardwareController.setShoulderLedEffect(profile.shoulderLedEffect, profile.shoulderLedColor)
+        } else {
+            HardwareController.setShoulderLedEnabled(false)
+        }
+    }
+
 }

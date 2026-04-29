@@ -122,42 +122,6 @@ class MainActivity : Activity() {
     private val shoulderLedEnabledKey = "shoulder_led_enabled"
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
-
-
-    private fun applySavedGameModeProfileNow() {
-        val p = getSavedGameModeProfileStorage(this)
-
-        if (p.fanEnabled) {
-            HardwareController.setFanLevel(p.fanLevel)
-        } else {
-            HardwareController.enableFan(false)
-        }
-
-        if (p.pumpEnabled) {
-            HardwareController.setPumpProfile(p.pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
-
-        if (p.fanLedEnabled) {
-            applyFanLedSelection(p.fanLedEffect, p.fanLedColor)
-        } else {
-            HardwareController.setFanLedEnabled(false)
-        }
-
-        if (p.logoLedEnabled) {
-            HardwareController.setLogoLedEffect(p.logoLedEffect, p.logoLedColor)
-        } else {
-            HardwareController.setLogoLedEnabled(false)
-        }
-
-        if (p.shoulderLedEnabled) {
-            HardwareController.setShoulderLedEffect(p.shoulderLedEffect, p.shoulderLedColor)
-        } else {
-            HardwareController.setShoulderLedEnabled(false)
-        }
-    }
-
     private fun refreshGameModeCardUi() {
         gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
     }
@@ -1388,7 +1352,7 @@ class MainActivity : Activity() {
             ),
             onSaveProfile = { profile ->
                 saveGameModeProfileStorage(this, profile)
-                applySavedGameModeProfileNow()
+                GameModeActions.applyProfileNow(getSavedGameModeProfileStorage(this), applyFanLed = { effect, color -> applyFanLedSelection(effect, color) })
                 startGameModeService()
             }
         )

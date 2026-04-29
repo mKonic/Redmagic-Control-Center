@@ -24,4 +24,32 @@ object MagicKeyActions {
         }
     }
 
+    fun applyStockMode(
+        activity: android.app.Activity,
+        label: String,
+        applyMode: () -> Boolean,
+        statusLabel: android.widget.TextView,
+        sliderButton: android.widget.Button? = null,
+        refreshStatus: () -> Unit
+    ) {
+        val ok = applyMode()
+        if (ok) {
+            saveMagicKeyAppPackageStorage(activity, null)
+            sliderButton?.text = "MAGIC KEY APP: Choose App"
+            statusLabel.text = "Current: $label"
+            refreshStatus()
+            android.widget.Toast.makeText(
+                activity,
+                "Magic Key set to $label",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            android.widget.Toast.makeText(
+                activity,
+                "Failed to set Magic Key to $label",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
 }

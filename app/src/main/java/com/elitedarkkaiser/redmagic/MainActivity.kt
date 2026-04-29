@@ -246,24 +246,6 @@ class MainActivity : Activity() {
         prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
     }
 
-    private fun applyStockMagicKeyMode(
-        label: String,
-        applyMode: () -> Boolean,
-        statusLabel: TextView,
-        sliderButton: Button? = null
-    ) {
-        val ok = applyMode()
-        if (ok) {
-            saveMagicKeyAppPackageStorage(this, null)
-            sliderButton?.text = "MAGIC KEY APP: Choose App"
-            statusLabel.text = "Current: $label"
-            refreshStatus()
-            Toast.makeText(this, "Magic Key set to $label", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Failed to set Magic Key to $label", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun applyLaunchAppMagicKeyMode(
         pkg: String,
         label: String,
@@ -967,7 +949,14 @@ class MainActivity : Activity() {
                 refreshStatus = { refreshStatus() },
                 readMagicKeyModeLabel = { MagicKeyActions.readModeLabel() },
                 applyStockMagicKeyMode = { label, action, statusLabel, sliderButton ->
-                    applyStockMagicKeyMode(label, action, statusLabel, sliderButton)
+                    MagicKeyActions.applyStockMode(
+                        activity = this,
+                        label = label,
+                        applyMode = action,
+                        statusLabel = statusLabel,
+                        sliderButton = sliderButton,
+                        refreshStatus = { refreshStatus() }
+                    )
                 },
                 disableMagicKeyMode = { statusLabel, sliderButton ->
                     disableMagicKeyMode(statusLabel, sliderButton)

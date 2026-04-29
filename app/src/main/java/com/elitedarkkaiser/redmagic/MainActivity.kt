@@ -40,11 +40,11 @@ class MainActivity : Activity() {
     private val firstInstallPermissionsPromptedKey = "first_install_permissions_prompted"
 
     private fun isUseFahrenheitSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.TEMP_UNIT_FAHRENHEIT, true)
+        return isUseFahrenheitStorage(this)
     }
 
     private fun saveUseFahrenheit(useF: Boolean) {
-        prefs().edit().putBoolean(AppPrefs.TEMP_UNIT_FAHRENHEIT, useF).apply()
+        saveUseFahrenheitStorage(this, useF)
     }
 
     private fun formatDisplayTempFromF(tempF: Float?): String {

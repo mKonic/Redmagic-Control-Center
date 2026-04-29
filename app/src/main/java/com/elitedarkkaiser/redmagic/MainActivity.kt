@@ -191,24 +191,6 @@ class MainActivity : Activity() {
         return gameModeProfileSummaryStorage(this)
     }
 
-    private data class GameAppEntry(
-        val label: String,
-        val packageName: String
-    )
-
-    private fun getLaunchableApps(): List<GameAppEntry> {
-        return packageManager.getInstalledApplications(0)
-            .mapNotNull { appInfo ->
-                val pkg = appInfo.packageName ?: return@mapNotNull null
-                if (pkg == packageName) return@mapNotNull null
-                val label = packageManager.getApplicationLabel(appInfo)?.toString()?.trim().orEmpty()
-                if (label.isBlank()) return@mapNotNull null
-                GameAppEntry(label, pkg)
-            }
-            .distinctBy { it.packageName }
-            .sortedBy { it.label.lowercase() }
-    }
-
     private fun refreshGameModeCardUi() {
         gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
     }

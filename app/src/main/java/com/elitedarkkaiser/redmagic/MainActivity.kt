@@ -36,15 +36,14 @@ import com.elitedarkkaiser.redmagic.storage.AppPrefs
 class MainActivity : Activity() {
 
     private var useFahrenheit = true
-    private val tempUnitPrefKey = "temp_unit_fahrenheit"
     private val firstInstallPermissionsPromptedKey = "first_install_permissions_prompted"
 
     private fun isUseFahrenheitSaved(): Boolean {
-        return prefs().getBoolean(tempUnitPrefKey, true)
+        return prefs().getBoolean(AppPrefs.TEMP_UNIT_FAHRENHEIT, true)
     }
 
     private fun saveUseFahrenheit(useF: Boolean) {
-        prefs().edit().putBoolean(tempUnitPrefKey, useF).apply()
+        prefs().edit().putBoolean(AppPrefs.TEMP_UNIT_FAHRENHEIT, useF).apply()
     }
 
     private fun formatDisplayTempFromF(tempF: Float?): String {
@@ -109,12 +108,8 @@ class MainActivity : Activity() {
     private var autoPumpEnabled = false
 
     private val prefsName = "redmagic_hw_controls_prefs"
-    private val autoFanEnabledKey = "auto_fan_enabled"
-    private val realTimePreviewEnabledKey = "realtime_preview_enabled"
-    private val selectedCurveKey = "selected_curve"
 
 
-    private val magicKeyAppPackageKey = "magic_key_app_package"
 
     private val bgColor = Color.parseColor("#0A0D12")
     private val panelColor = Color.parseColor("#121720")
@@ -227,36 +222,36 @@ class MainActivity : Activity() {
 
 
     private fun setSelectedCurveSaved(value: String) {
-        prefs().edit().putString(selectedCurveKey, value).apply()
+        prefs().edit().putString(AppPrefs.SELECTED_CURVE, value).apply()
     }
 
     private fun getSelectedCurveSaved(): String {
-        return prefs().getString(selectedCurveKey, "balanced") ?: "balanced"
+        return prefs().getString(AppPrefs.SELECTED_CURVE, "balanced") ?: "balanced"
     }
 
 
     private fun isAutoFanEnabledSaved(): Boolean {
-        return prefs().getBoolean(autoFanEnabledKey, false)
+        return prefs().getBoolean(AppPrefs.AUTO_FAN_ENABLED, false)
     }
 
     private fun setAutoFanEnabledSaved(enabled: Boolean) {
-        prefs().edit().putBoolean(autoFanEnabledKey, enabled).apply()
+        prefs().edit().putBoolean(AppPrefs.AUTO_FAN_ENABLED, enabled).apply()
     }
 
     private fun isRealTimePreviewEnabledSaved(): Boolean {
-        return prefs().getBoolean(realTimePreviewEnabledKey, true)
+        return prefs().getBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, true)
     }
 
     private fun saveRealTimePreviewEnabled(enabled: Boolean) {
-        prefs().edit().putBoolean(realTimePreviewEnabledKey, enabled).apply()
+        prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
     }
 
     private fun savedMagicKeyAppPackage(): String? {
-        return prefs().getString(magicKeyAppPackageKey, null)
+        return prefs().getString(AppPrefs.MAGIC_KEY_APP_PACKAGE, null)
     }
 
     private fun saveMagicKeyAppPackage(pkg: String?) {
-        prefs().edit().putString(magicKeyAppPackageKey, pkg).apply()
+        prefs().edit().putString(AppPrefs.MAGIC_KEY_APP_PACKAGE, pkg).apply()
     }
 
     private fun resolveMagicKeyAppLabel(pkg: String?): String {

@@ -2195,26 +2195,6 @@ class MainActivity : Activity() {
 
 
 
-    private fun saveProfileForPackage(pkg: String) {
-        saveProfileForPackageStorage(
-            context = this,
-            pkg = pkg,
-            fanEnabled = HardwareController.isFanEnabled(),
-            fanLevel = fanSeek.progress,
-            fanLedEnabled = fanLedEnabled,
-            fanLedEffect = fanLedEffect,
-            fanLedColor = fanLedColor,
-            fanLedModeType = if (fanLedEffect.startsWith("preset:")) "preset" else "basic",
-            fanLedPresetValue = if (fanLedEffect.startsWith("preset:")) fanLedEffect.removePrefix("preset:") else ""
-        )
-    }
-
-    private fun getSavedGamePackages(): MutableSet<String> {
-        return getSavedGamePackagesStorage(this)
-    }
-
-
-
     private fun updateGameModeStatusUI(textView: TextView) {
         textView.text = getGameModeStatusTextStorage(this)
     }

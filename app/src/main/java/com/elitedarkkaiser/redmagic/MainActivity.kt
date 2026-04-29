@@ -37,7 +37,6 @@ import com.elitedarkkaiser.redmagic.state.LedState
 class MainActivity : Activity() {
 
     private var useFahrenheit = true
-    private val firstInstallPermissionsPromptedKey = "first_install_permissions_prompted"
 
     private fun isUseFahrenheitSaved(): Boolean {
         return isUseFahrenheitStorage(this)
@@ -108,7 +107,6 @@ class MainActivity : Activity() {
     private var pumpProfile = "quick"
     private var autoPumpEnabled = false
 
-    private val prefsName = "redmagic_hw_controls_prefs"
 
 
 
@@ -137,7 +135,7 @@ class MainActivity : Activity() {
             return
         }
 
-        if (!prefs().getBoolean(firstInstallPermissionsPromptedKey, false)) {
+        if (!isFirstInstallPermissionsPromptedStorage(this)) {
             showFirstInstallPermissionsDialog()
             return
         }
@@ -163,7 +161,7 @@ class MainActivity : Activity() {
             )
             .setCancelable(false)
             .setPositiveButton("Start setup") { _, _ ->
-                prefs().edit().putBoolean(firstInstallPermissionsPromptedKey, true).apply()
+                setFirstInstallPermissionsPromptedStorage(this, true)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     requestPermissions(
@@ -179,7 +177,6 @@ class MainActivity : Activity() {
             .show()
     }
 
-    private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
     private fun hasUsageStatsPermission(): Boolean {
         val appOps = getSystemService(android.app.AppOpsManager::class.java)
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

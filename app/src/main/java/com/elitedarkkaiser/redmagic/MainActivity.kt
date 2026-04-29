@@ -112,17 +112,8 @@ class MainActivity : Activity() {
     private val autoFanEnabledKey = "auto_fan_enabled"
     private val realTimePreviewEnabledKey = "realtime_preview_enabled"
     private val selectedCurveKey = "selected_curve"
-    private val fanLedEnabledKey = "fan_led_enabled"
-    private val fanLedEffectKey = "fan_led_effect"
-    private val fanLedColorKey = "fan_led_color"
 
-    private val logoLedEnabledKey = "logo_led_enabled"
-    private val logoLedEffectKey = "logo_led_effect"
-    private val logoLedColorKey = "logo_led_color"
 
-    private val shoulderLedEnabledKey = "shoulder_led_enabled"
-    private val shoulderLedEffectKey = "shoulder_led_effect"
-    private val shoulderLedColorKey = "shoulder_led_color"
     private val magicKeyAppPackageKey = "magic_key_app_package"
 
     private val bgColor = Color.parseColor("#0A0D12")
@@ -369,15 +360,15 @@ class MainActivity : Activity() {
     }
 
     private fun isFanLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(fanLedEnabledKey, false)
+        return prefs().getBoolean(AppPrefs.FAN_LED_ENABLED, false)
     }
 
     private fun savedFanLedEffect(): String {
-        return prefs().getString(fanLedEffectKey, "steady") ?: "steady"
+        return prefs().getString(AppPrefs.FAN_LED_EFFECT, "steady") ?: "steady"
     }
 
     private fun savedFanLedColor(): Int {
-        return prefs().getInt(fanLedColorKey, 5)
+        return prefs().getInt(AppPrefs.FAN_LED_COLOR, 5)
     }
 
     private fun applyFanLedSelection(effect: String, color: Int) {
@@ -390,9 +381,9 @@ class MainActivity : Activity() {
 
     private fun saveFanLedState() {
         prefs().edit()
-            .putBoolean(fanLedEnabledKey, fanLedEnabled)
-            .putString(fanLedEffectKey, fanLedEffect)
-            .putInt(fanLedColorKey, fanLedColor)
+            .putBoolean(AppPrefs.FAN_LED_ENABLED, fanLedEnabled)
+            .putString(AppPrefs.FAN_LED_EFFECT, fanLedEffect)
+            .putInt(AppPrefs.FAN_LED_COLOR, fanLedColor)
             .commit()
     }
 
@@ -403,22 +394,22 @@ class MainActivity : Activity() {
     }
 
     private fun isLogoLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(logoLedEnabledKey, true)
+        return prefs().getBoolean(AppPrefs.LOGO_LED_ENABLED, true)
     }
 
     private fun savedLogoLedEffect(): String {
-        return prefs().getString(logoLedEffectKey, "steady") ?: "steady"
+        return prefs().getString(AppPrefs.LOGO_LED_EFFECT, "steady") ?: "steady"
     }
 
     private fun savedLogoLedColor(): Int {
-        return prefs().getInt(logoLedColorKey, 1)
+        return prefs().getInt(AppPrefs.LOGO_LED_COLOR, 1)
     }
 
     private fun saveLogoLedState() {
         prefs().edit()
-            .putBoolean(logoLedEnabledKey, logoLedEnabled)
-            .putString(logoLedEffectKey, logoLedEffect)
-            .putInt(logoLedColorKey, logoLedColor)
+            .putBoolean(AppPrefs.LOGO_LED_ENABLED, logoLedEnabled)
+            .putString(AppPrefs.LOGO_LED_EFFECT, logoLedEffect)
+            .putInt(AppPrefs.LOGO_LED_COLOR, logoLedColor)
             .commit()
     }
 
@@ -429,22 +420,22 @@ class MainActivity : Activity() {
     }
 
     private fun isShoulderLedEnabledSaved(): Boolean {
-        return prefs().getBoolean(shoulderLedEnabledKey, true)
+        return prefs().getBoolean(AppPrefs.SHOULDER_LED_ENABLED, true)
     }
 
     private fun savedShoulderLedEffect(): String {
-        return prefs().getString(shoulderLedEffectKey, "breathe") ?: "breathe"
+        return prefs().getString(AppPrefs.SHOULDER_LED_EFFECT, "breathe") ?: "breathe"
     }
 
     private fun savedShoulderLedColor(): Int {
-        return prefs().getInt(shoulderLedColorKey, 8)
+        return prefs().getInt(AppPrefs.SHOULDER_LED_COLOR, 8)
     }
 
     private fun saveShoulderLedState() {
         prefs().edit()
-            .putBoolean(shoulderLedEnabledKey, shoulderLedEnabled)
-            .putString(shoulderLedEffectKey, shoulderLedEffect)
-            .putInt(shoulderLedColorKey, shoulderLedColor)
+            .putBoolean(AppPrefs.SHOULDER_LED_ENABLED, shoulderLedEnabled)
+            .putString(AppPrefs.SHOULDER_LED_EFFECT, shoulderLedEffect)
+            .putInt(AppPrefs.SHOULDER_LED_COLOR, shoulderLedColor)
             .commit()
     }
 

@@ -21,6 +21,63 @@ internal object ChargingLedState {
     const val SHOULDER_EFFECT_KEY = "charging_shoulder_led_effect"
     const val SHOULDER_COLOR_KEY = "charging_shoulder_led_color"
 
+
+    data class Profile(
+        val enabled: Boolean,
+        val effect: String,
+        val color: Int
+    )
+
+    fun setEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(ENABLED_KEY, enabled)
+            .apply()
+    }
+
+    fun readProfile(
+        context: Context,
+        enabledKey: String,
+        effectKey: String,
+        colorKey: String,
+        defaultEnabled: Boolean,
+        defaultEffect: String,
+        defaultColor: Int
+    ): Profile {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return Profile(
+            enabled = prefs.getBoolean(enabledKey, defaultEnabled),
+            effect = prefs.getString(effectKey, defaultEffect) ?: defaultEffect,
+            color = prefs.getInt(colorKey, defaultColor)
+        )
+    }
+
+    fun saveProfile(
+        context: Context,
+        enabledKey: String,
+        effectKey: String,
+        colorKey: String,
+        enabled: Boolean,
+        effect: String,
+        color: Int
+    ) {
+        val savedColor = if (
+            effectKey == FAN_EFFECT_KEY &&
+            effect.startsWith("preset:")
+        ) {
+            -1
+        } else {
+            color
+        }
+
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(enabledKey, enabled)
+            .putString(effectKey, effect)
+            .putInt(colorKey, savedColor)
+            .apply()
+    }
+
     fun isEnabled(context: Context): Boolean {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getBoolean(ENABLED_KEY, false)

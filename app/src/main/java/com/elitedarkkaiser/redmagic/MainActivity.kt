@@ -955,7 +955,7 @@ class MainActivity : Activity() {
 
                 getChargingLedEnabled = { ChargingLedState.isEnabled(this) },
                 setChargingLedEnabled = { enabled ->
-                    prefs().edit().putBoolean(ChargingLedState.ENABLED_KEY, enabled).apply()
+                    ChargingLedState.setEnabled(this, enabled)
                     startService(Intent(this, ChargingModeService::class.java))
                 },
                 showChargingFanLedDialog = { showChargingFanLedDialog() },
@@ -994,20 +994,15 @@ class MainActivity : Activity() {
         effect: String,
         color: Int
     ) {
-        val savedColor = if (
-            effectKey == ChargingLedState.FAN_EFFECT_KEY &&
-            effect.startsWith("preset:")
-        ) {
-            -1
-        } else {
+        ChargingLedState.saveProfile(
+            this,
+            enabledKey,
+            effectKey,
+            colorKey,
+            enabled,
+            effect,
             color
-        }
-
-        prefs().edit()
-            .putBoolean(enabledKey, enabled)
-            .putString(effectKey, effect)
-            .putInt(colorKey, savedColor)
-            .apply()
+        )
 
         startService(Intent(this, ChargingModeService::class.java))
         if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
@@ -1017,9 +1012,18 @@ class MainActivity : Activity() {
     }
 
     private fun showChargingFanLedDialog() {
-        var chargingFanEnabled = prefs().getBoolean(ChargingLedState.FAN_ENABLED_KEY, true)
-        var chargingFanEffect = prefs().getString(ChargingLedState.FAN_EFFECT_KEY, "steady") ?: "steady"
-        var chargingFanColor = prefs().getInt(ChargingLedState.FAN_COLOR_KEY, 5)
+        val chargingFanProfile = ChargingLedState.readProfile(
+            this,
+            ChargingLedState.FAN_ENABLED_KEY,
+            ChargingLedState.FAN_EFFECT_KEY,
+            ChargingLedState.FAN_COLOR_KEY,
+            defaultEnabled = true,
+            defaultEffect = "steady",
+            defaultColor = 5
+        )
+        var chargingFanEnabled = chargingFanProfile.enabled
+        var chargingFanEffect = chargingFanProfile.effect
+        var chargingFanColor = chargingFanProfile.color
         var chargingFanDialogRefresh: (() -> Unit)? = null
 
         if (chargingFanEffect.startsWith("preset:")) {
@@ -1110,9 +1114,33 @@ class MainActivity : Activity() {
             activity = this,
             title = "Charging Logo LED",
             subtitle = "Logo LED profile used only while plugged in and charging.",
-            originalEnabled = prefs().getBoolean(ChargingLedState.LOGO_ENABLED_KEY, true),
-            originalEffect = prefs().getString(ChargingLedState.LOGO_EFFECT_KEY, "steady") ?: "steady",
-            originalColor = prefs().getInt(ChargingLedState.LOGO_COLOR_KEY, 1),
+            originalEnabled = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.LOGO_ENABLED_KEY,
+                ChargingLedState.LOGO_EFFECT_KEY,
+                ChargingLedState.LOGO_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "steady",
+                defaultColor = 1
+            ).enabled,
+            originalEffect = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.LOGO_ENABLED_KEY,
+                ChargingLedState.LOGO_EFFECT_KEY,
+                ChargingLedState.LOGO_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "steady",
+                defaultColor = 1
+            ).effect,
+            originalColor = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.LOGO_ENABLED_KEY,
+                ChargingLedState.LOGO_EFFECT_KEY,
+                ChargingLedState.LOGO_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "steady",
+                defaultColor = 1
+            ).color,
             onSave = { enabled, effect, color ->
                 saveChargingLedProfile(
                     ChargingLedState.LOGO_ENABLED_KEY,
@@ -1132,9 +1160,33 @@ class MainActivity : Activity() {
             activity = this,
             title = "Charging Shoulder LEDs",
             subtitle = "Shoulder LED profile used only while plugged in and charging.",
-            originalEnabled = prefs().getBoolean(ChargingLedState.SHOULDER_ENABLED_KEY, true),
-            originalEffect = prefs().getString(ChargingLedState.SHOULDER_EFFECT_KEY, "breathe") ?: "breathe",
-            originalColor = prefs().getInt(ChargingLedState.SHOULDER_COLOR_KEY, 8),
+            originalEnabled = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.SHOULDER_ENABLED_KEY,
+                ChargingLedState.SHOULDER_EFFECT_KEY,
+                ChargingLedState.SHOULDER_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "breathe",
+                defaultColor = 8
+            ).enabled,
+            originalEffect = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.SHOULDER_ENABLED_KEY,
+                ChargingLedState.SHOULDER_EFFECT_KEY,
+                ChargingLedState.SHOULDER_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "breathe",
+                defaultColor = 8
+            ).effect,
+            originalColor = ChargingLedState.readProfile(
+                this,
+                ChargingLedState.SHOULDER_ENABLED_KEY,
+                ChargingLedState.SHOULDER_EFFECT_KEY,
+                ChargingLedState.SHOULDER_COLOR_KEY,
+                defaultEnabled = true,
+                defaultEffect = "breathe",
+                defaultColor = 8
+            ).color,
             onSave = { enabled, effect, color ->
                 saveChargingLedProfile(
                     ChargingLedState.SHOULDER_ENABLED_KEY,

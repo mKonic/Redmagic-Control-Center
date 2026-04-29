@@ -122,14 +122,6 @@ class MainActivity : Activity() {
     private val shoulderLedEnabledKey = "shoulder_led_enabled"
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
-    private fun showGameModeAppPicker() {
-        showGamePickerDialogUI(this) {
-            gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
-        }
-    }
-
-
-
     private val pumpEnabledKey = "pump_enabled"
     private val pumpProfileKey = "pump_profile"
     private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
@@ -1097,7 +1089,7 @@ class MainActivity : Activity() {
                 showFanLedDialog = { showFanLedDialog() },
                 showLogoLedDialog = { showLogoLedDialog() },
                 showShoulderLedDialog = { showShoulderLedDialog() },
-                showGameModeAppPicker = { showGameModeAppPicker() },
+                showGameModeAppPicker = { showGamePickerDialog() },
                 showGameModeProfileDialog = { showGameModeProfileDialog() },
                 gameModeAppsSummary = { gameModeAppsSummaryStorage(this) },
 

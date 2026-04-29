@@ -158,27 +158,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun restoreNormalProfileNow() {
-        if (HardwareController.isFanEnabled()) {
-            HardwareController.setFanLevel(fanSeek.progress)
-        } else {
-            HardwareController.enableFan(false)
-        }
-
-        if (pumpEnabled) {
-            HardwareController.setPumpProfile(pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
-
-        if (fanLedEnabled) {
-            applyFanLedSelection(fanLedEffect, fanLedColor)
-        } else {
-            HardwareController.setFanLedEnabled(false)
-        }
-    }
-
-
     private fun refreshGameModeCardUi() {
         gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
     }

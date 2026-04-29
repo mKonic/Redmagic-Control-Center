@@ -31,6 +31,7 @@ import android.view.animation.LinearInterpolator
 import android.animation.ValueAnimator
 import android.animation.ArgbEvaluator
 import android.widget.Toast
+import com.elitedarkkaiser.redmagic.storage.AppPrefs
 
 class MainActivity : Activity() {
 
@@ -122,10 +123,6 @@ class MainActivity : Activity() {
     private val shoulderLedEnabledKey = "shoulder_led_enabled"
     private val shoulderLedEffectKey = "shoulder_led_effect"
     private val shoulderLedColorKey = "shoulder_led_color"
-    private val pumpEnabledKey = "pump_enabled"
-    private val pumpProfileKey = "pump_profile"
-    private val pumpExperimentalAcceptedKey = "pump_experimental_accepted"
-    private val autoPumpEnabledKey = "auto_pump_enabled"
     private val magicKeyAppPackageKey = "magic_key_app_package"
 
     private val bgColor = Color.parseColor("#0A0D12")
@@ -458,17 +455,17 @@ class MainActivity : Activity() {
     }
 
     private fun isPumpEnabledSaved(): Boolean {
-        return prefs().getBoolean(pumpEnabledKey, false)
+        return prefs().getBoolean(AppPrefs.PUMP_ENABLED, false)
     }
 
     private fun savedPumpProfile(): String {
-        return prefs().getString(pumpProfileKey, "quick") ?: "quick"
+        return prefs().getString(AppPrefs.PUMP_PROFILE, "quick") ?: "quick"
     }
 
     private fun savePumpState() {
         prefs().edit()
-            .putBoolean(pumpEnabledKey, pumpEnabled)
-            .putString(pumpProfileKey, pumpProfile)
+            .putBoolean(AppPrefs.PUMP_ENABLED, pumpEnabled)
+            .putString(AppPrefs.PUMP_PROFILE, pumpProfile)
             .commit()
     }
 
@@ -481,19 +478,19 @@ class MainActivity : Activity() {
     }
 
     private fun isPumpExperimentalAccepted(): Boolean {
-        return prefs().getBoolean(pumpExperimentalAcceptedKey, false)
+        return prefs().getBoolean(AppPrefs.PUMP_EXPERIMENTAL_ACCEPTED, false)
     }
 
     private fun setPumpExperimentalAccepted(accepted: Boolean) {
-        prefs().edit().putBoolean(pumpExperimentalAcceptedKey, accepted).commit()
+        prefs().edit().putBoolean(AppPrefs.PUMP_EXPERIMENTAL_ACCEPTED, accepted).commit()
     }
 
     private fun isAutoPumpEnabledSaved(): Boolean {
-        return prefs().getBoolean(autoPumpEnabledKey, false)
+        return prefs().getBoolean(AppPrefs.AUTO_PUMP_ENABLED, false)
     }
 
     private fun saveAutoPumpState() {
-        prefs().edit().putBoolean(autoPumpEnabledKey, autoPumpEnabled).commit()
+        prefs().edit().putBoolean(AppPrefs.AUTO_PUMP_ENABLED, autoPumpEnabled).commit()
     }
 
     private fun buildAutoPumpStatusText(): Pair<String, String> {

@@ -223,28 +223,28 @@ class MainActivity : Activity() {
 
 
     private fun setSelectedCurveSaved(value: String) {
-        prefs().edit().putString(AppPrefs.SELECTED_CURVE, value).apply()
+        saveSelectedCurveStorage(this, value)
     }
 
     private fun getSelectedCurveSaved(): String {
-        return prefs().getString(AppPrefs.SELECTED_CURVE, "balanced") ?: "balanced"
+        return selectedCurveStorage(this)
     }
 
 
     private fun isAutoFanEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.AUTO_FAN_ENABLED, false)
+        return isAutoFanEnabledStorage(this)
     }
 
     private fun setAutoFanEnabledSaved(enabled: Boolean) {
-        prefs().edit().putBoolean(AppPrefs.AUTO_FAN_ENABLED, enabled).apply()
+        saveAutoFanEnabledStorage(this, enabled)
     }
 
     private fun isRealTimePreviewEnabledSaved(): Boolean {
-        return prefs().getBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, true)
+        return isRealTimePreviewEnabledStorage(this)
     }
 
     private fun saveRealTimePreviewEnabled(enabled: Boolean) {
-        prefs().edit().putBoolean(AppPrefs.REALTIME_PREVIEW_ENABLED, enabled).apply()
+        saveRealTimePreviewEnabledStorage(this, enabled)
     }
 
     private fun showMagicKeyAppPicker(targetButton: Button) {

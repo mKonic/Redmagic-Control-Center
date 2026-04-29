@@ -362,11 +362,6 @@ class MainActivity : Activity() {
     }
 
     private fun prefs() = getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-
-    private fun isSupportedDevice(): Boolean {
-        return Build.MODEL.equals("NX809J", ignoreCase = true)
-    }
-
     private fun hasUsageStatsPermission(): Boolean {
         val appOps = getSystemService(android.app.AppOpsManager::class.java)
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
@@ -930,28 +925,6 @@ class MainActivity : Activity() {
             request
         )
     }
-
-    private fun showSupportedDeviceDialog() {
-        DeviceGateDialogs.showSupportedDeviceDialog(
-            activity = this,
-            dontShowAgainChecked = shouldSkipSupportedDialog(),
-            onDontShowAgainChanged = { checked -> setSkipSupportedDialog(checked) },
-            onAcknowledge = { launchMainUi() },
-            deps = DeviceGateDialogs.Deps(
-                textPrimary = textPrimary,
-                textSecondary = textSecondary,
-                panelColor = panelColor,
-                borderColor = borderColor,
-                panelPressed = panelPressed,
-                accent = accent,
-                typeface = typeface,
-                dp = { value -> dp(value) },
-                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-                roundedFill = { color, radius -> roundedFill(color, radius) }
-            )
-        )
-    }
-
     private fun showRootRequiredDialog() {
         DeviceGateDialogs.showRootRequiredDialog(
             activity = this,
@@ -970,27 +943,6 @@ class MainActivity : Activity() {
             )
         )
     }
-
-    private fun showUnsupportedDeviceDialog() {
-        DeviceGateDialogs.showUnsupportedDeviceDialog(
-            activity = this,
-            model = Build.MODEL ?: "Unknown",
-            onClose = { finish() },
-            deps = DeviceGateDialogs.Deps(
-                textPrimary = textPrimary,
-                textSecondary = textSecondary,
-                panelColor = panelColor,
-                borderColor = borderColor,
-                panelPressed = panelPressed,
-                accent = accent,
-                typeface = typeface,
-                dp = { value -> dp(value) },
-                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-                roundedFill = { color, radius -> roundedFill(color, radius) }
-            )
-        )
-    }
-
     private fun launchMainUi() {
         MainUiStartup.applySavedHardwareState(
             applySavedFanLedStateOnLaunch = { applySavedFanLedStateOnLaunch() },

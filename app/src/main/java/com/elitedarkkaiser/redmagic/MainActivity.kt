@@ -187,10 +187,6 @@ class MainActivity : Activity() {
     }
 
 
-    private fun gameModeProfileSummary(): String {
-        return gameModeProfileSummaryStorage(this)
-    }
-
     private fun refreshGameModeCardUi() {
         gameModeAppsTextRef?.text = gameModeAppsSummaryStorage(this)
     }

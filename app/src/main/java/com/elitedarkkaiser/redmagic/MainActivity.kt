@@ -256,20 +256,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun readMagicKeyModeLabel(): String {
-        val raw = RootShell.execForOutput("settings get system fourth_physical_key_function_value")?.trim().orEmpty()
-        return when (raw) {
-            "1" -> "Camera"
-            "2" -> "GameSpace"
-            "3" -> "Sound Mode"
-            "4" -> "Flashlight"
-            "5" -> "Voice Recorder"
-            "16" -> "Launch App"
-            "0" -> "Disabled"
-            else -> "Unknown"
-        }
-    }
-
     private fun applyStockMagicKeyMode(
         label: String,
         applyMode: () -> Boolean,
@@ -989,7 +975,7 @@ class MainActivity : Activity() {
                 dp = { value -> dp(value) },
 
                 refreshStatus = { refreshStatus() },
-                readMagicKeyModeLabel = { readMagicKeyModeLabel() },
+                readMagicKeyModeLabel = { MagicKeyActions.readModeLabel() },
                 applyStockMagicKeyMode = { label, action, statusLabel, sliderButton ->
                     applyStockMagicKeyMode(label, action, statusLabel, sliderButton)
                 },

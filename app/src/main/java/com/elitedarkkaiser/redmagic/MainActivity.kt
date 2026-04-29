@@ -1833,25 +1833,6 @@ class MainActivity : Activity() {
         view.setTextColor(textPrimary)
     }
 
-    private fun modeCard(title: String, subtitle: String, onClick: () -> Unit): LinearLayout {
-        return ModeCardUi.create(
-            activity = this,
-            title = title,
-            subtitle = subtitle,
-            onClick = onClick,
-            deps = ModeCardUi.Deps(
-                textPrimary = textPrimary,
-                textSecondary = textSecondary,
-                panelColor = panelColor,
-                borderColor = borderColor,
-                typeface = typeface,
-                dp = { value -> dp(value) },
-                roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-                applyPressEffect = { view -> applyPressEffect(view) }
-            )
-        )
-    }
-
     private fun setActiveMode(active: LinearLayout) {
         val normal = roundedBg(panelColor, borderColor, 18)
         val selected = roundedBg(panelPressed, highlightBorder, 18)

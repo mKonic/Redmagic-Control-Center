@@ -276,10 +276,6 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun savedFanLedState(): LedState {
-        return savedFanLedStateStorage(this)
-    }
-
     private fun applyFanLedSelection(effect: String, color: Int) {
         if (effect.startsWith("preset:")) {
             applyFanPreset(effect.removePrefix("preset:"))
@@ -293,14 +289,10 @@ class MainActivity : Activity() {
     }
 
     private fun applySavedFanLedStateOnLaunch() {
-        val state = savedFanLedState()
+        val state = savedFanLedStateStorage(this)
         fanLedEnabled = state.enabled
         fanLedEffect = state.effect
         fanLedColor = state.color
-    }
-
-    private fun savedLogoLedState(): LedState {
-        return savedLogoLedStateStorage(this)
     }
 
     private fun saveLogoLedState() {
@@ -308,14 +300,10 @@ class MainActivity : Activity() {
     }
 
     private fun applySavedLogoLedStateOnLaunch() {
-        val state = savedLogoLedState()
+        val state = savedLogoLedStateStorage(this)
         logoLedEnabled = state.enabled
         logoLedEffect = state.effect
         logoLedColor = state.color
-    }
-
-    private fun savedShoulderLedState(): LedState {
-        return savedShoulderLedStateStorage(this)
     }
 
     private fun saveShoulderLedState() {
@@ -323,7 +311,7 @@ class MainActivity : Activity() {
     }
 
     private fun applySavedShoulderLedStateOnLaunch() {
-        val state = savedShoulderLedState()
+        val state = savedShoulderLedStateStorage(this)
         shoulderLedEnabled = state.enabled
         shoulderLedEffect = state.effect
         shoulderLedColor = state.color

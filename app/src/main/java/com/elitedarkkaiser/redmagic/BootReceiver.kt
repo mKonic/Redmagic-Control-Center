@@ -51,8 +51,8 @@ class BootReceiver : BroadcastReceiver() {
         }
 
         val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
-        if (tracked.isNotEmpty() && PermissionActions.hasUsageStatsPermission(context)) {
-            context.startService(Intent(context, GameModeService::class.java))
+        if (tracked.isNotEmpty()) {
+            GameModeActions.startServiceSilentlyIfPermitted(context)
         context.startService(Intent(context, ChargingModeService::class.java))
         }
     }
@@ -127,7 +127,7 @@ class BootReceiver : BroadcastReceiver() {
             context.startService(Intent(context, TriggerRootService::class.java))
         }
 
-        context.startService(Intent(context, GameModeService::class.java))
+        GameModeActions.startServiceSilentlyIfPermitted(context)
 
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             if (fanLedEnabled) {

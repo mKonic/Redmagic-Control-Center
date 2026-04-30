@@ -8,6 +8,12 @@ import android.widget.Toast
 
 internal object GameModeActions {
 
+    fun startServiceSilentlyIfPermitted(context: Context) {
+        if (PermissionActions.hasUsageStatsPermission(context)) {
+            context.startService(Intent(context, GameModeService::class.java))
+        }
+    }
+
     fun startServiceIfPermitted(context: Context) {
         if (!PermissionActions.hasUsageStatsPermission(context)) {
             Toast.makeText(

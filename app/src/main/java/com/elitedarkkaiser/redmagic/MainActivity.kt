@@ -117,7 +117,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         
         initDefaultTriggerMappingsStorage(this)
-        runBackgroundDeviceScan()
+        DeviceScanActions.runBackgroundScan(this)
 
         if (!RootShell.hasRoot()) {
             showRootRequiredDialog()
@@ -133,12 +133,6 @@ class MainActivity : Activity() {
     }
 
 
-    private fun runBackgroundDeviceScan() {
-        Thread {
-            val report = DeviceCapabilityScanner.scan()
-            saveDeviceCapabilityReportStorage(this, report)
-        }.start()
-    }
 
     private fun showFirstInstallPermissionsDialog() {
         AlertDialog.Builder(this)

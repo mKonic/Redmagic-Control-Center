@@ -659,7 +659,7 @@ class MainActivity : Activity() {
 
                 getUseFahrenheit = { useFahrenheit },
                 setUseFahrenheit = { value -> useFahrenheit = value },
-                saveUseFahrenheit = { value -> saveUseFahrenheit(value) },
+                saveUseFahrenheit = { value -> saveUseFahrenheitStorage(this, value) },
 
                 getPumpEnabled = { pumpEnabled },
                 setPumpEnabled = { value -> pumpEnabled = value },

@@ -20,7 +20,7 @@ class BootReceiver : BroadcastReceiver() {
         val triggerPrefs = context.getSharedPreferences("triggers", Context.MODE_PRIVATE)
         if (triggerPrefs.getBoolean("triggers_auto_start", false)) {
             HardwareController.enableTriggers()
-            context.startService(Intent(context, TriggerRootService::class.java))
+            HardwareServiceActions.startTriggers(context)
         }
 
         val prefs = context.getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
@@ -111,20 +111,20 @@ class BootReceiver : BroadcastReceiver() {
         }
 
         if (fanLedEnabled || logoLedEnabled || shoulderLedEnabled) {
-            context.startService(Intent(context, FanLedService::class.java))
+            HardwareServiceActions.startFanLed(context)
         }
 
         if (autoPumpEnabled) {
-            context.startService(Intent(context, AutoPumpService::class.java))
+            HardwareServiceActions.startAutoPump(context)
         }
 
         if (autoFanEnabled) {
-            context.startService(Intent(context, AutoFanService::class.java))
+            HardwareServiceActions.startAutoFan(context)
         }
 
         if (triggerPrefs.getBoolean("triggers_auto_start", false)) {
             HardwareController.enableTriggers()
-            context.startService(Intent(context, TriggerRootService::class.java))
+            HardwareServiceActions.startTriggers(context)
         }
 
         GameModeActions.startServiceSilentlyIfPermitted(context)

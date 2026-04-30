@@ -33,6 +33,10 @@ object HardwareServiceActions {
         context.stopService(Intent(context, AutoPumpService::class.java))
     }
 
+    fun startTriggers(context: Context) {
+        context.startService(Intent(context, TriggerRootService::class.java))
+    }
+
     fun startChargingMode(context: Context) {
         context.startService(Intent(context, ChargingModeService::class.java))
     }

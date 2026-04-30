@@ -53,7 +53,7 @@ class ChargingModeService : Service() {
 
             if (wasActive) {
                 GameModeActions.startServiceSilentlyIfPermitted(this)
-                startService(Intent(this, FanLedService::class.java))
+                HardwareServiceActions.startFanLed(this)
             }
         }
     }

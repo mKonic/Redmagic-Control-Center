@@ -257,7 +257,7 @@ class MainActivity : Activity() {
             enableTriggersIfNeeded = { applied ->
                 if (applied.triggersAutoStart) {
                     HardwareController.enableTriggers()
-                    startService(Intent(this, TriggerRootService::class.java))
+                    HardwareServiceActions.startTriggers(this)
                 }
             },
             afterProfileApplied = { applied ->
@@ -665,7 +665,7 @@ class MainActivity : Activity() {
                 showTriggerSetupDialog = { showTriggerSetupDialog() },
                 enableTriggersAndService = {
                     HardwareController.enableTriggers()
-                    startService(Intent(this, TriggerRootService::class.java))
+                    HardwareServiceActions.startTriggers(this)
                     refreshStatus()
                     Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
                 },

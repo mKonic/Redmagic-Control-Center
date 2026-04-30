@@ -356,7 +356,7 @@ class MainActivity : Activity() {
 
 
     private fun buildCurrentHardwareProfile(name: String): HardwareProfile {
-        val triggerPrefs = getSharedPreferences("triggers", MODE_PRIVATE)
+        val triggerPrefs = readTriggerPrefsSnapshot(this)
 
         return ProfileStateHelpers.buildCurrentHardwareProfile(
             name = name,
@@ -382,12 +382,12 @@ class MainActivity : Activity() {
                 shoulderLedEffect = shoulderLedEffect,
                 shoulderLedColor = shoulderLedColor,
 
-                triggerEnabled = triggerPrefs.getBoolean("triggers_auto_start", false),
-                hapticsEnabled = triggerPrefs.getBoolean("haptics_enabled", true),
-                leftTriggerAction = triggerPrefs.getString("left_trigger", "NONE") ?: "NONE",
-                rightTriggerAction = triggerPrefs.getString("right_trigger", "NONE") ?: "NONE",
-                intentUnlockRightTrigger = triggerPrefs.getBoolean("intent_unlock_right_trigger", true),
-                triggersAutoStart = triggerPrefs.getBoolean("triggers_auto_start", false)
+                triggerEnabled = triggerPrefs.triggerEnabled,
+                hapticsEnabled = triggerPrefs.hapticsEnabled,
+                leftTriggerAction = triggerPrefs.leftTriggerAction,
+                rightTriggerAction = triggerPrefs.rightTriggerAction,
+                intentUnlockRightTrigger = triggerPrefs.intentUnlockRightTrigger,
+                triggersAutoStart = triggerPrefs.triggersAutoStart
             )
         )
     }
@@ -444,14 +444,7 @@ class MainActivity : Activity() {
     }
 
     private fun saveTriggerPrefs(profile: HardwareProfile) {
-        getSharedPreferences("triggers", MODE_PRIVATE)
-            .edit()
-            .putString("left_trigger", profile.leftTriggerAction)
-            .putString("right_trigger", profile.rightTriggerAction)
-            .putBoolean("haptics_enabled", profile.hapticsEnabled)
-            .putBoolean("intent_unlock_right_trigger", profile.intentUnlockRightTrigger)
-            .putBoolean("triggers_auto_start", profile.triggersAutoStart)
-            .apply()
+        saveTriggerPrefsStorage(this, profile)
     }
 
     private fun showSaveProfileDialog(onSaved: () -> Unit) {
@@ -1019,13 +1012,7 @@ class MainActivity : Activity() {
     }
 
     private fun initDefaultTriggerMappings() {
-        val p = getSharedPreferences("triggers", MODE_PRIVATE)
-        if (!p.contains("left_trigger")) {
-            p.edit()
-                .putString("left_trigger", "VOL_DOWN")
-                .putString("right_trigger", "VOL_UP")
-                .apply()
-        }
+        initDefaultTriggerMappingsStorage(this)
     }
 
     private fun showGameModeProfileDialog() {

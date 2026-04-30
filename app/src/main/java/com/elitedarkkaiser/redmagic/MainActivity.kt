@@ -57,6 +57,7 @@ class MainActivity : Activity() {
     private lateinit var rootChip: TextView
     private lateinit var fanChip: TextView
     private lateinit var rpmChip: TextView
+    private var lastDisplayedRpm: Int = -1
     private lateinit var tempChip: TextView
 
     private lateinit var homeTab: LinearLayout
@@ -1235,7 +1236,14 @@ class MainActivity : Activity() {
     private fun refreshStatus() {
         val rooted = RootShell.hasRoot()
         val fanEnabled = HardwareController.isFanEnabled()
-        val rpm = HardwareController.readFanRpm()
+        val rpmRaw = HardwareController.readFanRpm()
+        val rpm = when {
+            rpmRaw == null -> lastDisplayedRpm.takeIf { it >= 0 }
+            lastDisplayedRpm < 0 -> rpmRaw
+            else -> ((lastDisplayedRpm * 0.7) + (rpmRaw * 0.3)).toInt()
+        }
+
+        if (rpm != null) lastDisplayedRpm = rpm
         val tempF = HardwareController.readTemperatureF()
 
         deviceModelValue.text = Build.MODEL ?: "Unknown"

@@ -1098,37 +1098,23 @@ class MainActivity : Activity() {
     }
 
     private fun showChargingLogoLedDialog() {
+        val profile = ChargingLedState.readProfile(
+            this,
+            ChargingLedState.LOGO_ENABLED_KEY,
+            ChargingLedState.LOGO_EFFECT_KEY,
+            ChargingLedState.LOGO_COLOR_KEY,
+            defaultEnabled = true,
+            defaultEffect = "steady",
+            defaultColor = 1
+        )
+
         ChargingLedProfileDialog.show(
             activity = this,
             title = "Charging Logo LED",
             subtitle = "Logo LED profile used only while plugged in and charging.",
-            originalEnabled = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.LOGO_ENABLED_KEY,
-                ChargingLedState.LOGO_EFFECT_KEY,
-                ChargingLedState.LOGO_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "steady",
-                defaultColor = 1
-            ).enabled,
-            originalEffect = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.LOGO_ENABLED_KEY,
-                ChargingLedState.LOGO_EFFECT_KEY,
-                ChargingLedState.LOGO_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "steady",
-                defaultColor = 1
-            ).effect,
-            originalColor = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.LOGO_ENABLED_KEY,
-                ChargingLedState.LOGO_EFFECT_KEY,
-                ChargingLedState.LOGO_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "steady",
-                defaultColor = 1
-            ).color,
+            originalEnabled = profile.enabled,
+            originalEffect = profile.effect,
+            originalColor = profile.color,
             onSave = { enabled, effect, color ->
                 saveChargingLedProfile(
                     ChargingLedState.LOGO_ENABLED_KEY,
@@ -1144,37 +1130,23 @@ class MainActivity : Activity() {
     }
 
     private fun showChargingShoulderLedDialog() {
+        val profile = ChargingLedState.readProfile(
+            this,
+            ChargingLedState.SHOULDER_ENABLED_KEY,
+            ChargingLedState.SHOULDER_EFFECT_KEY,
+            ChargingLedState.SHOULDER_COLOR_KEY,
+            defaultEnabled = true,
+            defaultEffect = "breathe",
+            defaultColor = 8
+        )
+
         ChargingLedProfileDialog.show(
             activity = this,
             title = "Charging Shoulder LEDs",
             subtitle = "Shoulder LED profile used only while plugged in and charging.",
-            originalEnabled = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.SHOULDER_ENABLED_KEY,
-                ChargingLedState.SHOULDER_EFFECT_KEY,
-                ChargingLedState.SHOULDER_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "breathe",
-                defaultColor = 8
-            ).enabled,
-            originalEffect = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.SHOULDER_ENABLED_KEY,
-                ChargingLedState.SHOULDER_EFFECT_KEY,
-                ChargingLedState.SHOULDER_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "breathe",
-                defaultColor = 8
-            ).effect,
-            originalColor = ChargingLedState.readProfile(
-                this,
-                ChargingLedState.SHOULDER_ENABLED_KEY,
-                ChargingLedState.SHOULDER_EFFECT_KEY,
-                ChargingLedState.SHOULDER_COLOR_KEY,
-                defaultEnabled = true,
-                defaultEffect = "breathe",
-                defaultColor = 8
-            ).color,
+            originalEnabled = profile.enabled,
+            originalEffect = profile.effect,
+            originalColor = profile.color,
             onSave = { enabled, effect, color ->
                 saveChargingLedProfile(
                     ChargingLedState.SHOULDER_ENABLED_KEY,

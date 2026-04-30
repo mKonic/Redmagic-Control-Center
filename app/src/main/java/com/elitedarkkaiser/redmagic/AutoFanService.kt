@@ -56,7 +56,7 @@ class AutoFanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun chooseStableFanLevel(tempF: Float?, currentLevel: Int): Int? {
-        if (tempF == null) return currentLevel.takeIf { it >= 0 } ?: 0
+        if (tempF == null) return currentLevel.takeIf { it >= 0 }
 
         val baseLevel = HardwareController.chooseAutoFanLevelForTempF(tempF)
 

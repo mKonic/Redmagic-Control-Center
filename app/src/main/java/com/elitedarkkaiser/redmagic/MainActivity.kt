@@ -132,10 +132,6 @@ class MainActivity : Activity() {
         launchMainUi()
     }
 
-
-
-
-
     private fun startGameModeService() {
         if (!PermissionActions.hasUsageStatsPermission(this)) {
             android.widget.Toast.makeText(
@@ -147,9 +143,6 @@ class MainActivity : Activity() {
         }
         startService(Intent(this, GameModeService::class.java))
     }
-
-
-
 
     private fun showMagicKeyAppPicker(targetButton: Button) {
         MagicKeyAppPickerDialog.show(

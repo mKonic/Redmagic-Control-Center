@@ -947,8 +947,8 @@ class MainActivity : Activity() {
                     startService(Intent(this, ChargingModeService::class.java))
                 },
                 showChargingFanLedDialog = { showChargingFanLedDialog() },
-                showChargingLogoLedDialog = { showChargingLogoLedDialog() },
-                showChargingShoulderLedDialog = { showChargingShoulderLedDialog() }
+                showChargingLogoLedDialog = { ChargingLedActions.showLogoDialog(this, chargingLedDialogDeps()) },
+                showChargingShoulderLedDialog = { ChargingLedActions.showShoulderDialog(this, chargingLedDialogDeps()) }
             )
         )
     }
@@ -1071,72 +1071,6 @@ class MainActivity : Activity() {
             title = "Charging Fan LED",
             subtitle = "Fan LED profile used only while plugged in and charging.",
             enableLabel = "Enable for charging mode"
-        )
-    }
-
-    private fun showChargingLogoLedDialog() {
-        val profile = ChargingLedState.readProfile(
-            this,
-            ChargingLedState.LOGO_ENABLED_KEY,
-            ChargingLedState.LOGO_EFFECT_KEY,
-            ChargingLedState.LOGO_COLOR_KEY,
-            defaultEnabled = true,
-            defaultEffect = "steady",
-            defaultColor = 1
-        )
-
-        ChargingLedProfileDialog.show(
-            activity = this,
-            title = "Charging Logo LED",
-            subtitle = "Logo LED profile used only while plugged in and charging.",
-            originalEnabled = profile.enabled,
-            originalEffect = profile.effect,
-            originalColor = profile.color,
-            onSave = { enabled, effect, color ->
-                ChargingLedActions.saveProfileAndApplyIfCharging(
-                    this,
-                    ChargingLedState.LOGO_ENABLED_KEY,
-                    ChargingLedState.LOGO_EFFECT_KEY,
-                    ChargingLedState.LOGO_COLOR_KEY,
-                    enabled,
-                    effect,
-                    color
-                )
-            },
-            deps = chargingLedDialogDeps()
-        )
-    }
-
-    private fun showChargingShoulderLedDialog() {
-        val profile = ChargingLedState.readProfile(
-            this,
-            ChargingLedState.SHOULDER_ENABLED_KEY,
-            ChargingLedState.SHOULDER_EFFECT_KEY,
-            ChargingLedState.SHOULDER_COLOR_KEY,
-            defaultEnabled = true,
-            defaultEffect = "breathe",
-            defaultColor = 8
-        )
-
-        ChargingLedProfileDialog.show(
-            activity = this,
-            title = "Charging Shoulder LEDs",
-            subtitle = "Shoulder LED profile used only while plugged in and charging.",
-            originalEnabled = profile.enabled,
-            originalEffect = profile.effect,
-            originalColor = profile.color,
-            onSave = { enabled, effect, color ->
-                ChargingLedActions.saveProfileAndApplyIfCharging(
-                    this,
-                    ChargingLedState.SHOULDER_ENABLED_KEY,
-                    ChargingLedState.SHOULDER_EFFECT_KEY,
-                    ChargingLedState.SHOULDER_COLOR_KEY,
-                    enabled,
-                    effect,
-                    color
-                )
-            },
-            deps = chargingLedDialogDeps()
         )
     }
 

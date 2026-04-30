@@ -968,8 +968,12 @@ class MainActivity : Activity() {
                         }
                     )
                 },
-                showChargingLogoLedDialog = { ChargingLedActions.showLogoDialog(this, chargingLedDialogDeps()) },
-                showChargingShoulderLedDialog = { ChargingLedActions.showShoulderDialog(this, chargingLedDialogDeps()) }
+                showChargingLogoLedDialog = {
+                    ChargingLedActions.showLogoDialog(this, chargingLedDialogDeps())
+                },
+                showChargingShoulderLedDialog = {
+                    ChargingLedActions.showShoulderDialog(this, chargingLedDialogDeps())
+                }
             )
         )
     }

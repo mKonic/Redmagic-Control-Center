@@ -125,7 +125,7 @@ class MainActivity : Activity() {
         }
 
         if (!isFirstInstallPermissionsPromptedStorage(this)) {
-            showFirstInstallPermissionsDialog()
+            FirstInstallPermissionsDialog.show(this) { launchMainUi() }
             return
         }
 
@@ -134,31 +134,6 @@ class MainActivity : Activity() {
 
 
 
-    private fun showFirstInstallPermissionsDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("App permissions setup")
-            .setMessage(
-                "RedMagic Control needs notification permission for foreground services and Usage Access for Game Mode detection. " +
-                    "These are requested now so permission prompts do not appear later throughout the UI. " +
-                    "\n\nAfter granting Usage Access, return to the app."
-            )
-            .setCancelable(false)
-            .setPositiveButton("Start setup") { _, _ ->
-                setFirstInstallPermissionsPromptedStorage(this, true)
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    requestPermissions(
-                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                        4101
-                    )
-                }
-
-                PermissionActions.openUsageStatsAccessSettings(this)
-
-                launchMainUi()
-            }
-            .show()
-    }
 
 
     private fun startGameModeService() {

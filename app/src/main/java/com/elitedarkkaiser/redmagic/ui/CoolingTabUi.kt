@@ -91,6 +91,7 @@ object CoolingTabUi {
             val level = HardwareController.applyFanCurve("quiet")
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Quiet • Applied immediately"
+            deps.refreshStatus()
         }
 
         val balancedChip = deps.segmentedChip("Balanced", deps.getSelectedCurve() == "balanced") {
@@ -100,6 +101,7 @@ object CoolingTabUi {
             val level = HardwareController.applyFanCurve("balanced")
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Balanced • Applied immediately"
+            deps.refreshStatus()
         }
 
         val turboChip = deps.segmentedChip("Turbo", deps.getSelectedCurve() == "turbo") {
@@ -109,6 +111,7 @@ object CoolingTabUi {
             val level = HardwareController.applyFanCurve("turbo")
             if (level != null) fanSeek.progress = level
             curveStatusText.text = "Selected curve: Turbo • Applied immediately"
+            deps.refreshStatus()
         }
 
         modeRow.addView(quietChip)

@@ -29,7 +29,7 @@ object ChargingLedActions {
             ChargingLedState.applyChargingProfile(context)
         }
     }
-    fun showLogoDialog(
+    internal fun showLogoDialog(
         activity: MainActivity,
         deps: ChargingLedProfileDialog.Deps
     ) {
@@ -65,7 +65,7 @@ object ChargingLedActions {
         )
     }
 
-    fun showShoulderDialog(
+    internal fun showShoulderDialog(
         activity: MainActivity,
         deps: ChargingLedProfileDialog.Deps
     ) {

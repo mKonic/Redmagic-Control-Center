@@ -413,9 +413,6 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
-        HardwareServiceActions.enqueueFanLedRestore(this, delaySeconds)
-    }
     private fun showRootRequiredDialog() {
         DeviceGateDialogs.showRootRequiredDialog(
             activity = this,

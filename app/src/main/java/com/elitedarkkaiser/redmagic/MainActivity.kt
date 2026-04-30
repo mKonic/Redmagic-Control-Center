@@ -1007,7 +1007,7 @@ class MainActivity : Activity() {
             applyPreviewIfEnabled = {
                 if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
                     ChargingLedActions.saveProfileAndApplyIfCharging(
-                    this,
+                        this,
                         ChargingLedState.FAN_ENABLED_KEY,
                         ChargingLedState.FAN_EFFECT_KEY,
                         ChargingLedState.FAN_COLOR_KEY,

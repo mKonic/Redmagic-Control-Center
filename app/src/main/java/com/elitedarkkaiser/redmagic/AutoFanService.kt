@@ -41,6 +41,7 @@ class AutoFanService : Service() {
         super.onCreate()
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification("Starting automatic fan control..."))
+        lastAppliedLevel = HardwareController.readFanLevel() ?: -1
         handler.post(loop)
     }
 

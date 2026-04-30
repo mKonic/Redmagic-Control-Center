@@ -112,6 +112,13 @@ class MainActivity : Activity() {
     private val textSecondary = Color.parseColor("#9AA8BA")
     private val typeface: Typeface? = Typeface.SANS_SERIF
     private val highlightBorder = Color.parseColor("#7F8EA3")
+    private val statusRefreshHandler = Handler(Looper.getMainLooper())
+    private val statusRefreshRunnable = object : Runnable {
+        override fun run() {
+            refreshStatus()
+            statusRefreshHandler.postDelayed(this, 15000L)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,6 +137,16 @@ class MainActivity : Activity() {
         }
 
         launchMainUi()
+    }
+
+    private fun startStatusRefreshLoop() {
+        statusRefreshHandler.removeCallbacks(statusRefreshRunnable)
+        statusRefreshHandler.postDelayed(statusRefreshRunnable, 15000L)
+    }
+
+    override fun onDestroy() {
+        statusRefreshHandler.removeCallbacks(statusRefreshRunnable)
+        super.onDestroy()
     }
 
     private fun showMagicKeyAppPicker(targetButton: Button) {
@@ -438,6 +455,7 @@ class MainActivity : Activity() {
         restoreFanCurveUiState()
         switchTab("home")
         refreshStatus()
+        startStatusRefreshLoop()
         GameModeActions.startServiceIfPermitted(this)
         HardwareServiceActions.startChargingMode(this)
     }

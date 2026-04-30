@@ -56,6 +56,10 @@ object HardwareController {
         return RootShell.execForOutput("cat $FAN_RPM")?.trim()?.toIntOrNull()
     }
 
+    fun readFanLevel(): Int? {
+        return RootShell.execForOutput("cat $FAN_LEVEL")?.trim()?.toIntOrNull()?.coerceIn(0, 5)
+    }
+
     fun enablePump(enabled: Boolean): Boolean {
         return RootShell.exec("echo ${if (enabled) 1 else 0} > $PUMP_ENABLE")
     }

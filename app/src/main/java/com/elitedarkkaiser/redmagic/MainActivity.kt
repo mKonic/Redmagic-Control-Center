@@ -338,10 +338,10 @@ class MainActivity : Activity() {
                     saveFanLedState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
                     saveLogoLedState = { saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor)) },
                     saveShoulderLedState = { saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor)) },
-                    startAutoFanService = { startAutoFanService() },
-                    stopAutoFanService = { stopAutoFanService() },
-                    startAutoPumpService = { startAutoPumpService() },
-                    stopAutoPumpService = { stopAutoPumpService() },
+                    startAutoFanService = { HardwareServiceActions.startAutoFan(this) },
+                    stopAutoFanService = { HardwareServiceActions.stopAutoFan(this) },
+                    startAutoPumpService = { HardwareServiceActions.startAutoPump(this) },
+                    stopAutoPumpService = { HardwareServiceActions.stopAutoPump(this) },
                     refreshStatus = { refreshStatus() },
                     refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() }
                 )
@@ -379,7 +379,7 @@ class MainActivity : Activity() {
         autoPumpEnabled = false
         savePumpStateStorage(this, pumpEnabled, pumpProfile)
         saveAutoPumpStateStorage(this, autoPumpEnabled)
-        stopAutoPumpService()
+        HardwareServiceActions.stopAutoPump(this)
         HardwareController.setPumpProfile(profile)
         refreshStatus()
         refreshSmartPumpStatusViews()
@@ -411,30 +411,6 @@ class MainActivity : Activity() {
                 space = { value -> space(value) }
             )
         )
-    }
-
-    private fun startAutoFanService() {
-        HardwareServiceActions.startAutoFan(this)
-    }
-
-    private fun stopAutoFanService() {
-        HardwareServiceActions.stopAutoFan(this)
-    }
-
-    private fun startFanLedService() {
-        HardwareServiceActions.startFanLed(this)
-    }
-
-    private fun stopFanLedService() {
-        HardwareServiceActions.stopFanLed(this)
-    }
-
-    private fun startAutoPumpService() {
-        HardwareServiceActions.startAutoPump(this)
-    }
-
-    private fun stopAutoPumpService() {
-        HardwareServiceActions.stopAutoPump(this)
     }
 
     private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
@@ -523,12 +499,12 @@ class MainActivity : Activity() {
             pumpEnabled = pumpEnabled,
             pumpProfile = pumpProfile,
             applyFanLedSelection = { effect, color -> applyFanLedSelection(effect, color) },
-            startFanLedService = { startFanLedService() },
-            stopFanLedService = { stopFanLedService() }
+            startFanLedService = { HardwareServiceActions.startFanLed(this) },
+            stopFanLedService = { HardwareServiceActions.stopFanLed(this) }
         )
 
         if (autoPumpEnabled) {
-            startAutoPumpService()
+            HardwareServiceActions.startAutoPump(this)
         }
 
         restoreFanCurveUiState()
@@ -641,10 +617,10 @@ class MainActivity : Activity() {
                 setAutoPumpEnabled = { value -> autoPumpEnabled = value },
 
                 setSelectedFanProgress = { value -> fanSeek.progress = value },
-                startAutoFanService = { startAutoFanService() },
-                stopAutoFanService = { stopAutoFanService() },
-                startAutoPumpService = { startAutoPumpService() },
-                stopAutoPumpService = { stopAutoPumpService() },
+                startAutoFanService = { HardwareServiceActions.startAutoFan(this) },
+                stopAutoFanService = { HardwareServiceActions.stopAutoFan(this) },
+                startAutoPumpService = { HardwareServiceActions.startAutoPump(this) },
+                stopAutoPumpService = { HardwareServiceActions.stopAutoPump(this) },
                 savePumpState = { savePumpStateStorage(this, pumpEnabled, pumpProfile) },
                 saveAutoPumpState = { saveAutoPumpStateStorage(this, autoPumpEnabled) },
                 refreshStatus = { refreshStatus() },
@@ -978,8 +954,8 @@ class MainActivity : Activity() {
             applyEffect = { effect, color -> HardwareController.setShoulderLedEffect(effect, color) },
             disableLed = { HardwareController.setShoulderLedEnabled(false) },
             saveState = { saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor)) },
-            startFanLedService = { startFanLedService() },
-            stopFanLedService = { stopFanLedService() },
+            startFanLedService = { HardwareServiceActions.startFanLed(this) },
+            stopFanLedService = { HardwareServiceActions.stopFanLed(this) },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
             setDialogRefresh = { callback -> dialogRefreshShoulderLed = callback },
             deps = ShoulderLedDialogUi.Deps(
@@ -1017,8 +993,8 @@ class MainActivity : Activity() {
             applyEffect = { effect, color -> HardwareController.setLogoLedEffect(effect, color) },
             disableLed = { HardwareController.setLogoLedEnabled(false) },
             saveState = { saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor)) },
-            startFanLedService = { startFanLedService() },
-            stopFanLedService = { stopFanLedService() },
+            startFanLedService = { HardwareServiceActions.startFanLed(this) },
+            stopFanLedService = { HardwareServiceActions.stopFanLed(this) },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
             setDialogRefresh = { callback -> dialogRefreshLogoLed = callback },
             deps = LogoLedDialogUi.Deps(
@@ -1056,8 +1032,8 @@ class MainActivity : Activity() {
             applySelection = { effect, color -> applyFanLedSelection(effect, color) },
             disableLed = { HardwareController.setFanLedEnabled(false) },
             saveState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
-            startFanLedService = { startFanLedService() },
-            stopFanLedService = { stopFanLedService() },
+            startFanLedService = { HardwareServiceActions.startFanLed(this) },
+            stopFanLedService = { HardwareServiceActions.stopFanLed(this) },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
             applyFanPreset = { preset -> applyFanPreset(preset) },
             setDialogRefresh = { callback -> dialogRefreshFanLed = callback },

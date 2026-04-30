@@ -974,31 +974,6 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun saveChargingLedProfile(
-        enabledKey: String,
-        effectKey: String,
-        colorKey: String,
-        enabled: Boolean,
-        effect: String,
-        color: Int
-    ) {
-        ChargingLedState.saveProfile(
-            this,
-            enabledKey,
-            effectKey,
-            colorKey,
-            enabled,
-            effect,
-            color
-        )
-
-        startService(Intent(this, ChargingModeService::class.java))
-        if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
-            ChargingLedState.setActive(this, true)
-            ChargingLedState.applyChargingProfile(this)
-        }
-    }
-
     private fun showChargingFanLedDialog() {
         val chargingFanProfile = ChargingLedState.readProfile(
             this,
@@ -1031,7 +1006,8 @@ class MainActivity : Activity() {
             setColor = { value -> chargingFanColor = value },
             applyPreviewIfEnabled = {
                 if (ChargingLedState.isEnabled(this) && ChargingLedState.isChargingNow(this)) {
-                    saveChargingLedProfile(
+                    ChargingLedActions.saveProfileAndApplyIfCharging(
+                    this,
                         ChargingLedState.FAN_ENABLED_KEY,
                         ChargingLedState.FAN_EFFECT_KEY,
                         ChargingLedState.FAN_COLOR_KEY,
@@ -1051,7 +1027,8 @@ class MainActivity : Activity() {
             },
             disableLed = { HardwareController.setFanLedEnabled(false) },
             saveState = {
-                saveChargingLedProfile(
+                ChargingLedActions.saveProfileAndApplyIfCharging(
+                    this,
                     ChargingLedState.FAN_ENABLED_KEY,
                     ChargingLedState.FAN_EFFECT_KEY,
                     ChargingLedState.FAN_COLOR_KEY,
@@ -1116,7 +1093,8 @@ class MainActivity : Activity() {
             originalEffect = profile.effect,
             originalColor = profile.color,
             onSave = { enabled, effect, color ->
-                saveChargingLedProfile(
+                ChargingLedActions.saveProfileAndApplyIfCharging(
+                    this,
                     ChargingLedState.LOGO_ENABLED_KEY,
                     ChargingLedState.LOGO_EFFECT_KEY,
                     ChargingLedState.LOGO_COLOR_KEY,
@@ -1148,7 +1126,8 @@ class MainActivity : Activity() {
             originalEffect = profile.effect,
             originalColor = profile.color,
             onSave = { enabled, effect, color ->
-                saveChargingLedProfile(
+                ChargingLedActions.saveProfileAndApplyIfCharging(
+                    this,
                     ChargingLedState.SHOULDER_ENABLED_KEY,
                     ChargingLedState.SHOULDER_EFFECT_KEY,
                     ChargingLedState.SHOULDER_COLOR_KEY,

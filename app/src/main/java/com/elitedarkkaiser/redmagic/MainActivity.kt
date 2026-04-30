@@ -127,7 +127,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        initDefaultTriggerMappings()
+        initDefaultTriggerMappingsStorage(this)
         runBackgroundDeviceScan()
 
         if (!RootShell.hasRoot()) {
@@ -416,7 +416,7 @@ class MainActivity : Activity() {
             setShoulderLedColor = { value -> shoulderLedColor = value },
 
             setFanLevel = { value -> fanSeek.progress = value },
-            saveTriggerPrefs = { applied -> saveTriggerPrefs(applied) },
+            saveTriggerPrefs = { applied -> saveTriggerPrefsStorage(this, applied) },
             enableTriggersIfNeeded = { applied ->
                 if (applied.triggersAutoStart) {
                     HardwareController.enableTriggers()
@@ -441,10 +441,6 @@ class MainActivity : Activity() {
                 )
             }
         )
-    }
-
-    private fun saveTriggerPrefs(profile: HardwareProfile) {
-        saveTriggerPrefsStorage(this, profile)
     }
 
     private fun showSaveProfileDialog(onSaved: () -> Unit) {
@@ -1009,10 +1005,6 @@ class MainActivity : Activity() {
                 space = { value -> space(value) }
             )
         )
-    }
-
-    private fun initDefaultTriggerMappings() {
-        initDefaultTriggerMappingsStorage(this)
     }
 
     private fun showGameModeProfileDialog() {

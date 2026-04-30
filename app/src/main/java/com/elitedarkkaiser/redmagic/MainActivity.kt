@@ -946,7 +946,28 @@ class MainActivity : Activity() {
                     ChargingLedState.setEnabled(this, enabled)
                     startService(Intent(this, ChargingModeService::class.java))
                 },
-                showChargingFanLedDialog = { showChargingFanLedDialog() },
+                showChargingFanLedDialog = {
+                    ChargingLedActions.showFanDialog(
+                        activity = this,
+                        textPrimary = textPrimary,
+                        textSecondary = textSecondary,
+                        panelColor = panelColor,
+                        borderColor = borderColor,
+                        panelPressed = panelPressed,
+                        accent = accent,
+                        typeface = typeface,
+                        dp = { value -> dp(value) },
+                        roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                        roundedFill = { color, radius -> roundedFill(color, radius) },
+                        space = { value -> space(value) },
+                        filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
+                        colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
+                        colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
+                        fanPresetBubble = { c1, c2, c3, c4, presetValue, selected, onClick ->
+                            fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { selected }, onClick = onClick)
+                        }
+                    )
+                },
                 showChargingLogoLedDialog = { ChargingLedActions.showLogoDialog(this, chargingLedDialogDeps()) },
                 showChargingShoulderLedDialog = { ChargingLedActions.showShoulderDialog(this, chargingLedDialogDeps()) }
             )
@@ -970,29 +991,6 @@ class MainActivity : Activity() {
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
             fanPresetBubble = { h1, h2, h3, h4, value, selected, onClick ->
                 fanPresetBubble(h1, h2, h3, h4, presetValue = value, selectedOverride = { selected }, onClick = onClick)
-            }
-        )
-    }
-
-    private fun showChargingFanLedDialog() {
-        ChargingLedActions.showFanDialog(
-            activity = this,
-            textPrimary = textPrimary,
-            textSecondary = textSecondary,
-            panelColor = panelColor,
-            borderColor = borderColor,
-            panelPressed = panelPressed,
-            accent = accent,
-            typeface = typeface,
-            dp = { value -> dp(value) },
-            roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-            roundedFill = { color, radius -> roundedFill(color, radius) },
-            space = { value -> space(value) },
-            filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
-            colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
-            colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
-            fanPresetBubble = { c1, c2, c3, c4, presetValue, selected, onClick ->
-                fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { selected }, onClick = onClick)
             }
         )
     }

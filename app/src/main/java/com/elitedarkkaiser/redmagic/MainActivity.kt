@@ -59,6 +59,7 @@ class MainActivity : Activity() {
     private lateinit var rpmChip: TextView
     private var lastDisplayedRpm: Int = -1
     private lateinit var tempChip: TextView
+    private var lastDisplayedTempF: Float? = null
 
     private lateinit var homeTab: LinearLayout
     private lateinit var coolingTab: LinearLayout
@@ -1245,6 +1246,13 @@ class MainActivity : Activity() {
 
         if (rpm != null) lastDisplayedRpm = rpm
         val tempF = HardwareController.readTemperatureF()
+        val tempTrend = when {
+            tempF == null || lastDisplayedTempF == null -> ""
+            tempF > lastDisplayedTempF!! + 1f -> " ↑"
+            tempF < lastDisplayedTempF!! - 1f -> " ↓"
+            else -> " →"
+        }
+        if (tempF != null) lastDisplayedTempF = tempF
 
         deviceModelValue.text = Build.MODEL ?: "Unknown"
         deviceRomValue.text = HardwareController.readShortRomFingerprint()
@@ -1254,9 +1262,9 @@ class MainActivity : Activity() {
         rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
-        tempChip.text = if (tempF != null) "TEMP ${formatDisplayTempFromF(tempF)}" else "TEMP --"
+        tempChip.text = if (tempF != null) "TEMP ${formatDisplayTempFromF(tempF)}$tempTrend" else "TEMP --"
 
-        tempText.text = if (tempF != null) "Current temp: ${formatDisplayTempFromF(tempF)}" else "Current temp: --"
+        tempText.text = if (tempF != null) "Current temp: ${formatDisplayTempFromF(tempF)}$tempTrend" else "Current temp: --"
 
         setChipState(rootChip, rooted)
         setChipState(fanChip, fanEnabled)

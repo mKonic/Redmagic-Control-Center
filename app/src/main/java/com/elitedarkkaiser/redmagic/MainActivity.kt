@@ -272,33 +272,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun savePumpState() {
-        savePumpStateStorage(this, pumpEnabled, pumpProfile)
-    }
-
-    private fun applySavedPumpStateOnLaunch() {
-        val state = savedPumpStateStorage(this)
-        pumpEnabled = state.enabled
-        pumpProfile = state.profile
-        autoPumpEnabled = state.autoEnabled
-    }
-
-    private fun isPumpExperimentalAccepted(): Boolean {
-        return savedPumpStateStorage(this).experimentalAccepted
-    }
-
-    private fun setPumpExperimentalAccepted(accepted: Boolean) {
-        setPumpExperimentalAcceptedStorage(this, accepted)
-    }
-
-    private fun isAutoPumpEnabledSaved(): Boolean {
-        return savedPumpStateStorage(this).autoEnabled
-    }
-
-    private fun saveAutoPumpState() {
-        saveAutoPumpStateStorage(this, autoPumpEnabled)
-    }
-
     private fun buildAutoPumpStatusText(): Pair<String, String> {
         val tempF = DashboardSnapshot.readCpuTempF().toFloatOrNull()
         if (tempF == null) {
@@ -394,8 +367,8 @@ class MainActivity : Activity() {
                 ProfileActions.afterProfileApplied(
                     profile = applied,
                     setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
-                    savePumpState = { savePumpState() },
-                    saveAutoPumpState = { saveAutoPumpState() },
+                    savePumpState = { savePumpStateStorage(this, pumpEnabled, pumpProfile) },
+                    saveAutoPumpState = { saveAutoPumpStateStorage(this, autoPumpEnabled) },
                     saveFanLedState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
                     saveLogoLedState = { saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor)) },
                     saveShoulderLedState = { saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor)) },
@@ -438,8 +411,8 @@ class MainActivity : Activity() {
         pumpProfile = profile
         pumpEnabled = true
         autoPumpEnabled = false
-        savePumpState()
-        saveAutoPumpState()
+        savePumpStateStorage(this, pumpEnabled, pumpProfile)
+        saveAutoPumpStateStorage(this, autoPumpEnabled)
         stopAutoPumpService()
         HardwareController.setPumpProfile(profile)
         refreshStatus()
@@ -447,7 +420,7 @@ class MainActivity : Activity() {
     }
 
     private fun confirmExperimentalPumpThenApply() {
-        if (isPumpExperimentalAccepted()) {
+        if (savedPumpStateStorage(this).experimentalAccepted) {
             applyPumpProfile("experimental")
             return
         }
@@ -456,7 +429,7 @@ class MainActivity : Activity() {
             activity = this,
             onCancel = { },
             onConfirm = {
-                setPumpExperimentalAccepted(true)
+                setPumpExperimentalAcceptedStorage(this, true)
                 applyPumpProfile("experimental")
             },
             deps = ExperimentalPumpDialog.Deps(
@@ -563,13 +536,18 @@ class MainActivity : Activity() {
                 shoulderLedEffect = state.effect
                 shoulderLedColor = state.color
             },
-            applySavedPumpStateOnLaunch = { applySavedPumpStateOnLaunch() },
+            applySavedPumpStateOnLaunch = {
+                val state = savedPumpStateStorage(this)
+                pumpEnabled = state.enabled
+                pumpProfile = state.profile
+                autoPumpEnabled = state.autoEnabled
+            },
             setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
             isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
             setUseFahrenheit = { value -> useFahrenheit = value },
             isUseFahrenheitSaved = { isUseFahrenheitSaved() },
             setAutoPumpEnabled = { value -> autoPumpEnabled = value },
-            isAutoPumpEnabledSaved = { isAutoPumpEnabledSaved() }
+            isAutoPumpEnabledSaved = { savedPumpStateStorage(this).autoEnabled }
         )
 
         val result = MainUiLauncher.launch(
@@ -725,8 +703,8 @@ class MainActivity : Activity() {
                 stopAutoFanService = { stopAutoFanService() },
                 startAutoPumpService = { startAutoPumpService() },
                 stopAutoPumpService = { stopAutoPumpService() },
-                savePumpState = { savePumpState() },
-                saveAutoPumpState = { saveAutoPumpState() },
+                savePumpState = { savePumpStateStorage(this, pumpEnabled, pumpProfile) },
+                saveAutoPumpState = { saveAutoPumpStateStorage(this, autoPumpEnabled) },
                 refreshStatus = { refreshStatus() },
                 refreshSmartPumpStatusViews = { refreshSmartPumpStatusViews() },
                 buildAutoPumpStatusText = { buildAutoPumpStatusText() },
@@ -1023,7 +1001,7 @@ class MainActivity : Activity() {
             setPumpProfile = { value -> pumpProfile = value },
             applyHardwareProfile = { value -> HardwareController.setPumpProfile(value) },
             disablePump = { HardwareController.enablePump(false) },
-            savePumpState = { savePumpState() },
+            savePumpState = { savePumpStateStorage(this, pumpEnabled, pumpProfile) },
             confirmExperimentalPumpThenApply = { confirmExperimentalPumpThenApply() },
             setDialogRefreshPump = { callback -> dialogRefreshPump = callback },
             deps = PumpDialogUi.Deps(

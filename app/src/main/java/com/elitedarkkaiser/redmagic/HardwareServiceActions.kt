@@ -33,6 +33,10 @@ object HardwareServiceActions {
         context.stopService(Intent(context, AutoPumpService::class.java))
     }
 
+    fun startChargingMode(context: Context) {
+        context.startService(Intent(context, ChargingModeService::class.java))
+    }
+
     fun enqueueFanLedRestore(context: Context, delaySeconds: Long = 2) {
         val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
             .setInitialDelay(delaySeconds, TimeUnit.SECONDS)

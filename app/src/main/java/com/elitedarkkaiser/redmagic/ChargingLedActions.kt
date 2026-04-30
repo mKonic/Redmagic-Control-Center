@@ -23,7 +23,7 @@ object ChargingLedActions {
             color
         )
 
-        context.startService(Intent(context, ChargingModeService::class.java))
+        HardwareServiceActions.startChargingMode(context)
         if (ChargingLedState.isEnabled(context) && ChargingLedState.isChargingNow(context)) {
             ChargingLedState.setActive(context, true)
             ChargingLedState.applyChargingProfile(context)
@@ -182,10 +182,10 @@ object ChargingLedActions {
                 )
             },
             startFanLedService = {
-                activity.startService(android.content.Intent(activity, ChargingModeService::class.java))
+                HardwareServiceActions.startChargingMode(activity)
             },
             stopFanLedService = {
-                activity.startService(android.content.Intent(activity, ChargingModeService::class.java))
+                HardwareServiceActions.startChargingMode(activity)
             },
             anyLedEnabled = { ChargingLedState.isEnabled(activity) },
             applyFanPreset = { value ->

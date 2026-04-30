@@ -439,7 +439,7 @@ class MainActivity : Activity() {
         switchTab("home")
         refreshStatus()
         GameModeActions.startServiceIfPermitted(this)
-        startService(Intent(this, ChargingModeService::class.java))
+        HardwareServiceActions.startChargingMode(this)
     }
 
     private fun restoreFanCurveUiState() {
@@ -735,7 +735,7 @@ class MainActivity : Activity() {
                 getChargingLedEnabled = { ChargingLedState.isEnabled(this) },
                 setChargingLedEnabled = { enabled ->
                     ChargingLedState.setEnabled(this, enabled)
-                    startService(Intent(this, ChargingModeService::class.java))
+                    HardwareServiceActions.startChargingMode(this)
                 },
                 showChargingFanLedDialog = {
                     ChargingLedActions.showFanDialog(

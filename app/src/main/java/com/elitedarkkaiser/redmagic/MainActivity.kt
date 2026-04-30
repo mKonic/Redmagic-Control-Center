@@ -462,14 +462,6 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {
-        ProfileDialogs.showDeleteProfileDialog(this, profileName) {
-            ProfileManager.deleteProfile(this, profileName)
-            Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
-            onDeleted()
-        }
-    }
-
     private fun refreshSmartPumpStatusViews() {
         val statusView = smartPumpStatusView ?: return
         val speedView = smartPumpSpeedView ?: return
@@ -899,7 +891,13 @@ class MainActivity : Activity() {
                 applyHardwareProfile = { profile -> HardwareController.applyHardwareProfile(profile) },
                 applyProfileToUiState = { profile -> applyProfileToUiState(profile) },
                 showSaveProfileDialog = { onSaved -> showSaveProfileDialog(onSaved) },
-                showDeleteProfileDialog = { profileName, onDeleted -> showDeleteProfileDialog(profileName, onDeleted) }
+                showDeleteProfileDialog = { profileName, onDeleted ->
+                    ProfileDialogs.showDeleteProfileDialog(this, profileName) {
+                        ProfileManager.deleteProfile(this, profileName)
+                        Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
+                        onDeleted()
+                    }
+                }
             )
         )
     }

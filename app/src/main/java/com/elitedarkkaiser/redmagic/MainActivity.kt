@@ -38,9 +38,6 @@ class MainActivity : Activity() {
 
     private var useFahrenheit = true
 
-    private fun saveUseFahrenheit(useF: Boolean) {
-        saveUseFahrenheitStorage(this, useF)
-    }
 
     private fun formatDisplayTempFromF(tempF: Float?): String {
         return TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)
@@ -207,9 +204,6 @@ class MainActivity : Activity() {
 
 
 
-    private fun setAutoFanEnabledSaved(enabled: Boolean) {
-        saveAutoFanEnabledStorage(this, enabled)
-    }
 
     private fun showMagicKeyAppPicker(targetButton: Button) {
         MagicKeyAppPickerDialog.show(

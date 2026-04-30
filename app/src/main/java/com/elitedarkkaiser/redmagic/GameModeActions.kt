@@ -1,11 +1,25 @@
 package com.elitedarkkaiser.redmagic
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.widget.Button
 import android.widget.Toast
 
 internal object GameModeActions {
+
+    fun startServiceIfPermitted(context: Context) {
+        if (!PermissionActions.hasUsageStatsPermission(context)) {
+            Toast.makeText(
+                context,
+                "Grant Usage Access to enable Game Mode",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        context.startService(Intent(context, GameModeService::class.java))
+    }
 
     fun buildProfile(
         fanEnabled: Boolean,

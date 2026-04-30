@@ -132,18 +132,6 @@ class MainActivity : Activity() {
         launchMainUi()
     }
 
-    private fun startGameModeService() {
-        if (!PermissionActions.hasUsageStatsPermission(this)) {
-            android.widget.Toast.makeText(
-                this,
-                "Grant Usage Access to enable Game Mode",
-                android.widget.Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-        startService(Intent(this, GameModeService::class.java))
-    }
-
     private fun showMagicKeyAppPicker(targetButton: Button) {
         MagicKeyAppPickerDialog.show(
             activity = this,
@@ -450,7 +438,7 @@ class MainActivity : Activity() {
         restoreFanCurveUiState()
         switchTab("home")
         refreshStatus()
-        startGameModeService()
+        GameModeActions.startServiceIfPermitted(this)
         startService(Intent(this, ChargingModeService::class.java))
     }
 
@@ -844,7 +832,7 @@ class MainActivity : Activity() {
             onSaveProfile = { profile ->
                 saveGameModeProfileStorage(this, profile)
                 GameModeActions.applyProfileNow(getSavedGameModeProfileStorage(this), applyFanLed = { effect, color -> applyFanLedSelection(effect, color) })
-                startGameModeService()
+                GameModeActions.startServiceIfPermitted(this)
             }
         )
     }

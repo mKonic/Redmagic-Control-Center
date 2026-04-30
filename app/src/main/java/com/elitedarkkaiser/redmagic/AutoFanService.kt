@@ -58,14 +58,7 @@ class AutoFanService : Service() {
     private fun chooseStableFanLevel(tempF: Float?, currentLevel: Int): Int? {
         if (tempF == null) return currentLevel.takeIf { it >= 0 } ?: 0
 
-        val baseLevel = when {
-            tempF < 95f -> 0
-            tempF < 104f -> 1
-            tempF < 113f -> 2
-            tempF < 122f -> 3
-            tempF < 131f -> 4
-            else -> 5
-        }
+        val baseLevel = HardwareController.chooseAutoFanLevelForTempF(tempF)
 
         if (currentLevel < 0) return baseLevel
 

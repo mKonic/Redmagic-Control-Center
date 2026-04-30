@@ -287,11 +287,11 @@ fun turnOffAllLeds(): Boolean {
 
     fun chooseAutoFanLevelForTempF(tempF: Float): Int {
         return when {
-            tempF < 90f -> 0
-            tempF < 97f -> 1
-            tempF < 104f -> 2
-            tempF < 111f -> 3
-            tempF < 118f -> 4
+            tempF < 95f -> 0
+            tempF < 104f -> 1
+            tempF < 113f -> 2
+            tempF < 122f -> 3
+            tempF < 131f -> 4
             else -> 5
         }
     }

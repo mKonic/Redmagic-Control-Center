@@ -272,39 +272,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun saveFanLedState() {
-        saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor))
-    }
-
-    private fun applySavedFanLedStateOnLaunch() {
-        val state = savedFanLedStateStorage(this)
-        fanLedEnabled = state.enabled
-        fanLedEffect = state.effect
-        fanLedColor = state.color
-    }
-
-    private fun saveLogoLedState() {
-        saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor))
-    }
-
-    private fun applySavedLogoLedStateOnLaunch() {
-        val state = savedLogoLedStateStorage(this)
-        logoLedEnabled = state.enabled
-        logoLedEffect = state.effect
-        logoLedColor = state.color
-    }
-
-    private fun saveShoulderLedState() {
-        saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor))
-    }
-
-    private fun applySavedShoulderLedStateOnLaunch() {
-        val state = savedShoulderLedStateStorage(this)
-        shoulderLedEnabled = state.enabled
-        shoulderLedEffect = state.effect
-        shoulderLedColor = state.color
-    }
-
     private fun savePumpState() {
         savePumpStateStorage(this, pumpEnabled, pumpProfile)
     }
@@ -429,9 +396,9 @@ class MainActivity : Activity() {
                     setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
                     savePumpState = { savePumpState() },
                     saveAutoPumpState = { saveAutoPumpState() },
-                    saveFanLedState = { saveFanLedState() },
-                    saveLogoLedState = { saveLogoLedState() },
-                    saveShoulderLedState = { saveShoulderLedState() },
+                    saveFanLedState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
+                    saveLogoLedState = { saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor)) },
+                    saveShoulderLedState = { saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor)) },
                     startAutoFanService = { startAutoFanService() },
                     stopAutoFanService = { stopAutoFanService() },
                     startAutoPumpService = { startAutoPumpService() },
@@ -578,9 +545,24 @@ class MainActivity : Activity() {
     }
     private fun launchMainUi() {
         MainUiStartup.applySavedHardwareState(
-            applySavedFanLedStateOnLaunch = { applySavedFanLedStateOnLaunch() },
-            applySavedLogoLedStateOnLaunch = { applySavedLogoLedStateOnLaunch() },
-            applySavedShoulderLedStateOnLaunch = { applySavedShoulderLedStateOnLaunch() },
+            applySavedFanLedStateOnLaunch = {
+                val state = savedFanLedStateStorage(this)
+                fanLedEnabled = state.enabled
+                fanLedEffect = state.effect
+                fanLedColor = state.color
+            },
+            applySavedLogoLedStateOnLaunch = {
+                val state = savedLogoLedStateStorage(this)
+                logoLedEnabled = state.enabled
+                logoLedEffect = state.effect
+                logoLedColor = state.color
+            },
+            applySavedShoulderLedStateOnLaunch = {
+                val state = savedShoulderLedStateStorage(this)
+                shoulderLedEnabled = state.enabled
+                shoulderLedEffect = state.effect
+                shoulderLedColor = state.color
+            },
             applySavedPumpStateOnLaunch = { applySavedPumpStateOnLaunch() },
             setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
             isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
@@ -1075,7 +1057,7 @@ class MainActivity : Activity() {
             applyPreviewIfEnabled = { applyShoulderLedPreviewIfEnabled() },
             applyEffect = { effect, color -> HardwareController.setShoulderLedEffect(effect, color) },
             disableLed = { HardwareController.setShoulderLedEnabled(false) },
-            saveState = { saveShoulderLedState() },
+            saveState = { saveShoulderLedStateStorage(this, LedState(shoulderLedEnabled, shoulderLedEffect, shoulderLedColor)) },
             startFanLedService = { startFanLedService() },
             stopFanLedService = { stopFanLedService() },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
@@ -1114,7 +1096,7 @@ class MainActivity : Activity() {
             applyPreviewIfEnabled = { applyLogoLedPreviewIfEnabled() },
             applyEffect = { effect, color -> HardwareController.setLogoLedEffect(effect, color) },
             disableLed = { HardwareController.setLogoLedEnabled(false) },
-            saveState = { saveLogoLedState() },
+            saveState = { saveLogoLedStateStorage(this, LedState(logoLedEnabled, logoLedEffect, logoLedColor)) },
             startFanLedService = { startFanLedService() },
             stopFanLedService = { stopFanLedService() },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },
@@ -1153,7 +1135,7 @@ class MainActivity : Activity() {
             applyPreviewIfEnabled = { applyFanLedPreviewIfEnabled() },
             applySelection = { effect, color -> applyFanLedSelection(effect, color) },
             disableLed = { HardwareController.setFanLedEnabled(false) },
-            saveState = { saveFanLedState() },
+            saveState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
             startFanLedService = { startFanLedService() },
             stopFanLedService = { stopFanLedService() },
             anyLedEnabled = { fanLedEnabled || logoLedEnabled || shoulderLedEnabled },

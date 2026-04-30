@@ -1,11 +1,8 @@
 package com.elitedarkkaiser.redmagic
 
-import android.app.AppOpsManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Process
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -54,22 +51,12 @@ class BootReceiver : BroadcastReceiver() {
         }
 
         val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
-        if (tracked.isNotEmpty() && hasUsageStatsPermission(context)) {
+        if (tracked.isNotEmpty() && PermissionActions.hasUsageStatsPermission(context)) {
             context.startService(Intent(context, GameModeService::class.java))
         context.startService(Intent(context, ChargingModeService::class.java))
         }
     }
 
-    private fun hasUsageStatsPermission(context: Context): Boolean {
-        val appOps = context.getSystemService(AppOpsManager::class.java)
-        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            appOps.unsafeCheckOpNoThrow("android:get_usage_stats", Process.myUid(), context.packageName)
-        } else {
-            @Suppress("DEPRECATION")
-            appOps.checkOpNoThrow("android:get_usage_stats", Process.myUid(), context.packageName)
-        }
-        return mode == AppOpsManager.MODE_ALLOWED
-    }
 
     private fun restorePersistentHardware(context: Context) {
         val prefs = context.getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)

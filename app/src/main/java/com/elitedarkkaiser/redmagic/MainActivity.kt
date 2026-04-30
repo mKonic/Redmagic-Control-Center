@@ -159,35 +159,16 @@ class MainActivity : Activity() {
                     )
                 }
 
-                openUsageStatsAccessSettings()
+                PermissionActions.openUsageStatsAccessSettings(this)
 
                 launchMainUi()
             }
             .show()
     }
 
-    private fun hasUsageStatsPermission(): Boolean {
-        val appOps = getSystemService(android.app.AppOpsManager::class.java)
-        val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            appOps.unsafeCheckOpNoThrow("android:get_usage_stats", android.os.Process.myUid(), packageName)
-        } else {
-            @Suppress("DEPRECATION")
-            appOps.checkOpNoThrow("android:get_usage_stats", android.os.Process.myUid(), packageName)
-        }
-        return mode == android.app.AppOpsManager.MODE_ALLOWED
-    }
-
-    private fun openUsageStatsAccessSettings() {
-        startActivity(
-            android.content.Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
-                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        )
-    }
-
 
     private fun startGameModeService() {
-        if (!hasUsageStatsPermission()) {
+        if (!PermissionActions.hasUsageStatsPermission(this)) {
             android.widget.Toast.makeText(
                 this,
                 "Grant Usage Access to enable Game Mode",
@@ -547,8 +528,8 @@ class MainActivity : Activity() {
                 segmentedChip = { label, selected, onClick -> segmentedChip(label, selected, onClick) },
                 space = { width -> space(width) },
                 dp = { value -> dp(value) },
-                hasUsageStatsPermission = { hasUsageStatsPermission() },
-                openUsageStatsAccessSettings = { openUsageStatsAccessSettings() },
+                hasUsageStatsPermission = { PermissionActions.hasUsageStatsPermission(this) },
+                openUsageStatsAccessSettings = { PermissionActions.openUsageStatsAccessSettings(this) },
                 showGamePickerDialog = { showGamePickerDialog() },
                 updateGameModeStatusUI = { textView -> updateGameModeStatusUI(textView) },
                 openUrl = { url -> openUrl(url) },

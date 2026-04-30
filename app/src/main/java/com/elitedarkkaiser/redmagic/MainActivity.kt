@@ -443,25 +443,6 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun showSaveProfileDialog(onSaved: () -> Unit) {
-        ProfileDialogs.showStyledSaveProfileDialog(
-            context = this,
-            textPrimary = textPrimary,
-            textSecondary = textSecondary,
-            panelColor = panelColor,
-            borderColor = borderColor,
-            typeface = typeface,
-            dp = { value -> dp(value) },
-            roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
-            actionButton = { text, isDanger, onClick ->
-                actionButton(text, isDanger = isDanger, onClick = onClick)
-            },
-            space = { value -> space(value) },
-            buildProfile = { name -> buildCurrentHardwareProfile(name) },
-            onSaved = onSaved
-        )
-    }
-
     private fun refreshSmartPumpStatusViews() {
         val statusView = smartPumpStatusView ?: return
         val speedView = smartPumpSpeedView ?: return
@@ -890,7 +871,24 @@ class MainActivity : Activity() {
                 loadProfiles = { ProfileManager.loadProfiles(this) },
                 applyHardwareProfile = { profile -> HardwareController.applyHardwareProfile(profile) },
                 applyProfileToUiState = { profile -> applyProfileToUiState(profile) },
-                showSaveProfileDialog = { onSaved -> showSaveProfileDialog(onSaved) },
+                showSaveProfileDialog = { onSaved ->
+                    ProfileDialogs.showStyledSaveProfileDialog(
+                        context = this,
+                        textPrimary = textPrimary,
+                        textSecondary = textSecondary,
+                        panelColor = panelColor,
+                        borderColor = borderColor,
+                        typeface = typeface,
+                        dp = { value -> dp(value) },
+                        roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+                        actionButton = { text, isDanger, onClick ->
+                            actionButton(text, isDanger = isDanger, onClick = onClick)
+                        },
+                        space = { value -> space(value) },
+                        buildProfile = { name -> buildCurrentHardwareProfile(name) },
+                        onSaved = onSaved
+                    )
+                },
                 showDeleteProfileDialog = { profileName, onDeleted ->
                     ProfileDialogs.showDeleteProfileDialog(this, profileName) {
                         ProfileManager.deleteProfile(this, profileName)

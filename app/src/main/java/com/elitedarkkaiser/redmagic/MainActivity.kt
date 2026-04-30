@@ -38,10 +38,6 @@ class MainActivity : Activity() {
 
     private var useFahrenheit = true
 
-    private fun isUseFahrenheitSaved(): Boolean {
-        return isUseFahrenheitStorage(this)
-    }
-
     private fun saveUseFahrenheit(useF: Boolean) {
         saveUseFahrenheitStorage(this, useF)
     }
@@ -210,29 +206,9 @@ class MainActivity : Activity() {
     }
 
 
-    private fun setSelectedCurveSaved(value: String) {
-        saveSelectedCurveStorage(this, value)
-    }
-
-    private fun getSelectedCurveSaved(): String {
-        return selectedCurveStorage(this)
-    }
-
-
-    private fun isAutoFanEnabledSaved(): Boolean {
-        return isAutoFanEnabledStorage(this)
-    }
 
     private fun setAutoFanEnabledSaved(enabled: Boolean) {
         saveAutoFanEnabledStorage(this, enabled)
-    }
-
-    private fun isRealTimePreviewEnabledSaved(): Boolean {
-        return isRealTimePreviewEnabledStorage(this)
-    }
-
-    private fun saveRealTimePreviewEnabled(enabled: Boolean) {
-        saveRealTimePreviewEnabledStorage(this, enabled)
     }
 
     private fun showMagicKeyAppPicker(targetButton: Button) {
@@ -366,7 +342,7 @@ class MainActivity : Activity() {
             afterProfileApplied = { applied ->
                 ProfileActions.afterProfileApplied(
                     profile = applied,
-                    setAutoFanEnabledSaved = { enabled -> setAutoFanEnabledSaved(enabled) },
+                    setAutoFanEnabledSaved = { enabled -> saveAutoFanEnabledStorage(this, enabled) },
                     savePumpState = { savePumpStateStorage(this, pumpEnabled, pumpProfile) },
                     saveAutoPumpState = { saveAutoPumpStateStorage(this, autoPumpEnabled) },
                     saveFanLedState = { saveFanLedStateStorage(this, LedState(fanLedEnabled, fanLedEffect, fanLedColor)) },
@@ -543,9 +519,9 @@ class MainActivity : Activity() {
                 autoPumpEnabled = state.autoEnabled
             },
             setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
-            isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledSaved() },
+            isRealTimePreviewEnabledSaved = { isRealTimePreviewEnabledStorage(this) },
             setUseFahrenheit = { value -> useFahrenheit = value },
-            isUseFahrenheitSaved = { isUseFahrenheitSaved() },
+            isUseFahrenheitSaved = { isUseFahrenheitStorage(this) },
             setAutoPumpEnabled = { value -> autoPumpEnabled = value },
             isAutoPumpEnabledSaved = { savedPumpStateStorage(this).autoEnabled }
         )
@@ -597,8 +573,8 @@ class MainActivity : Activity() {
     }
 
     private fun restoreFanCurveUiState() {
-        selectedCurve = getSelectedCurveSaved()
-        autoFanCurveEnabled = isAutoFanEnabledSaved()
+        selectedCurve = selectedCurveStorage(this)
+        autoFanCurveEnabled = isAutoFanEnabledStorage(this)
         autoCurveCheck.isChecked = autoFanCurveEnabled
 
         if (autoFanCurveEnabled) {
@@ -681,11 +657,11 @@ class MainActivity : Activity() {
 
                 getSelectedCurve = { selectedCurve },
                 setSelectedCurve = { value -> selectedCurve = value },
-                setSelectedCurveSaved = { value -> setSelectedCurveSaved(value) },
+                setSelectedCurveSaved = { value -> saveSelectedCurveStorage(this, value) },
 
                 getAutoFanCurveEnabled = { autoFanCurveEnabled },
                 setAutoFanCurveEnabled = { value -> autoFanCurveEnabled = value },
-                setAutoFanEnabledSaved = { value -> setAutoFanEnabledSaved(value) },
+                setAutoFanEnabledSaved = { value -> saveAutoFanEnabledStorage(this, value) },
 
                 getUseFahrenheit = { useFahrenheit },
                 setUseFahrenheit = { value -> useFahrenheit = value },
@@ -877,7 +853,7 @@ class MainActivity : Activity() {
 
                 getRealTimePreviewEnabled = { realTimePreviewEnabled },
                 setRealTimePreviewEnabled = { value -> realTimePreviewEnabled = value },
-                saveRealTimePreviewEnabled = { value -> saveRealTimePreviewEnabled(value) },
+                saveRealTimePreviewEnabled = { value -> saveRealTimePreviewEnabledStorage(this, value) },
 
                 showFanLedDialog = { showFanLedDialog() },
                 showLogoLedDialog = { showLogoLedDialog() },

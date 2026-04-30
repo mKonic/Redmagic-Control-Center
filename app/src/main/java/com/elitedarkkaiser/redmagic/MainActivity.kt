@@ -418,55 +418,31 @@ class MainActivity : Activity() {
     }
 
     private fun startAutoFanService() {
-        val intent = Intent(this, AutoFanService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+        HardwareServiceActions.startAutoFan(this)
     }
 
     private fun stopAutoFanService() {
-        stopService(Intent(this, AutoFanService::class.java))
+        HardwareServiceActions.stopAutoFan(this)
     }
 
     private fun startFanLedService() {
-        val intent = Intent(this, FanLedService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+        HardwareServiceActions.startFanLed(this)
     }
 
     private fun stopFanLedService() {
-        stopService(Intent(this, FanLedService::class.java))
+        HardwareServiceActions.stopFanLed(this)
     }
 
     private fun startAutoPumpService() {
-        val intent = Intent(this, AutoPumpService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+        HardwareServiceActions.startAutoPump(this)
     }
 
     private fun stopAutoPumpService() {
-        stopService(Intent(this, AutoPumpService::class.java))
+        HardwareServiceActions.stopAutoPump(this)
     }
 
     private fun enqueueFanLedRestore(delaySeconds: Long = 2) {
-        val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
-            .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
-            .addTag("fan_led_manual_restore")
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniqueWork(
-            "fan_led_manual_restore",
-            ExistingWorkPolicy.REPLACE,
-            request
-        )
+        HardwareServiceActions.enqueueFanLedRestore(this, delaySeconds)
     }
     private fun showRootRequiredDialog() {
         DeviceGateDialogs.showRootRequiredDialog(

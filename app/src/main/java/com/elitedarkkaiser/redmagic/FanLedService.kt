@@ -85,10 +85,6 @@ class FanLedService : Service() {
         }
 
         
-        if (prefs.getBoolean("game_mode_led_override_active", false)) {
-            android.util.Log.i("RedmagicGameMode", "FanLedService skipped normal LED apply because Game Mode owns LEDs")
-            return
-        }
         val fanEnabled = prefs.getBoolean("fan_led_enabled", false)
         val fanEffect = prefs.getString("fan_led_effect", "steady") ?: "steady"
         val fanColor = prefs.getInt("fan_led_color", 5)

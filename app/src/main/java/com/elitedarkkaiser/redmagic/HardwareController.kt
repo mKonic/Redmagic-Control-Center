@@ -186,7 +186,6 @@ object HardwareController {
     }
 
     fun turnOffAllLeds(): Boolean {
-
         val cmd = buildString {
             for (z in 1..3) {
                 append("echo 0x${z}000000 > $LED_EFFECT; ")

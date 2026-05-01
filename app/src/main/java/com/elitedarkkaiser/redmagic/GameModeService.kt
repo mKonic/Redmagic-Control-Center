@@ -18,8 +18,7 @@ class GameModeService : Service() {
         override fun run() {
             try {
                 val currentPkg = getForegroundPackageName()
-                val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-                val tracked = prefs.getStringSet("game_mode_packages", emptySet()) ?: emptySet()
+                val tracked = getSavedGamePackagesStorage(this@GameModeService)
 
                 if (!currentPkg.isNullOrBlank() && tracked.contains(currentPkg)) {
                     if (gameModeActiveFor != currentPkg) {

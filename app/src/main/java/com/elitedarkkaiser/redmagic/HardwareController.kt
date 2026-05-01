@@ -89,7 +89,8 @@ object HardwareController {
     }
 
     fun setFanLedStockPreset(effectValue: String): Boolean {
-        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+        val safeEffectValue = effectValue.takeIf { it in FAN_LED_STOCK_PRESETS } ?: return false
+        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $safeEffectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
     fun setLogoLedEnabled(enabled: Boolean): Boolean {
@@ -107,6 +108,17 @@ object HardwareController {
             RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2000000 > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
+
+    private val FAN_LED_STOCK_PRESETS = setOf(
+        "0x3002101",
+        "0x3002102",
+        "0x3002103",
+        "0x3002104",
+        "0x3002105",
+        "0x3002106",
+        "0x3002107",
+        "0x3002108"
+    )
 
     private enum class LedZone(val zonePrefix: String, val enableFanFirst: Boolean) {
         LOGO("1", false),

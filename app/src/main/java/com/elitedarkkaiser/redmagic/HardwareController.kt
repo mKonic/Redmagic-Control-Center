@@ -80,23 +80,6 @@ object HardwareController {
     fun readPumpFreq(): String? = RootShell.execForOutput("cat $PUMP_FREQ")
     fun readPumpSpeed(): String? = RootShell.execForOutput("cat $PUMP_SPEED")
 
-    fun setLed(zone: Int, mode: Int, color: Int): Boolean {
-        val hex = "0x${zone}00${mode}00${color}"
-        val cmd = "echo 1 > $FAN_ENABLE; echo $hex > $LED_EFFECT; echo 1 > $LED_CFG"
-        return RootShell.exec(cmd)
-    }
-
-    fun setAllLeds(mode: Int, color: Int): Boolean {
-        val cmd = buildString {
-            append("echo 1 > $FAN_ENABLE; ")
-            for (z in 1..3) {
-                append("echo 0x${z}00${mode}00${color} > $LED_EFFECT; ")
-                append("echo 1 > $LED_CFG; ")
-            }
-        }
-        return RootShell.exec(cmd)
-    }
-
     fun setFanLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
             RootShell.exec("echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")

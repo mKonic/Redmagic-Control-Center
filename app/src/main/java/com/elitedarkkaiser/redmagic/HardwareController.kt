@@ -117,7 +117,7 @@ object HardwareController {
             RootShell.exec("echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
             RootShell.exec("echo 0x1000000 > $LED_EFFECT; echo 1 > $LED_CFG")
-            }
+        }
     }
 
     fun setShoulderLedEnabled(enabled: Boolean): Boolean {

@@ -97,9 +97,6 @@ object HardwareController {
         return RootShell.exec(cmd)
     }
 
-
-    
-    
     fun setFanLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
             RootShell.exec("echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")

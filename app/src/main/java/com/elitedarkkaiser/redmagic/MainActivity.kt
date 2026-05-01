@@ -37,10 +37,6 @@ class MainActivity : Activity() {
     private var useFahrenheit = true
 
 
-    private fun formatDisplayTempFromF(tempF: Float?): String {
-        return TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)
-    }
-
     private lateinit var tempText: TextView
     private lateinit var curveStatusText: TextView
     private lateinit var fanSeek: SeekBar
@@ -208,7 +204,7 @@ class MainActivity : Activity() {
             else -> 40
         }
 
-        return "Pump Mode: AUTO • $profile (${formatDisplayTempFromF(tempF)})" to
+        return "Pump Mode: AUTO • $profile (${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)})" to
             "Speed: $speed • Freq: 4"
     }
 
@@ -1263,9 +1259,9 @@ class MainActivity : Activity() {
         rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
         fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
         rpmChip.text = "RPM ${rpm ?: "--"}"
-        tempChip.text = if (tempF != null) "TEMP ${formatDisplayTempFromF(tempF)}$tempTrend" else "TEMP --"
+        tempChip.text = if (tempF != null) "TEMP ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "TEMP --"
 
-        tempText.text = if (tempF != null) "Current temp: ${formatDisplayTempFromF(tempF)}$tempTrend" else "Current temp: --"
+        tempText.text = if (tempF != null) "Current temp: ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "Current temp: --"
 
         setChipState(rootChip, rooted)
         setChipState(fanChip, fanEnabled)

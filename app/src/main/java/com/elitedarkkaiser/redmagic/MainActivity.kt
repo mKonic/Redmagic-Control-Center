@@ -728,8 +728,16 @@ class MainActivity : Activity() {
                 },
                 applyMasterProfile = { profile ->
                     MasterProfileActions.applyProfile(this, profile)
-                    Toast.makeText(this, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                    applyProfileToUiState(profile.hardware)
+                    selectedCurve = profile.selectedFanCurve
+                    autoFanCurveEnabled = profile.autoFanEnabled
+                    pumpEnabled = profile.pump.enabled
+                    pumpProfile = profile.pump.profile
+                    autoPumpEnabled = profile.pump.autoEnabled
+                    restoreFanCurveUiState()
+                    refreshSmartPumpStatusViews()
                     refreshStatus()
+                    Toast.makeText(this, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
                 },
                 deleteMasterProfile = { name ->
                     MasterProfileStorage.deleteProfile(this, name)

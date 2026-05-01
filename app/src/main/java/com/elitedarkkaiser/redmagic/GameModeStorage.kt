@@ -5,6 +5,7 @@ import org.json.JSONObject
 
 private const val GAME_PREFS_NAME = "redmagic_hw_controls_prefs"
 private const val GAME_MODE_PACKAGES_KEY = "game_mode_packages"
+private const val GAME_MODE_LED_OVERRIDE_ACTIVE_KEY = "game_mode_led_override_active"
 
 private const val GAME_MODE_FAN_ENABLED_KEY = "game_mode_fan_enabled"
 private const val GAME_MODE_FAN_LEVEL_KEY = "game_mode_fan_level"
@@ -121,4 +122,14 @@ fun getGameModeStatusTextStorage(context: Context): String {
     } else {
         "Game Mode: ${tracked.size} apps tracked"
     }
+}
+
+fun isGameModeLedOverrideActiveStorage(context: Context): Boolean {
+    val prefs = context.getSharedPreferences(GAME_PREFS_NAME, Context.MODE_PRIVATE)
+    return prefs.getBoolean(GAME_MODE_LED_OVERRIDE_ACTIVE_KEY, false)
+}
+
+fun setGameModeLedOverrideActiveStorage(context: Context, active: Boolean) {
+    val prefs = context.getSharedPreferences(GAME_PREFS_NAME, Context.MODE_PRIVATE)
+    prefs.edit().putBoolean(GAME_MODE_LED_OVERRIDE_ACTIVE_KEY, active).apply()
 }

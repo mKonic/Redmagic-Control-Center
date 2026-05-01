@@ -23,19 +23,13 @@ class GameModeService : Service() {
                 if (!currentPkg.isNullOrBlank() && tracked.contains(currentPkg)) {
                     if (gameModeActiveFor != currentPkg) {
                         gameModeActiveFor = currentPkg
-                        getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-                            .edit()
-                            .putBoolean("game_mode_led_override_active", true)
-                            .apply()
+                        setGameModeLedOverrideActiveStorage(this@GameModeService, true)
                         applyGameModeProfile()
                     }
                 } else if (!currentPkg.isNullOrBlank()) {
                     if (gameModeActiveFor != null) {
                         restoreNormalProfile()
-                        getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-                            .edit()
-                            .putBoolean("game_mode_led_override_active", false)
-                            .apply()
+                        setGameModeLedOverrideActiveStorage(this@GameModeService, false)
                         gameModeActiveFor = null
                     }
                 }
@@ -55,10 +49,7 @@ class GameModeService : Service() {
         handler.removeCallbacks(pollRunnable)
         if (gameModeActiveFor != null) {
             restoreNormalProfile()
-            getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("game_mode_led_override_active", false)
-                .apply()
+            setGameModeLedOverrideActiveStorage(this, false)
             gameModeActiveFor = null
         }
         super.onDestroy()

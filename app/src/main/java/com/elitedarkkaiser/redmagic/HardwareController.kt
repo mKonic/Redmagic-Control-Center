@@ -120,7 +120,6 @@ object HardwareController {
         }
     }
 
-
     fun setShoulderLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
             RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2002005 > $LED_EFFECT; echo 1 > $LED_CFG")
@@ -134,7 +133,6 @@ object HardwareController {
         SHOULDER("2", true),
         FAN("3", true)
     }
-
 
     private fun mapUnifiedLedColor(color: Int): Int {
         return when (color) {

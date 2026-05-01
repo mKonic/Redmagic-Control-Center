@@ -42,7 +42,7 @@ class GameModeService : Service() {
                 }
             } catch (_: Throwable) {
             } finally {
-                handler.postDelayed(this, 1500L)
+                handler.postDelayed(this, 5000L)
             }
         }
     }

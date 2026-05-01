@@ -720,6 +720,20 @@ class MainActivity : Activity() {
                         Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
                         onDeleted()
                     }
+                },
+                loadMasterProfiles = { MasterProfileStorage.loadProfiles(this) },
+                saveMasterProfile = { name ->
+                    MasterProfileActions.captureAndSave(this, name)
+                    Toast.makeText(this, "Saved $name", Toast.LENGTH_SHORT).show()
+                },
+                applyMasterProfile = { profile ->
+                    MasterProfileActions.applyProfile(this, profile)
+                    Toast.makeText(this, "Applied ${profile.name}", Toast.LENGTH_SHORT).show()
+                    refreshStatus()
+                },
+                deleteMasterProfile = { name ->
+                    MasterProfileStorage.deleteProfile(this, name)
+                    Toast.makeText(this, "Deleted $name", Toast.LENGTH_SHORT).show()
                 }
             )
         )

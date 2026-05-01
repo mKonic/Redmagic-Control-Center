@@ -112,7 +112,7 @@ object HardwareController {
         return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
-fun setLogoLedEnabled(enabled: Boolean): Boolean {
+    fun setLogoLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
             RootShell.exec("echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
@@ -130,12 +130,13 @@ fun setLogoLedEnabled(enabled: Boolean): Boolean {
     }
 
     private enum class LedZone(val zonePrefix: String, val enableFanFirst: Boolean) {
-    LOGO("1", false),
-    SHOULDER("2", true),
-    FAN("3", true)
-}
+        LOGO("1", false),
+        SHOULDER("2", true),
+        FAN("3", true)
+    }
 
-private fun mapUnifiedLedColor(color: Int): Int {
+
+    private fun mapUnifiedLedColor(color: Int): Int {
     return when (color) {
         1 -> 1  // red
         3 -> 3  // orange
@@ -149,7 +150,8 @@ private fun mapUnifiedLedColor(color: Int): Int {
     }
 }
 
-private fun mapUnifiedLedEffect(effectName: String): String {
+
+    private fun mapUnifiedLedEffect(effectName: String): String {
     return when (effectName.lowercase()) {
         "steady" -> "00200"
         "breathe" -> "00300"
@@ -158,13 +160,15 @@ private fun mapUnifiedLedEffect(effectName: String): String {
     }
 }
 
-private fun buildUnifiedLedEffectValue(zone: LedZone, effectName: String, color: Int): String {
+
+    private fun buildUnifiedLedEffectValue(zone: LedZone, effectName: String, color: Int): String {
     val colorCode = mapUnifiedLedColor(color)
     val effectCode = mapUnifiedLedEffect(effectName)
     return "0x${zone.zonePrefix}${effectCode}${Integer.toHexString(colorCode)}"
 }
 
-private fun setUnifiedLedEffect(zone: LedZone, effectName: String, color: Int): Boolean {
+
+    private fun setUnifiedLedEffect(zone: LedZone, effectName: String, color: Int): Boolean {
     val effectValue = buildUnifiedLedEffectValue(zone, effectName, color)
     val cmd = if (zone.enableFanFirst) {
         "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
@@ -174,19 +178,23 @@ private fun setUnifiedLedEffect(zone: LedZone, effectName: String, color: Int): 
     return RootShell.exec(cmd)
 }
 
-fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
+
+    fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
     return setUnifiedLedEffect(LedZone.SHOULDER, effectName, color)
 }
 
-fun setLogoLedEffect(effectName: String, color: Int): Boolean {
+
+    fun setLogoLedEffect(effectName: String, color: Int): Boolean {
     return setUnifiedLedEffect(LedZone.LOGO, effectName, color)
 }
 
-fun setFanLedEffect(effectName: String, color: Int): Boolean {
+
+    fun setFanLedEffect(effectName: String, color: Int): Boolean {
     return setUnifiedLedEffect(LedZone.FAN, effectName, color)
 }
 
-fun turnOffAllLeds(): Boolean {
+
+    fun turnOffAllLeds(): Boolean {
 
         val cmd = buildString {
             for (z in 1..3) {

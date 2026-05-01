@@ -4,6 +4,12 @@ import android.content.Context
 
 object MasterProfileActions {
 
+    fun captureAndSave(context: Context, name: String): MasterProfile {
+        val profile = captureCurrent(context, name)
+        MasterProfileStorage.upsertProfile(context, profile)
+        return profile
+    }
+
     fun captureCurrent(context: Context, name: String): MasterProfile {
         val fanState = savedFanLedStateStorage(context)
         val logoState = savedLogoLedStateStorage(context)

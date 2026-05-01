@@ -1246,10 +1246,11 @@ class MainActivity : Activity() {
 
         if (rpm != null) lastDisplayedRpm = rpm
         val tempF = HardwareController.readTemperatureF()
+        val previousTempF = lastDisplayedTempF
         val tempTrend = when {
-            tempF == null || lastDisplayedTempF == null -> ""
-            tempF > lastDisplayedTempF!! + 1f -> " ↑"
-            tempF < lastDisplayedTempF!! - 1f -> " ↓"
+            tempF == null || previousTempF == null -> ""
+            tempF > previousTempF + 1f -> " ↑"
+            tempF < previousTempF - 1f -> " ↓"
             else -> " →"
         }
         if (tempF != null) lastDisplayedTempF = tempF

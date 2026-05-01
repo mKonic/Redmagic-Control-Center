@@ -78,6 +78,120 @@ object MasterProfileActions {
         )
     }
 
+
+    fun applyProfile(context: Context, profile: MasterProfile) {
+        saveFanLedStateStorage(context, profile.hardware.let {
+            com.elitedarkkaiser.redmagic.state.LedState(
+                enabled = it.fanLedEnabled,
+                effect = it.fanLedEffect,
+                color = it.fanLedColor
+            )
+        })
+        saveLogoLedStateStorage(context, profile.hardware.let {
+            com.elitedarkkaiser.redmagic.state.LedState(
+                enabled = it.logoLedEnabled,
+                effect = it.logoLedEffect,
+                color = it.logoLedColor
+            )
+        })
+        saveShoulderLedStateStorage(context, profile.hardware.let {
+            com.elitedarkkaiser.redmagic.state.LedState(
+                enabled = it.shoulderLedEnabled,
+                effect = it.shoulderLedEffect,
+                color = it.shoulderLedColor
+            )
+        })
+
+        savePumpStateStorage(context, profile.pump.enabled, profile.pump.profile)
+        saveAutoPumpStateStorage(context, profile.pump.autoEnabled)
+
+        saveSelectedCurveStorage(context, profile.selectedFanCurve)
+        saveAutoFanEnabledStorage(context, profile.autoFanEnabled)
+        saveRealTimePreviewEnabledStorage(context, profile.realtimePreviewEnabled)
+
+        saveGameModeProfileStorage(context, profile.gameMode)
+        setSavedGamePackagesStorage(context, profile.gamePackages)
+
+        ChargingLedState.setEnabled(context, profile.chargingEnabled)
+        ChargingLedState.saveProfile(
+            context,
+            ChargingLedState.FAN_ENABLED_KEY,
+            ChargingLedState.FAN_EFFECT_KEY,
+            ChargingLedState.FAN_COLOR_KEY,
+            profile.chargingFanLed.enabled,
+            profile.chargingFanLed.effect,
+            profile.chargingFanLed.color
+        )
+        ChargingLedState.saveProfile(
+            context,
+            ChargingLedState.LOGO_ENABLED_KEY,
+            ChargingLedState.LOGO_EFFECT_KEY,
+            ChargingLedState.LOGO_COLOR_KEY,
+            profile.chargingLogoLed.enabled,
+            profile.chargingLogoLed.effect,
+            profile.chargingLogoLed.color
+        )
+        ChargingLedState.saveProfile(
+            context,
+            ChargingLedState.SHOULDER_ENABLED_KEY,
+            ChargingLedState.SHOULDER_EFFECT_KEY,
+            ChargingLedState.SHOULDER_COLOR_KEY,
+            profile.chargingShoulderLed.enabled,
+            profile.chargingShoulderLed.effect,
+            profile.chargingShoulderLed.color
+        )
+
+        saveTriggerPrefsStorage(context, profile.hardware)
+
+        applyHardware(context, profile)
+    }
+
+    private fun applyHardware(context: Context, profile: MasterProfile) {
+        val hardware = profile.hardware
+
+        if (hardware.fanEnabled) {
+            HardwareController.setFanLevel(hardware.fanLevel)
+        } else {
+            HardwareController.enableFan(false)
+        }
+
+        if (profile.autoFanEnabled) {
+            HardwareServiceActions.startAutoFan(context)
+        } else {
+            HardwareServiceActions.stopAutoFan(context)
+        }
+
+        if (profile.pump.enabled || profile.pump.autoEnabled) {
+            HardwareController.setPumpProfile(profile.pump.profile)
+        } else {
+            HardwareController.enablePump(false)
+        }
+
+        if (profile.pump.autoEnabled) {
+            HardwareServiceActions.startAutoPump(context)
+        } else {
+            HardwareServiceActions.stopAutoPump(context)
+        }
+
+        if (ChargingLedState.isEnabled(context) && ChargingLedState.isChargingNow(context)) {
+            ChargingLedState.setActive(context, true)
+            ChargingLedState.applyChargingProfile(context)
+        } else {
+            ChargingLedState.setActive(context, false)
+            HardwareServiceActions.startFanLed(context)
+        }
+
+        if (hardware.triggersAutoStart) {
+            HardwareController.enableTriggers()
+            HardwareServiceActions.startTriggers(context)
+        } else {
+            HardwareController.disableTriggers()
+        }
+
+        GameModeActions.startServiceSilentlyIfPermitted(context)
+        HardwareServiceActions.startChargingMode(context)
+    }
+
     private fun ChargingLedState.Profile.toLedState(): com.elitedarkkaiser.redmagic.state.LedState {
         return com.elitedarkkaiser.redmagic.state.LedState(
             enabled = enabled,

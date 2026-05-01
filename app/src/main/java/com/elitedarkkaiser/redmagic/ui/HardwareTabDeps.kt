@@ -4,6 +4,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.elitedarkkaiser.redmagic.HardwareProfile
+import com.elitedarkkaiser.redmagic.MasterProfile
 
 data class HardwareTabDeps(
     val scrollTabContainer: () -> LinearLayout,
@@ -25,5 +26,10 @@ data class HardwareTabDeps(
     val applyHardwareProfile: (HardwareProfile) -> Unit,
     val applyProfileToUiState: (HardwareProfile) -> Unit,
     val showSaveProfileDialog: (() -> Unit) -> Unit,
-    val showDeleteProfileDialog: (String, () -> Unit) -> Unit
+    val showDeleteProfileDialog: (String, () -> Unit) -> Unit,
+
+    val loadMasterProfiles: () -> List<MasterProfile>,
+    val saveMasterProfile: (String) -> Unit,
+    val applyMasterProfile: (MasterProfile) -> Unit,
+    val deleteMasterProfile: (String) -> Unit
 )

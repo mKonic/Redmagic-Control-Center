@@ -202,7 +202,7 @@ object HardwareTabUi {
                     panelColor = AppTheme.panelColor,
                     borderColor = AppTheme.borderColor,
                     dp = { value -> deps.dp(value) },
-                    roundedBg = { fill, stroke, radius -> AppTheme.roundedBg(fill, stroke, radius) },
+                    roundedBg = { fill, stroke, radius -> AppTheme.roundedBg(fill, stroke, radius.toFloat()) },
                     actionButton = { text, isDanger, onClick -> deps.actionButton(text, isDanger, onClick) },
                     space = { value -> deps.space(value) },
                     onSave = { name ->

@@ -75,6 +75,81 @@ internal object ProfileDialogs {
         }
     }
 
+
+    fun showStyledNameOnlyDialog(
+        context: Context,
+        title: String,
+        hint: String,
+        textPrimary: Int,
+        textSecondary: Int,
+        panelColor: Int,
+        borderColor: Int,
+        dp: (Int) -> Int,
+        roundedBg: (Int, Int, Int) -> android.graphics.drawable.Drawable,
+        actionButton: (String, Boolean, () -> Unit) -> View,
+        space: (Int) -> View,
+        onSave: (String) -> Unit
+    ) {
+        val titleView = TextView(context).apply {
+            text = title
+            textSize = 19f
+            setTextColor(textPrimary)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, 0, 0, dp(14))
+        }
+
+        val input = EditText(context).apply {
+            this.hint = hint
+            setTextColor(textPrimary)
+            setHintTextColor(textSecondary)
+            textSize = 15f
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = roundedBg(0xFF121A27.toInt(), 0xFF263246.toInt(), 18)
+        }
+
+        val buttonRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, dp(18), 0, 0)
+        }
+
+        val cancelBtn = actionButton("CANCEL", false) {}
+        val saveBtn = actionButton("SAVE", false) {}
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(space(dp(10)))
+        buttonRow.addView(saveBtn)
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(20), dp(22), dp(16))
+            background = roundedBg(panelColor, borderColor, 24)
+            addView(titleView)
+            addView(input)
+            addView(buttonRow)
+        }
+
+        val dialog = AlertDialog.Builder(context)
+            .setView(container)
+            .setCancelable(true)
+            .create()
+
+        cancelBtn.setOnClickListener { dialog.dismiss() }
+
+        saveBtn.setOnClickListener {
+            val name = input.text?.toString()?.trim().orEmpty()
+            if (name.isBlank()) return@setOnClickListener
+            onSave(name)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
+    }
+
     fun showStyledSaveProfileDialog(
         context: Context,
         textPrimary: Int,

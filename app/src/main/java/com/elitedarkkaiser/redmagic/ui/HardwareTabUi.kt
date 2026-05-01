@@ -143,6 +143,82 @@ object HardwareTabUi {
 
         container.addView(profilesCard)
 
+        val masterProfilesCard = deps.sectionPanel().apply {
+            addView(deps.sectionHeader("◆", "MASTER PROFILES"))
+            addView(deps.bodyText("Save and restore a full app snapshot including hardware, Game Mode, charging LEDs, fan curves, pump, and triggers."))
+
+            val masterProfileList = LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, deps.dp(10), 0, 0)
+            }
+
+            fun renderMasterProfiles() {
+                masterProfileList.removeAllViews()
+                val profiles = deps.loadMasterProfiles()
+
+                if (profiles.isEmpty()) {
+                    masterProfileList.addView(deps.subtleLabel("No saved master profiles yet"))
+                    return
+                }
+
+                profiles.forEach { profile ->
+                    val row = LinearLayout(activity).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                    }
+
+                    val applyBtn = deps.actionButton(profile.name, false) {
+                        deps.applyMasterProfile(profile)
+                    }.apply {
+                        setPadding(deps.dp(16), deps.dp(10), deps.dp(16), deps.dp(10))
+                    }
+
+                    val deleteBtn = deps.actionButton("DEL", true) {
+                        deps.deleteMasterProfile(profile.name)
+                        renderMasterProfiles()
+                    }.apply {
+                        setPadding(deps.dp(14), deps.dp(10), deps.dp(14), deps.dp(10))
+                    }
+
+                    row.addView(
+                        applyBtn,
+                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    )
+                    row.addView(deps.space(deps.dp(8)))
+                    row.addView(deleteBtn)
+
+                    masterProfileList.addView(row)
+                    masterProfileList.addView(deps.space(deps.dp(10)))
+                }
+            }
+
+            val saveMasterBtn = deps.actionButton("SAVE MASTER PROFILE", false) {
+                ProfileDialogs.showStyledNameOnlyDialog(
+                    context = activity,
+                    title = "Save Master Profile",
+                    hint = "Master profile name",
+                    textPrimary = AppTheme.textPrimary,
+                    textSecondary = AppTheme.textSecondary,
+                    panelColor = AppTheme.panelColor,
+                    borderColor = AppTheme.borderColor,
+                    dp = { value -> deps.dp(value) },
+                    roundedBg = { fill, stroke, radius -> AppTheme.roundedBg(fill, stroke, radius) },
+                    actionButton = { text, isDanger, onClick -> deps.actionButton(text, isDanger, onClick) },
+                    space = { value -> deps.space(value) },
+                    onSave = { name ->
+                        deps.saveMasterProfile(name)
+                        renderMasterProfiles()
+                    }
+                )
+            }
+
+            addView(deps.singleRow(saveMasterBtn))
+            renderMasterProfiles()
+            addView(masterProfileList)
+        }
+
+        container.addView(masterProfilesCard)
+
         return container
     }
 

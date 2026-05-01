@@ -132,7 +132,16 @@ class MainActivity : Activity() {
         }
 
         if (!isFirstInstallPermissionsPromptedStorage(this)) {
-            FirstInstallPermissionsDialog.show(this) { launchMainUi() }
+            FirstInstallPermissionsDialog.show(this) { launchMainUi()
+        // TEMP: MasterProfile test capture
+        try {
+            val profile = MasterProfileActions.captureCurrent(this, "TestProfile")
+            MasterProfileStorage.upsertProfile(this, profile)
+            android.util.Log.i("MasterProfile", "Saved TestProfile")
+        } catch (e: Throwable) {
+            android.util.Log.e("MasterProfile", "Failed test save", e)
+        }
+ }
             return
         }
 

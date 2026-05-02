@@ -1,6 +1,0 @@
-            val pumpCard = deps.sectionPanel().apply {
-                addView(deps.sectionHeader("◉", "PUMP"))
-                addView(deps.bodyText("Liquid cooling pump controls will live here as a dedicated Cooling card."))
-            }
-
-            addView(pumpCard)

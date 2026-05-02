@@ -1,8 +1,0 @@
-    private fun showDeleteProfileDialog(profileName: String, onDeleted: () -> Unit) {
-        ProfileDialogs.showDeleteProfileDialog(this, profileName) {
-            ProfileManager.deleteProfile(this, profileName)
-            Toast.makeText(this, "Deleted $profileName", Toast.LENGTH_SHORT).show()
-            onDeleted()
-        }
-    }
-

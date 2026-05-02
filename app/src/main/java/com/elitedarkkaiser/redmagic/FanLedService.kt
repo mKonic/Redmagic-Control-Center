@@ -79,6 +79,11 @@ class FanLedService : Service() {
             return
         }
 
+        if (CallLightingState.isActive(this)) {
+            android.util.Log.i("RedmagicCallLighting", "FanLedService skipped normal LED apply because Call Lighting owns LEDs")
+            return
+        }
+
         if (isGameModeLedOverrideActiveStorage(this)) {
             android.util.Log.i("RedmagicGameMode", "FanLedService skipped normal LED apply because Game Mode owns LEDs")
             return

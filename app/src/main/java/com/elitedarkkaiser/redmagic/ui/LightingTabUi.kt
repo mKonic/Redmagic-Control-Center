@@ -98,7 +98,37 @@ object LightingTabUi {
 
         container.addView(previewCard)
         container.addView(zonesCard)
+        val callLightingCard = deps.sectionPanel().apply {
+            addView(deps.sectionHeader("☎", "CALL LIGHTING"))
+            addView(deps.bodyText("Applies only during incoming calls and connected calls. Priority: Charging Mode > Call Lighting > Game Mode > Normal LEDs."))
+
+            val callSwitch = android.widget.Switch(activity).apply {
+                isChecked = deps.getCallLightingEnabled()
+                setOnCheckedChangeListener { _, checked ->
+                    deps.setCallLightingEnabled(checked)
+                }
+            }
+
+            val callRow = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(TextView(activity).apply {
+                    text = "Enable call lighting"
+                    textSize = 14f
+                    setTextColor(AppTheme.textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(callSwitch)
+            }
+
+            addView(callRow)
+            addView(deps.row(
+                deps.actionButton("INCOMING CALL PROFILE", false) { deps.showIncomingCallProfileDialog() },
+                deps.actionButton("CONNECTED CALL PROFILE", false) { deps.showConnectedCallProfileDialog() }
+            ))
+        }
+
         container.addView(gameModeCard)
+        container.addView(callLightingCard)
         container.addView(chargingModeCard)
 
         return container

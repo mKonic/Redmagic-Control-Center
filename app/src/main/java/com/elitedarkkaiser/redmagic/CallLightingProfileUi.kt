@@ -88,19 +88,39 @@ internal object CallLightingProfileUi {
         container.addView(zoneEditor(activity, logoKeys.label, logo, deps, modeLabel, showFanPresets = false) { logo = it })
         container.addView(zoneEditor(activity, shoulderKeys.label, shoulder, deps, modeLabel, showFanPresets = false) { shoulder = it })
 
+        val buttonRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            setPadding(0, deps.dp(16), 0, 0)
+        }
+
+        val cancelBtn = deps.filterChip("Cancel", false) {}
+        val saveBtn = deps.filterChip("Save", true) {}
+
+        buttonRow.addView(cancelBtn)
+        buttonRow.addView(deps.space(deps.dp(10)))
+        buttonRow.addView(saveBtn)
+        container.addView(buttonRow)
+
         val dialog = AlertDialog.Builder(activity)
             .setView(scroll)
-            .setPositiveButton("Save") { _, _ ->
-                CallLightingState.saveLed(activity, fanKeys.enabledKey, fanKeys.effectKey, fanKeys.colorKey, fan)
-                CallLightingState.saveLed(activity, logoKeys.enabledKey, logoKeys.effectKey, logoKeys.colorKey, logo)
-                CallLightingState.saveLed(activity, shoulderKeys.enabledKey, shoulderKeys.effectKey, shoulderKeys.colorKey, shoulder)
-
-                if (CallLightingState.isEnabled(activity)) {
-                    HardwareServiceActions.startCallLighting(activity)
-                }
-            }
-            .setNegativeButton("Cancel", null)
             .create()
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        saveBtn.setOnClickListener {
+            CallLightingState.saveLed(activity, fanKeys.enabledKey, fanKeys.effectKey, fanKeys.colorKey, fan)
+            CallLightingState.saveLed(activity, logoKeys.enabledKey, logoKeys.effectKey, logoKeys.colorKey, logo)
+            CallLightingState.saveLed(activity, shoulderKeys.enabledKey, shoulderKeys.effectKey, shoulderKeys.colorKey, shoulder)
+
+            if (CallLightingState.isEnabled(activity)) {
+                HardwareServiceActions.startCallLighting(activity)
+            }
+
+            dialog.dismiss()
+        }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
         dialog.show()

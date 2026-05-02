@@ -805,6 +805,22 @@ class MainActivity : Activity() {
                 },
                 showChargingShoulderLedDialog = {
                     ChargingLedActions.showShoulderDialog(this, chargingLedDialogDeps())
+                },
+                getCallLightingEnabled = { CallLightingState.isEnabled(this) },
+                setCallLightingEnabled = { enabled ->
+                    CallLightingState.setEnabled(this, enabled)
+                    if (enabled) {
+                        HardwareServiceActions.startCallLighting(this)
+                    } else {
+                        CallLightingState.setActive(this, false)
+                        HardwareServiceActions.stopCallLighting(this)
+                    }
+                },
+                showIncomingCallProfileDialog = {
+                    Toast.makeText(this, "Incoming call profile coming next", Toast.LENGTH_SHORT).show()
+                },
+                showConnectedCallProfileDialog = {
+                    Toast.makeText(this, "Connected call profile coming next", Toast.LENGTH_SHORT).show()
                 }
             )
         )

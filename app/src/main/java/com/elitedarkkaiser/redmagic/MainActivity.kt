@@ -817,10 +817,28 @@ class MainActivity : Activity() {
                     }
                 },
                 showIncomingCallProfileDialog = {
-                    CallLightingActions.showIncomingProfileDialog(this, chargingLedDialogDeps())
+                    AlertDialog.Builder(this)
+                        .setTitle("Incoming Call Lighting")
+                        .setItems(arrayOf("Fan LED", "Logo LED", "Shoulder LEDs")) { _, which ->
+                            when (which) {
+                                0 -> CallLightingActions.showIncomingFanDialog(this, chargingLedDialogDeps())
+                                1 -> CallLightingActions.showIncomingLogoDialog(this, chargingLedDialogDeps())
+                                2 -> CallLightingActions.showIncomingShoulderDialog(this, chargingLedDialogDeps())
+                            }
+                        }
+                        .show()
                 },
                 showConnectedCallProfileDialog = {
-                    CallLightingActions.showConnectedProfileDialog(this, chargingLedDialogDeps())
+                    AlertDialog.Builder(this)
+                        .setTitle("Connected Call Lighting")
+                        .setItems(arrayOf("Fan LED", "Logo LED", "Shoulder LEDs")) { _, which ->
+                            when (which) {
+                                0 -> CallLightingActions.showConnectedFanDialog(this, chargingLedDialogDeps())
+                                1 -> CallLightingActions.showConnectedLogoDialog(this, chargingLedDialogDeps())
+                                2 -> CallLightingActions.showConnectedShoulderDialog(this, chargingLedDialogDeps())
+                            }
+                        }
+                        .show()
                 }
             )
         )

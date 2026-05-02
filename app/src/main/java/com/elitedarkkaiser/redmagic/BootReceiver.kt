@@ -45,6 +45,9 @@ class BootReceiver : BroadcastReceiver() {
         }
 
         HardwareServiceActions.startChargingMode(context)
+        if (CallLightingState.isEnabled(context)) {
+            HardwareServiceActions.startCallLighting(context)
+        }
     }
 
 

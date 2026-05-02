@@ -41,6 +41,14 @@ object HardwareServiceActions {
         context.startService(Intent(context, ChargingModeService::class.java))
     }
 
+    fun startCallLighting(context: Context) {
+        context.startService(Intent(context, CallLightingService::class.java))
+    }
+
+    fun stopCallLighting(context: Context) {
+        context.stopService(Intent(context, CallLightingService::class.java))
+    }
+
     fun enqueueFanLedRestore(context: Context, delaySeconds: Long = 2) {
         val request = OneTimeWorkRequestBuilder<FanLedRestoreWorker>()
             .setInitialDelay(delaySeconds, TimeUnit.SECONDS)

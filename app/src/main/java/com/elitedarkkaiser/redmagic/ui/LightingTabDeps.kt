@@ -31,5 +31,10 @@ data class LightingTabDeps(
     val setChargingLedEnabled: (Boolean) -> Unit,
     val showChargingFanLedDialog: () -> Unit,
     val showChargingLogoLedDialog: () -> Unit,
-    val showChargingShoulderLedDialog: () -> Unit
+    val showChargingShoulderLedDialog: () -> Unit,
+
+    val getCallLightingEnabled: () -> Boolean,
+    val setCallLightingEnabled: (Boolean) -> Unit,
+    val showIncomingCallProfileDialog: () -> Unit,
+    val showConnectedCallProfileDialog: () -> Unit
 )

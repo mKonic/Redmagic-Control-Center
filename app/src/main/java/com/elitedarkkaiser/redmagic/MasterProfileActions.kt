@@ -76,6 +76,64 @@ object MasterProfileActions {
                 "breathe",
                 8
             ).toLedState(),
+
+            callLightingEnabled = CallLightingState.isEnabled(context),
+            pauseFanDuringCalls = CallLightingState.shouldPauseFanDuringCalls(context),
+            incomingCallFanLed = CallLightingState.readLed(
+                context,
+                CallLightingState.INCOMING_FAN_ENABLED_KEY,
+                CallLightingState.INCOMING_FAN_EFFECT_KEY,
+                CallLightingState.INCOMING_FAN_COLOR_KEY,
+                true,
+                "flashing",
+                5
+            ),
+            incomingCallLogoLed = CallLightingState.readLed(
+                context,
+                CallLightingState.INCOMING_LOGO_ENABLED_KEY,
+                CallLightingState.INCOMING_LOGO_EFFECT_KEY,
+                CallLightingState.INCOMING_LOGO_COLOR_KEY,
+                true,
+                "flashing",
+                1
+            ),
+            incomingCallShoulderLed = CallLightingState.readLed(
+                context,
+                CallLightingState.INCOMING_SHOULDER_ENABLED_KEY,
+                CallLightingState.INCOMING_SHOULDER_EFFECT_KEY,
+                CallLightingState.INCOMING_SHOULDER_COLOR_KEY,
+                true,
+                "flashing",
+                8
+            ),
+            connectedCallFanLed = CallLightingState.readLed(
+                context,
+                CallLightingState.CONNECTED_FAN_ENABLED_KEY,
+                CallLightingState.CONNECTED_FAN_EFFECT_KEY,
+                CallLightingState.CONNECTED_FAN_COLOR_KEY,
+                true,
+                "steady",
+                5
+            ),
+            connectedCallLogoLed = CallLightingState.readLed(
+                context,
+                CallLightingState.CONNECTED_LOGO_ENABLED_KEY,
+                CallLightingState.CONNECTED_LOGO_EFFECT_KEY,
+                CallLightingState.CONNECTED_LOGO_COLOR_KEY,
+                true,
+                "steady",
+                1
+            ),
+            connectedCallShoulderLed = CallLightingState.readLed(
+                context,
+                CallLightingState.CONNECTED_SHOULDER_ENABLED_KEY,
+                CallLightingState.CONNECTED_SHOULDER_EFFECT_KEY,
+                CallLightingState.CONNECTED_SHOULDER_COLOR_KEY,
+                true,
+                "steady",
+                8
+            ),
+
             pump = pumpState,
             selectedFanCurve = selectedCurveStorage(context),
             autoFanEnabled = isAutoFanEnabledStorage(context),

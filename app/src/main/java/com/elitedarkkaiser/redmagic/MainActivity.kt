@@ -817,10 +817,10 @@ class MainActivity : Activity() {
                     }
                 },
                 showIncomingCallProfileDialog = {
-                    Toast.makeText(this, "Incoming call profile coming next", Toast.LENGTH_SHORT).show()
+                    CallLightingActions.showIncomingProfileDialog(this, chargingLedDialogDeps())
                 },
                 showConnectedCallProfileDialog = {
-                    Toast.makeText(this, "Connected call profile coming next", Toast.LENGTH_SHORT).show()
+                    CallLightingActions.showConnectedProfileDialog(this, chargingLedDialogDeps())
                 }
             )
         )

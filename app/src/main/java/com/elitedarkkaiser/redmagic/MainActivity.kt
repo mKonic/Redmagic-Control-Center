@@ -1600,48 +1600,6 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun premiumToggleRow(
-        title: String,
-        subtitle: String,
-        checked: Boolean,
-        onToggle: (Boolean) -> Unit
-    ): LinearLayout {
-        val titleView = TextView(this).apply {
-            text = title
-            textSize = 15f
-            setTextColor(textPrimary)
-            setTypeface(typeface, Typeface.BOLD)
-        }
-
-        val subtitleView = TextView(this).apply {
-            text = subtitle
-            textSize = 12f
-            setTextColor(textSecondary)
-            setPadding(0, dp(4), 0, 0)
-        }
-
-        val textCol = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(titleView)
-            addView(subtitleView)
-        }
-
-        val toggle = android.widget.Switch(this).apply {
-            isChecked = checked
-            setOnCheckedChangeListener { _, isChecked -> onToggle(isChecked) }
-        }
-
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = roundedBg(Color.parseColor("#161D28"), Color.parseColor("#253041"), 18)
-
-            addView(textCol, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            addView(toggle)
-        }
-    }
-
     private fun segmentedChip(
         label: String,
         selected: Boolean,

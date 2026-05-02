@@ -899,7 +899,10 @@ class MainActivity : Activity() {
             filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
             space = { value -> space(value) },
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
-            colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) }
+            colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
+            fanPresetBubble = { c1, c2, c3, c4, presetValue, selected, onClick ->
+                fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { selected }, onClick = onClick)
+            }
         )
     }
 

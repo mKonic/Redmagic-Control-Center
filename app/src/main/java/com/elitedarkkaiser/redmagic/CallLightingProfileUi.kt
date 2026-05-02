@@ -31,7 +31,8 @@ internal object CallLightingProfileUi {
         val filterChip: (String, Boolean, () -> Unit) -> Button,
         val space: (Int) -> View,
         val colorDotDrawable: (String, Boolean) -> Drawable,
-        val colorDotGeneric: (String, Boolean, () -> Unit) -> View
+        val colorDotGeneric: (String, Boolean, () -> Unit) -> View,
+        val fanPresetBubble: (String, String, String, String, String, Boolean, () -> Unit) -> View
     )
 
     data class ZoneKeys(
@@ -81,9 +82,11 @@ internal object CallLightingProfileUi {
             setPadding(0, deps.dp(8), 0, deps.dp(12))
         })
 
-        container.addView(zoneEditor(activity, fanKeys.label, fan, deps) { fan = it })
-        container.addView(zoneEditor(activity, logoKeys.label, logo, deps) { logo = it })
-        container.addView(zoneEditor(activity, shoulderKeys.label, shoulder, deps) { shoulder = it })
+        val modeLabel = if (title.contains("Incoming", ignoreCase = true)) "incoming calls" else "connected calls"
+
+        container.addView(zoneEditor(activity, fanKeys.label, fan, deps, modeLabel, showFanPresets = true) { fan = it })
+        container.addView(zoneEditor(activity, logoKeys.label, logo, deps, modeLabel, showFanPresets = false) { logo = it })
+        container.addView(zoneEditor(activity, shoulderKeys.label, shoulder, deps, modeLabel, showFanPresets = false) { shoulder = it })
 
         val dialog = AlertDialog.Builder(activity)
             .setView(scroll)
@@ -108,6 +111,8 @@ internal object CallLightingProfileUi {
         label: String,
         initial: LedState,
         deps: Deps,
+        modeLabel: String,
+        showFanPresets: Boolean,
         onChanged: (LedState) -> Unit
     ): LinearLayout {
         var enabled = initial.enabled
@@ -119,6 +124,8 @@ internal object CallLightingProfileUi {
         lateinit var flashingBtn: Button
         lateinit var row1: LinearLayout
         lateinit var row2: LinearLayout
+        lateinit var presetRow1: LinearLayout
+        lateinit var presetRow2: LinearLayout
 
         fun publish() {
             onChanged(LedState(enabled, effect, color))
@@ -139,6 +146,15 @@ internal object CallLightingProfileUi {
             row2.getChildAt(2).background = deps.colorDotDrawable("#1565FF", color == 7)
             row2.getChildAt(4).background = deps.colorDotDrawable("#A020F0", color == 8)
             row2.getChildAt(6).background = deps.colorDotDrawable("#FF69B4", color == 9)
+        }
+
+        fun applyFanPreset(value: String) {
+            enabled = true
+            effect = "preset:$value"
+            color = -1
+            refreshEffects()
+            refreshColors()
+            publish()
         }
 
         fun effectButton(text: String, value: String): Button {
@@ -172,7 +188,7 @@ internal object CallLightingProfileUi {
         })
 
         card.addView(CheckBox(activity).apply {
-            text = "Enable $label"
+            text = "Enable $label for $modeLabel"
             isChecked = enabled
             textSize = 14f
             setTextColor(deps.textPrimary)
@@ -223,6 +239,41 @@ internal object CallLightingProfileUi {
         card.addView(effectRow)
         card.addView(row1)
         card.addView(row2)
+
+        if (showFanPresets) {
+            card.addView(TextView(activity).apply {
+                text = "Fan LED presets"
+                textSize = 13f
+                setTextColor(deps.textSecondary)
+                setPadding(0, deps.dp(12), 0, deps.dp(6))
+            })
+
+            presetRow1 = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                addView(deps.fanPresetBubble("#FF69B4", "#FF0000", "#FF8C00", "#FF8C00", "0x3002101", effect == "preset:0x3002101") { applyFanPreset("0x3002101") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#1565FF", "#00E676", "#22D3EE", "#FF69B4", "0x3002102", effect == "preset:0x3002102") { applyFanPreset("0x3002102") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FFD600", "#FF69B4", "0x3002103", effect == "preset:0x3002103") { applyFanPreset("0x3002103") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#00E676", "#FF69B4", "#FF8C00", "#22D3EE", "0x3002104", effect == "preset:0x3002104") { applyFanPreset("0x3002104") })
+            }
+
+            presetRow2 = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, deps.dp(10), 0, 0)
+                addView(deps.fanPresetBubble("#00E676", "#A020F0", "#FF8C00", "#FF69B4", "0x3002105", effect == "preset:0x3002105") { applyFanPreset("0x3002105") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#FF0000", "#FF0000", "#FF0000", "#FF0000", "0x3002106", effect == "preset:0x3002106") { applyFanPreset("0x3002106") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#22D3EE", "#FF8C00", "#22D3EE", "#A020F0", "0x3002107", effect == "preset:0x3002107") { applyFanPreset("0x3002107") })
+                addView(deps.space(deps.dp(10)))
+                addView(deps.fanPresetBubble("#22D3EE", "#FF0000", "#FF8C00", "#00E676", "0x3002108", effect == "preset:0x3002108") { applyFanPreset("0x3002108") })
+            }
+
+            card.addView(presetRow1)
+            card.addView(presetRow2)
+        }
 
         refreshEffects()
         refreshColors()

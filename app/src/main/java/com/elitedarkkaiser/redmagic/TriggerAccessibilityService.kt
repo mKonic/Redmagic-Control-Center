@@ -32,7 +32,9 @@ class TriggerAccessibilityService : AccessibilityService() {
         when (action) {
             "VOL_UP" -> runRoot("input keyevent 24")
             "VOL_DOWN" -> runRoot("input keyevent 25")
-            "PLAY_PAUSE" -> runRoot("input keyevent 85")
+            "MEDIA_PLAY_PAUSE" -> runRoot("input keyevent 85")
+            "MEDIA_NEXT" -> runRoot("input keyevent 87")
+            "MEDIA_PREVIOUS" -> runRoot("input keyevent 88")
             "NONE" -> Unit
             else -> Unit
         }

@@ -817,30 +817,89 @@ class MainActivity : Activity() {
                     }
                 },
                 showIncomingCallProfileDialog = {
-                    AlertDialog.Builder(this)
-                        .setTitle("Incoming Call Lighting")
-                        .setItems(arrayOf("Fan LED", "Logo LED", "Shoulder LEDs")) { _, which ->
-                            when (which) {
-                                0 -> CallLightingActions.showIncomingFanDialog(this, chargingLedDialogDeps())
-                                1 -> CallLightingActions.showIncomingLogoDialog(this, chargingLedDialogDeps())
-                                2 -> CallLightingActions.showIncomingShoulderDialog(this, chargingLedDialogDeps())
-                            }
-                        }
-                        .show()
+                    CallLightingProfileUi.show(
+                        activity = this,
+                        title = "Incoming Call Lighting",
+                        subtitle = "These LED settings apply automatically while an incoming call is ringing.",
+                        fanKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.INCOMING_FAN_ENABLED_KEY,
+                            CallLightingState.INCOMING_FAN_EFFECT_KEY,
+                            CallLightingState.INCOMING_FAN_COLOR_KEY,
+                            "Fan LED",
+                            "flashing",
+                            5
+                        ),
+                        logoKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.INCOMING_LOGO_ENABLED_KEY,
+                            CallLightingState.INCOMING_LOGO_EFFECT_KEY,
+                            CallLightingState.INCOMING_LOGO_COLOR_KEY,
+                            "Logo LED",
+                            "flashing",
+                            1
+                        ),
+                        shoulderKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.INCOMING_SHOULDER_ENABLED_KEY,
+                            CallLightingState.INCOMING_SHOULDER_EFFECT_KEY,
+                            CallLightingState.INCOMING_SHOULDER_COLOR_KEY,
+                            "Shoulder LEDs",
+                            "flashing",
+                            8
+                        ),
+                        deps = callLightingProfileDeps()
+                    )
                 },
                 showConnectedCallProfileDialog = {
-                    AlertDialog.Builder(this)
-                        .setTitle("Connected Call Lighting")
-                        .setItems(arrayOf("Fan LED", "Logo LED", "Shoulder LEDs")) { _, which ->
-                            when (which) {
-                                0 -> CallLightingActions.showConnectedFanDialog(this, chargingLedDialogDeps())
-                                1 -> CallLightingActions.showConnectedLogoDialog(this, chargingLedDialogDeps())
-                                2 -> CallLightingActions.showConnectedShoulderDialog(this, chargingLedDialogDeps())
-                            }
-                        }
-                        .show()
+                    CallLightingProfileUi.show(
+                        activity = this,
+                        title = "Connected Call Lighting",
+                        subtitle = "These LED settings apply automatically while a call is connected.",
+                        fanKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.CONNECTED_FAN_ENABLED_KEY,
+                            CallLightingState.CONNECTED_FAN_EFFECT_KEY,
+                            CallLightingState.CONNECTED_FAN_COLOR_KEY,
+                            "Fan LED",
+                            "steady",
+                            5
+                        ),
+                        logoKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.CONNECTED_LOGO_ENABLED_KEY,
+                            CallLightingState.CONNECTED_LOGO_EFFECT_KEY,
+                            CallLightingState.CONNECTED_LOGO_COLOR_KEY,
+                            "Logo LED",
+                            "steady",
+                            1
+                        ),
+                        shoulderKeys = CallLightingProfileUi.ZoneKeys(
+                            CallLightingState.CONNECTED_SHOULDER_ENABLED_KEY,
+                            CallLightingState.CONNECTED_SHOULDER_EFFECT_KEY,
+                            CallLightingState.CONNECTED_SHOULDER_COLOR_KEY,
+                            "Shoulder LEDs",
+                            "steady",
+                            8
+                        ),
+                        deps = callLightingProfileDeps()
+                    )
                 }
             )
+        )
+    }
+
+    private fun callLightingProfileDeps(): CallLightingProfileUi.Deps {
+        return CallLightingProfileUi.Deps(
+            textPrimary = textPrimary,
+            textSecondary = textSecondary,
+            panelColor = panelColor,
+            borderColor = borderColor,
+            panelPressed = panelPressed,
+            accent = accent,
+            typeface = typeface,
+            dp = { value -> dp(value) },
+            roundedBg = { fill, stroke, radius -> roundedBg(fill, stroke, radius) },
+            roundedFill = { color, radius -> roundedFill(color, radius) },
+            filterChip = { label, selected, onClick -> filterChip(label, selected, onClick) },
+            space = { value -> space(value) },
+            colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
+            colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) }
         )
     }
 

@@ -35,6 +35,8 @@ data class LightingTabDeps(
 
     val getCallLightingEnabled: () -> Boolean,
     val setCallLightingEnabled: (Boolean) -> Unit,
+    val getPauseFanDuringCalls: () -> Boolean,
+    val setPauseFanDuringCalls: (Boolean) -> Unit,
     val showIncomingCallProfileDialog: () -> Unit,
     val showConnectedCallProfileDialog: () -> Unit
 )

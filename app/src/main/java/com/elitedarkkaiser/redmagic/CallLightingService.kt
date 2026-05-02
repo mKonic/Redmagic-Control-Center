@@ -53,19 +53,42 @@ class CallLightingService : Service() {
 
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
-                CallLightingState.setActive(this, true)
+                beginCallOwnership()
                 applyIncomingProfile()
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
-                CallLightingState.setActive(this, true)
+                beginCallOwnership()
                 applyConnectedProfile()
             }
             TelephonyManager.CALL_STATE_IDLE -> {
                 if (CallLightingState.isActive(this)) {
                     CallLightingState.setActive(this, false)
+                    restorePausedFanIfNeeded()
                     restorePreviousLedOwner()
                 }
             }
+        }
+    }
+
+
+    private fun beginCallOwnership() {
+        val wasAlreadyActive = CallLightingState.isActive(this)
+
+        if (!wasAlreadyActive && CallLightingState.shouldPauseFanDuringCalls(this)) {
+            CallLightingState.savePreCallFanState(
+                context = this,
+                enabled = HardwareController.isFanEnabled(),
+                level = HardwareController.readFanLevel() ?: 0
+            )
+            HardwareController.enableFan(false)
+        }
+
+        CallLightingState.setActive(this, true)
+    }
+
+    private fun restorePausedFanIfNeeded() {
+        if (CallLightingState.shouldPauseFanDuringCalls(this)) {
+            CallLightingState.restorePreCallFanState(this)
         }
     }
 

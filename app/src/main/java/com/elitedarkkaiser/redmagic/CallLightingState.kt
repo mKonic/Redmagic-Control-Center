@@ -8,6 +8,9 @@ internal object CallLightingState {
 
     const val ENABLED_KEY = "call_lighting_enabled"
     const val ACTIVE_KEY = "call_lighting_active"
+    const val PAUSE_FAN_DURING_CALLS_KEY = "call_lighting_pause_fan_during_calls"
+    const val PRE_CALL_FAN_ENABLED_KEY = "call_lighting_pre_call_fan_enabled"
+    const val PRE_CALL_FAN_LEVEL_KEY = "call_lighting_pre_call_fan_level"
 
     const val INCOMING_FAN_ENABLED_KEY = "call_incoming_fan_led_enabled"
     const val INCOMING_FAN_EFFECT_KEY = "call_incoming_fan_led_effect"
@@ -55,6 +58,39 @@ internal object CallLightingState {
             .edit()
             .putBoolean(ACTIVE_KEY, active)
             .apply()
+    }
+
+
+    fun shouldPauseFanDuringCalls(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(PAUSE_FAN_DURING_CALLS_KEY, false)
+    }
+
+    fun setPauseFanDuringCalls(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PAUSE_FAN_DURING_CALLS_KEY, enabled)
+            .apply()
+    }
+
+    fun savePreCallFanState(context: Context, enabled: Boolean, level: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PRE_CALL_FAN_ENABLED_KEY, enabled)
+            .putInt(PRE_CALL_FAN_LEVEL_KEY, level)
+            .apply()
+    }
+
+    fun restorePreCallFanState(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val wasEnabled = prefs.getBoolean(PRE_CALL_FAN_ENABLED_KEY, false)
+        val level = prefs.getInt(PRE_CALL_FAN_LEVEL_KEY, 0)
+
+        if (wasEnabled) {
+            HardwareController.setFanLevel(level)
+        } else {
+            HardwareController.enableFan(false)
+        }
     }
 
     fun readLed(context: Context, enabledKey: String, effectKey: String, colorKey: String, defaultEnabled: Boolean, defaultEffect: String, defaultColor: Int): LedState {

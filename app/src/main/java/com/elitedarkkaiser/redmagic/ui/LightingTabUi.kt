@@ -120,7 +120,28 @@ object LightingTabUi {
                 addView(callSwitch)
             }
 
+            val pauseFanSwitch = android.widget.Switch(activity).apply {
+                isChecked = deps.getPauseFanDuringCalls()
+                setOnCheckedChangeListener { _, checked ->
+                    deps.setPauseFanDuringCalls(checked)
+                }
+            }
+
+            val pauseFanRow = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, deps.dp(8), 0, 0)
+                addView(TextView(activity).apply {
+                    text = "Pause fan during calls"
+                    textSize = 14f
+                    setTextColor(AppTheme.textPrimary)
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(pauseFanSwitch)
+            }
+
             addView(callRow)
+            addView(pauseFanRow)
+            addView(deps.bodyText("Temporarily turns the fan off while a call is ringing or connected, then restores the previous fan state after the call."))
             addView(deps.row(
                 deps.actionButton("INCOMING CALL PROFILE", false) { deps.showIncomingCallProfileDialog() },
                 deps.actionButton("CONNECTED CALL PROFILE", false) { deps.showConnectedCallProfileDialog() }

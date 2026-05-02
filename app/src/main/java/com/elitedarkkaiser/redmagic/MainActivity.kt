@@ -816,6 +816,10 @@ class MainActivity : Activity() {
                         HardwareServiceActions.stopCallLighting(this)
                     }
                 },
+                getPauseFanDuringCalls = { CallLightingState.shouldPauseFanDuringCalls(this) },
+                setPauseFanDuringCalls = { enabled ->
+                    CallLightingState.setPauseFanDuringCalls(this, enabled)
+                },
                 showIncomingCallProfileDialog = {
                     CallLightingProfileUi.show(
                         activity = this,

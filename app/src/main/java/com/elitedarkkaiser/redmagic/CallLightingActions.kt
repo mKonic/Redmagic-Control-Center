@@ -3,9 +3,9 @@ package com.elitedarkkaiser.redmagic
 import android.app.Activity
 import com.elitedarkkaiser.redmagic.state.LedState
 
-object CallLightingActions {
+internal object CallLightingActions {
 
-    fun showIncomingProfileDialog(activity: Activity, deps: ChargingLedProfileDialog.Deps) {
+    fun showIncomingProfileDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
         showProfileDialog(
             activity = activity,
             title = "Incoming Call Lighting",
@@ -29,7 +29,7 @@ object CallLightingActions {
         )
     }
 
-    fun showConnectedProfileDialog(activity: Activity, deps: ChargingLedProfileDialog.Deps) {
+    fun showConnectedProfileDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
         showProfileDialog(
             activity = activity,
             title = "Connected Call Lighting",
@@ -54,7 +54,7 @@ object CallLightingActions {
     }
 
     private fun showProfileDialog(
-        activity: Activity,
+        activity: MainActivity,
         title: String,
         fanKeys: Triple<String, String, String>,
         logoKeys: Triple<String, String, String>,
@@ -69,14 +69,16 @@ object CallLightingActions {
         ChargingLedProfileDialog.show(
             activity = activity,
             title = title,
-            fan = fan,
-            logo = logo,
-            shoulder = shoulder,
+            subtitle = "Used only while Call Lighting owns the LEDs.",
+            originalEnabled = true,
+            originalEffect = defaultEffect,
+            originalColor = 5,
             deps = deps,
-            onSave = { savedFan, savedLogo, savedShoulder ->
-                CallLightingState.saveLed(activity, fanKeys.first, fanKeys.second, fanKeys.third, savedFan)
-                CallLightingState.saveLed(activity, logoKeys.first, logoKeys.second, logoKeys.third, savedLogo)
-                CallLightingState.saveLed(activity, shoulderKeys.first, shoulderKeys.second, shoulderKeys.third, savedShoulder)
+            onSave = { enabled: Boolean, effect: String, color: Int ->
+                val state = LedState(enabled, effect, color)
+                CallLightingState.saveLed(activity, fanKeys.first, fanKeys.second, fanKeys.third, state)
+                CallLightingState.saveLed(activity, logoKeys.first, logoKeys.second, logoKeys.third, state.copy(color = color.takeIf { it >= 0 } ?: logo.color))
+                CallLightingState.saveLed(activity, shoulderKeys.first, shoulderKeys.second, shoulderKeys.third, state.copy(color = color.takeIf { it >= 0 } ?: shoulder.color))
 
                 if (CallLightingState.isEnabled(activity)) {
                     HardwareServiceActions.startCallLighting(activity)

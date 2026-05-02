@@ -1,84 +1,128 @@
 package com.elitedarkkaiser.redmagic
 
-import android.app.Activity
-import com.elitedarkkaiser.redmagic.state.LedState
-
 internal object CallLightingActions {
 
-    fun showIncomingProfileDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
-        showProfileDialog(
+    fun showIncomingFanDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
             activity = activity,
-            title = "Incoming Call Lighting",
-            fanKeys = Triple(
-                CallLightingState.INCOMING_FAN_ENABLED_KEY,
-                CallLightingState.INCOMING_FAN_EFFECT_KEY,
-                CallLightingState.INCOMING_FAN_COLOR_KEY
-            ),
-            logoKeys = Triple(
-                CallLightingState.INCOMING_LOGO_ENABLED_KEY,
-                CallLightingState.INCOMING_LOGO_EFFECT_KEY,
-                CallLightingState.INCOMING_LOGO_COLOR_KEY
-            ),
-            shoulderKeys = Triple(
-                CallLightingState.INCOMING_SHOULDER_ENABLED_KEY,
-                CallLightingState.INCOMING_SHOULDER_EFFECT_KEY,
-                CallLightingState.INCOMING_SHOULDER_COLOR_KEY
-            ),
+            title = "Incoming Call Fan LED",
+            subtitle = "Fan LED profile used while an incoming call is ringing.",
+            enabledKey = CallLightingState.INCOMING_FAN_ENABLED_KEY,
+            effectKey = CallLightingState.INCOMING_FAN_EFFECT_KEY,
+            colorKey = CallLightingState.INCOMING_FAN_COLOR_KEY,
             defaultEffect = "flashing",
+            defaultColor = 5,
             deps = deps
         )
     }
 
-    fun showConnectedProfileDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
-        showProfileDialog(
+    fun showIncomingLogoDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
             activity = activity,
-            title = "Connected Call Lighting",
-            fanKeys = Triple(
-                CallLightingState.CONNECTED_FAN_ENABLED_KEY,
-                CallLightingState.CONNECTED_FAN_EFFECT_KEY,
-                CallLightingState.CONNECTED_FAN_COLOR_KEY
-            ),
-            logoKeys = Triple(
-                CallLightingState.CONNECTED_LOGO_ENABLED_KEY,
-                CallLightingState.CONNECTED_LOGO_EFFECT_KEY,
-                CallLightingState.CONNECTED_LOGO_COLOR_KEY
-            ),
-            shoulderKeys = Triple(
-                CallLightingState.CONNECTED_SHOULDER_ENABLED_KEY,
-                CallLightingState.CONNECTED_SHOULDER_EFFECT_KEY,
-                CallLightingState.CONNECTED_SHOULDER_COLOR_KEY
-            ),
-            defaultEffect = "steady",
+            title = "Incoming Call Logo LED",
+            subtitle = "Logo LED profile used while an incoming call is ringing.",
+            enabledKey = CallLightingState.INCOMING_LOGO_ENABLED_KEY,
+            effectKey = CallLightingState.INCOMING_LOGO_EFFECT_KEY,
+            colorKey = CallLightingState.INCOMING_LOGO_COLOR_KEY,
+            defaultEffect = "flashing",
+            defaultColor = 1,
             deps = deps
         )
     }
 
-    private fun showProfileDialog(
+    fun showIncomingShoulderDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
+            activity = activity,
+            title = "Incoming Call Shoulder LEDs",
+            subtitle = "Shoulder LED profile used while an incoming call is ringing.",
+            enabledKey = CallLightingState.INCOMING_SHOULDER_ENABLED_KEY,
+            effectKey = CallLightingState.INCOMING_SHOULDER_EFFECT_KEY,
+            colorKey = CallLightingState.INCOMING_SHOULDER_COLOR_KEY,
+            defaultEffect = "flashing",
+            defaultColor = 8,
+            deps = deps
+        )
+    }
+
+    fun showConnectedFanDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
+            activity = activity,
+            title = "Connected Call Fan LED",
+            subtitle = "Fan LED profile used while a call is connected.",
+            enabledKey = CallLightingState.CONNECTED_FAN_ENABLED_KEY,
+            effectKey = CallLightingState.CONNECTED_FAN_EFFECT_KEY,
+            colorKey = CallLightingState.CONNECTED_FAN_COLOR_KEY,
+            defaultEffect = "steady",
+            defaultColor = 5,
+            deps = deps
+        )
+    }
+
+    fun showConnectedLogoDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
+            activity = activity,
+            title = "Connected Call Logo LED",
+            subtitle = "Logo LED profile used while a call is connected.",
+            enabledKey = CallLightingState.CONNECTED_LOGO_ENABLED_KEY,
+            effectKey = CallLightingState.CONNECTED_LOGO_EFFECT_KEY,
+            colorKey = CallLightingState.CONNECTED_LOGO_COLOR_KEY,
+            defaultEffect = "steady",
+            defaultColor = 1,
+            deps = deps
+        )
+    }
+
+    fun showConnectedShoulderDialog(activity: MainActivity, deps: ChargingLedProfileDialog.Deps) {
+        showZoneDialog(
+            activity = activity,
+            title = "Connected Call Shoulder LEDs",
+            subtitle = "Shoulder LED profile used while a call is connected.",
+            enabledKey = CallLightingState.CONNECTED_SHOULDER_ENABLED_KEY,
+            effectKey = CallLightingState.CONNECTED_SHOULDER_EFFECT_KEY,
+            colorKey = CallLightingState.CONNECTED_SHOULDER_COLOR_KEY,
+            defaultEffect = "steady",
+            defaultColor = 8,
+            deps = deps
+        )
+    }
+
+    private fun showZoneDialog(
         activity: MainActivity,
         title: String,
-        fanKeys: Triple<String, String, String>,
-        logoKeys: Triple<String, String, String>,
-        shoulderKeys: Triple<String, String, String>,
+        subtitle: String,
+        enabledKey: String,
+        effectKey: String,
+        colorKey: String,
         defaultEffect: String,
+        defaultColor: Int,
         deps: ChargingLedProfileDialog.Deps
     ) {
-        val fan = CallLightingState.readLed(activity, fanKeys.first, fanKeys.second, fanKeys.third, true, defaultEffect, 5)
-        val logo = CallLightingState.readLed(activity, logoKeys.first, logoKeys.second, logoKeys.third, true, defaultEffect, 1)
-        val shoulder = CallLightingState.readLed(activity, shoulderKeys.first, shoulderKeys.second, shoulderKeys.third, true, defaultEffect, 8)
+        val profile = CallLightingState.readLed(
+            activity,
+            enabledKey,
+            effectKey,
+            colorKey,
+            defaultEnabled = true,
+            defaultEffect = defaultEffect,
+            defaultColor = defaultColor
+        )
 
         ChargingLedProfileDialog.show(
             activity = activity,
             title = title,
-            subtitle = "Used only while Call Lighting owns the LEDs.",
-            originalEnabled = true,
-            originalEffect = defaultEffect,
-            originalColor = 5,
+            subtitle = subtitle,
+            originalEnabled = profile.enabled,
+            originalEffect = profile.effect,
+            originalColor = profile.color,
             deps = deps,
-            onSave = { enabled: Boolean, effect: String, color: Int ->
-                val state = LedState(enabled, effect, color)
-                CallLightingState.saveLed(activity, fanKeys.first, fanKeys.second, fanKeys.third, state)
-                CallLightingState.saveLed(activity, logoKeys.first, logoKeys.second, logoKeys.third, state.copy(color = color.takeIf { it >= 0 } ?: logo.color))
-                CallLightingState.saveLed(activity, shoulderKeys.first, shoulderKeys.second, shoulderKeys.third, state.copy(color = color.takeIf { it >= 0 } ?: shoulder.color))
+            onSave = { enabled, effect, color ->
+                CallLightingState.saveLed(
+                    activity,
+                    enabledKey,
+                    effectKey,
+                    colorKey,
+                    com.elitedarkkaiser.redmagic.state.LedState(enabled, effect, color)
+                )
 
                 if (CallLightingState.isEnabled(activity)) {
                     HardwareServiceActions.startCallLighting(activity)

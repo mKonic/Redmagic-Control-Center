@@ -205,6 +205,51 @@ object MasterProfileActions {
             profile.chargingShoulderLed.color
         )
 
+        CallLightingState.setEnabled(context, profile.callLightingEnabled)
+        CallLightingState.setPauseFanDuringCalls(context, profile.pauseFanDuringCalls)
+        saveCallLightingLed(
+            context,
+            CallLightingState.INCOMING_FAN_ENABLED_KEY,
+            CallLightingState.INCOMING_FAN_EFFECT_KEY,
+            CallLightingState.INCOMING_FAN_COLOR_KEY,
+            profile.incomingCallFanLed
+        )
+        saveCallLightingLed(
+            context,
+            CallLightingState.INCOMING_LOGO_ENABLED_KEY,
+            CallLightingState.INCOMING_LOGO_EFFECT_KEY,
+            CallLightingState.INCOMING_LOGO_COLOR_KEY,
+            profile.incomingCallLogoLed
+        )
+        saveCallLightingLed(
+            context,
+            CallLightingState.INCOMING_SHOULDER_ENABLED_KEY,
+            CallLightingState.INCOMING_SHOULDER_EFFECT_KEY,
+            CallLightingState.INCOMING_SHOULDER_COLOR_KEY,
+            profile.incomingCallShoulderLed
+        )
+        saveCallLightingLed(
+            context,
+            CallLightingState.CONNECTED_FAN_ENABLED_KEY,
+            CallLightingState.CONNECTED_FAN_EFFECT_KEY,
+            CallLightingState.CONNECTED_FAN_COLOR_KEY,
+            profile.connectedCallFanLed
+        )
+        saveCallLightingLed(
+            context,
+            CallLightingState.CONNECTED_LOGO_ENABLED_KEY,
+            CallLightingState.CONNECTED_LOGO_EFFECT_KEY,
+            CallLightingState.CONNECTED_LOGO_COLOR_KEY,
+            profile.connectedCallLogoLed
+        )
+        saveCallLightingLed(
+            context,
+            CallLightingState.CONNECTED_SHOULDER_ENABLED_KEY,
+            CallLightingState.CONNECTED_SHOULDER_EFFECT_KEY,
+            CallLightingState.CONNECTED_SHOULDER_COLOR_KEY,
+            profile.connectedCallShoulderLed
+        )
+
         saveTriggerPrefsStorage(context, profile.hardware)
 
         applyHardware(context, profile)
@@ -254,6 +299,23 @@ object MasterProfileActions {
 
         GameModeActions.startServiceSilentlyIfPermitted(context)
         HardwareServiceActions.startChargingMode(context)
+
+        if (profile.callLightingEnabled) {
+            HardwareServiceActions.startCallLighting(context)
+        } else {
+            CallLightingState.setActive(context, false)
+            HardwareServiceActions.stopCallLighting(context)
+        }
+    }
+
+    private fun saveCallLightingLed(
+        context: Context,
+        enabledKey: String,
+        effectKey: String,
+        colorKey: String,
+        state: com.elitedarkkaiser.redmagic.state.LedState
+    ) {
+        CallLightingState.saveLed(context, enabledKey, effectKey, colorKey, state)
     }
 
     private fun ChargingLedState.Profile.toLedState(): com.elitedarkkaiser.redmagic.state.LedState {

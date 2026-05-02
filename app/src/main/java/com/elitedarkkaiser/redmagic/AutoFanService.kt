@@ -15,7 +15,9 @@ class AutoFanService : Service() {
     companion object {
         private const val CHANNEL_ID = "auto_fan_service_channel"
         private const val NOTIF_ID = 1101
-        private const val POLL_INTERVAL_MS = 15000L
+        private const val HOT_POLL_MS = 5000L
+        private const val COOL_POLL_MS = 10000L
+        private const val HOT_TEMP_THRESHOLD_F = 95f
         private const val HYSTERESIS_F = 5f
     }
 
@@ -33,7 +35,8 @@ class AutoFanService : Service() {
             }
 
             updateNotification(tempF, lastAppliedLevel)
-            handler.postDelayed(this, POLL_INTERVAL_MS)
+            val nextDelay = if ((tempF ?: 0f) >= HOT_TEMP_THRESHOLD_F) HOT_POLL_MS else COOL_POLL_MS
+            handler.postDelayed(this, nextDelay)
         }
     }
 

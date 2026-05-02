@@ -55,10 +55,12 @@ class CallLightingService : Service() {
             TelephonyManager.CALL_STATE_RINGING -> {
                 beginCallOwnership()
                 applyIncomingProfile()
+                enforceFanPauseIfNeeded()
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 beginCallOwnership()
                 applyConnectedProfile()
+                enforceFanPauseIfNeeded()
             }
             TelephonyManager.CALL_STATE_IDLE -> {
                 if (CallLightingState.isActive(this)) {
@@ -89,6 +91,13 @@ class CallLightingService : Service() {
     private fun restorePausedFanIfNeeded() {
         if (CallLightingState.shouldPauseFanDuringCalls(this)) {
             CallLightingState.restorePreCallFanState(this)
+        }
+    }
+
+    private fun enforceFanPauseIfNeeded() {
+        if (CallLightingState.shouldPauseFanDuringCalls(this)) {
+            HardwareController.setFanLevel(0)
+            HardwareController.enableFan(false)
         }
     }
 

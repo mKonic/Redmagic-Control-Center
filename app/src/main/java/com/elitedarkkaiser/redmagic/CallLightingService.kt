@@ -82,6 +82,8 @@ class CallLightingService : Service() {
                 enabled = HardwareController.isFanEnabled(),
                 level = HardwareController.readFanLevel() ?: 0
             )
+            HardwareServiceActions.stopAutoFan(this)
+            HardwareController.setFanLevel(0)
             HardwareController.enableFan(false)
         }
 
@@ -91,13 +93,25 @@ class CallLightingService : Service() {
     private fun restorePausedFanIfNeeded() {
         if (CallLightingState.shouldPauseFanDuringCalls(this)) {
             CallLightingState.restorePreCallFanState(this)
+            if (isAutoFanEnabledStorage(this)) {
+                HardwareServiceActions.startAutoFan(this)
+            }
         }
     }
 
     private fun enforceFanPauseIfNeeded() {
         if (CallLightingState.shouldPauseFanDuringCalls(this)) {
+            HardwareServiceActions.stopAutoFan(this)
             HardwareController.setFanLevel(0)
             HardwareController.enableFan(false)
+
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (CallLightingState.isActive(this) && CallLightingState.shouldPauseFanDuringCalls(this)) {
+                    HardwareServiceActions.stopAutoFan(this)
+                    HardwareController.setFanLevel(0)
+                    HardwareController.enableFan(false)
+                }
+            }, 750L)
         }
     }
 

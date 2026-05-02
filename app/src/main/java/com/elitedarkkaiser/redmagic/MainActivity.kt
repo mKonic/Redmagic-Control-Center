@@ -793,7 +793,7 @@ class MainActivity : Activity() {
                         colorDot = { colorId, hex, onClick -> colorDot(colorId, hex, onClick) },
                         colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
                         fanPresetBubble = { c1, c2, c3, c4, presetValue, selected, onClick ->
-                            fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { selected }, onClick = onClick)
+                            selectedFanPresetBubble(c1, c2, c3, c4, presetValue, selected, onClick)
                         }
                     )
                 },
@@ -902,7 +902,7 @@ class MainActivity : Activity() {
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             fanPresetBubble = { c1, c2, c3, c4, presetValue, selected, onClick ->
-                fanPresetBubble(c1, c2, c3, c4, presetValue = presetValue, selectedOverride = { selected }, onClick = onClick)
+                selectedFanPresetBubble(c1, c2, c3, c4, presetValue, selected, onClick)
             }
         )
     }
@@ -923,7 +923,7 @@ class MainActivity : Activity() {
             colorDotGeneric = { hex, selected, onClick -> colorDotGeneric(hex, selected, onClick) },
             colorDotDrawable = { hex, selected -> colorDotDrawable(hex, selected) },
             fanPresetBubble = { h1, h2, h3, h4, value, selected, onClick ->
-                fanPresetBubble(h1, h2, h3, h4, presetValue = value, selectedOverride = { selected }, onClick = onClick)
+                selectedFanPresetBubble(h1, h2, h3, h4, value, selected, onClick)
             }
         )
     }
@@ -1153,6 +1153,26 @@ class MainActivity : Activity() {
 
         HardwareController.setFanLedStockPreset(effectValue)
         dialogRefreshFanLed?.invoke()
+    }
+
+    private fun selectedFanPresetBubble(
+        c1: String,
+        c2: String,
+        c3: String,
+        c4: String,
+        presetValue: String,
+        selected: Boolean,
+        onClick: () -> Unit
+    ): View {
+        return fanPresetBubble(
+            c1,
+            c2,
+            c3,
+            c4,
+            presetValue = presetValue,
+            selectedOverride = { selected },
+            onClick = onClick
+        )
     }
 
     private fun fanPresetBubble(

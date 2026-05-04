@@ -13,6 +13,7 @@ class GameModeService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var gameModeActiveFor: String? = null
+    private var gameModeApplyPendingFor: String? = null
 
     private val pollRunnable = object : Runnable {
         override fun run() {
@@ -24,6 +25,11 @@ class GameModeService : Service() {
                     if (gameModeActiveFor != currentPkg) {
                         gameModeActiveFor = currentPkg
                         setGameModeLedOverrideActiveStorage(this@GameModeService, true)
+                        applyGameModeProfile()
+                    } else if (
+                        gameModeApplyPendingFor == currentPkg &&
+                        LedScreenPolicy.isScreenInteractive(this@GameModeService)
+                    ) {
                         applyGameModeProfile()
                     }
                 } else if (!currentPkg.isNullOrBlank()) {
@@ -196,6 +202,8 @@ class GameModeService : Service() {
         applyOnce("now")
     }
     private fun restoreNormalProfile() {
+        if (LedScreenPolicy.blockNonChargingLedWriteIfScreenOff(this, "game-mode-restore-normal")) return
+
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
         val fanEnabled = prefs.getBoolean("fan_enabled", false)

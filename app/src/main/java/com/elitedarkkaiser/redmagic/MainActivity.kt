@@ -454,7 +454,6 @@ class MainActivity : Activity() {
             HardwareServiceActions.startAutoPump(this)
         }
 
-        restoreFanCurveUiState()
         switchTab("home")
         statusRefreshHandler.postDelayed({
             refreshStatus()
@@ -1292,6 +1291,7 @@ class MainActivity : Activity() {
 
         if (tab == "cooling") {
             ensureTab(1, coolingTab, { createCoolingTab() }) { coolingTab = it }
+            restoreFanCurveUiState()
         }
 
         if (tab == "controls") {

@@ -33,6 +33,6 @@ fun deviceScanSummaryStorage(context: Context): String {
 
 
 fun hasDeviceCapabilityReportStorage(context: Context): Boolean {
-    return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .contains(REPORT_KEY)
+    return context.getSharedPreferences("device_capability_scan", Context.MODE_PRIVATE)
+        .contains("device_capability_report")
 }

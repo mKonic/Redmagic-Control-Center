@@ -58,6 +58,7 @@ internal object TriggerSetupDialog {
         var leftChoice = indexOfValue(prefs.getString("left_trigger", "VOL_DOWN") ?: "VOL_DOWN")
         var rightChoice = indexOfValue(prefs.getString("right_trigger", "VOL_UP") ?: "VOL_UP")
         var unlockTapCount = prefs.getInt("intent_unlock_tap_count", 2).coerceIn(2, 4)
+        var leftUnlockTapCount = prefs.getInt("left_intent_unlock_tap_count", 1).coerceIn(1, 4)
 
         val container = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -133,8 +134,36 @@ internal object TriggerSetupDialog {
             rightChoice = selected?.tag as? Int ?: rightChoice
         }
 
+        val leftUnlockTapLabel = TextView(activity).apply {
+            text = "Left / Top Intent Unlock taps"
+            textSize = 13f
+            setTextColor(deps.textSecondary)
+            setPadding(0, deps.dp(14), 0, deps.dp(6))
+        }
+
+        val leftUnlockTapGroup = android.widget.RadioGroup(activity).apply {
+            orientation = android.widget.RadioGroup.HORIZONTAL
+        }
+
+        listOf(1, 2, 3, 4).forEach { count ->
+            leftUnlockTapGroup.addView(android.widget.RadioButton(activity).apply {
+                id = View.generateViewId()
+                tag = count
+                text = if (count == 1) "Single" else "$count taps"
+                textSize = 14f
+                setTextColor(deps.textPrimary)
+                buttonTintList = android.content.res.ColorStateList.valueOf(deps.accent)
+                isChecked = count == leftUnlockTapCount
+            })
+        }
+
+        leftUnlockTapGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selected = group.findViewById<android.widget.RadioButton>(checkedId)
+            leftUnlockTapCount = selected?.tag as? Int ?: leftUnlockTapCount
+        }
+
         val unlockTapLabel = TextView(activity).apply {
-            text = "Intent Unlock taps"
+            text = "Right / Bottom Intent Unlock taps"
             textSize = 13f
             setTextColor(deps.textSecondary)
             setPadding(0, deps.dp(14), 0, deps.dp(6))
@@ -195,6 +224,8 @@ internal object TriggerSetupDialog {
         container.addView(leftGroup)
         container.addView(rightLabel)
         container.addView(rightGroup)
+        container.addView(leftUnlockTapLabel)
+        container.addView(leftUnlockTapGroup)
         container.addView(unlockTapLabel)
         container.addView(unlockTapGroup)
         container.addView(buttonRow)
@@ -224,6 +255,7 @@ internal object TriggerSetupDialog {
                 .putString("left_trigger", values[leftChoice])
                 .putString("right_trigger", values[rightChoice])
                 .putInt("intent_unlock_tap_count", unlockTapCount)
+                .putInt("left_intent_unlock_tap_count", leftUnlockTapCount)
                 .apply()
 
             Toast.makeText(

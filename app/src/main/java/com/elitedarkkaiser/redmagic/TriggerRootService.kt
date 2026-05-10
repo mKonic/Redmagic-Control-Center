@@ -13,6 +13,10 @@ class TriggerRootService : Service() {
     
     private var rightTriggerUnlockedUntil: Long = 0L
     private var running = true
+
+    private var leftUnlockArmedAt = 0L
+    private var leftUnlockedUntil = 0L
+    private var leftUnlockTapCount = 0
     private val held = ConcurrentHashMap<String, AtomicBoolean>()
     private val repeatThreads = ConcurrentHashMap<String, Thread>()
 
@@ -171,8 +175,12 @@ class TriggerRootService : Service() {
         android.util.Log.d("TRIGGER", "right unlock extended until=" + rightUnlockedUntil)
     }
 
-    private fun intentUnlockTapCountRequired(): Int {
+    private fun rightIntentUnlockTapCountRequired(): Int {
         return prefs().getInt("intent_unlock_tap_count", 2).coerceIn(2, 4)
+    }
+
+    private fun leftIntentUnlockTapCountRequired(): Int {
+        return prefs().getInt("left_intent_unlock_tap_count", 1).coerceIn(1, 4)
     }
 
     private fun handleRightIntentUnlock(): Boolean {
@@ -181,7 +189,7 @@ class TriggerRootService : Service() {
         }
 
         val current = now()
-        val requiredTaps = intentUnlockTapCountRequired()
+        val requiredTaps = rightIntentUnlockTapCountRequired()
 
         if (current <= rightUnlockedUntil) {
             extendRightUnlock()
@@ -211,11 +219,53 @@ class TriggerRootService : Service() {
         return false
     }
 
+
+    private fun handleLeftIntentUnlock(): Boolean {
+        val requiredTaps = leftIntentUnlockTapCountRequired()
+        if (requiredTaps <= 1) {
+            return true
+        }
+
+        val current = now()
+
+        if (current <= leftUnlockedUntil) {
+            leftUnlockedUntil = current + RIGHT_UNLOCK_ACTIVE_MS
+            return true
+        }
+
+        if (leftUnlockArmedAt == 0L || (current - leftUnlockArmedAt) > RIGHT_UNLOCK_TAP_WINDOW_MS) {
+            leftUnlockArmedAt = current
+            leftUnlockTapCount = 1
+        } else {
+            leftUnlockTapCount += 1
+        }
+
+        if (leftUnlockTapCount >= requiredTaps) {
+            leftUnlockArmedAt = 0L
+            leftUnlockTapCount = 0
+            leftUnlockedUntil = current + RIGHT_UNLOCK_ACTIVE_MS
+            android.util.Log.d("TRIGGER", "left trigger UNLOCKED taps=$requiredTaps")
+            hapticUnlock()
+            return true
+        }
+
+        android.util.Log.d(
+            "TRIGGER",
+            "left trigger unlock tap $leftUnlockTapCount/$requiredTaps ignored"
+        )
+        return false
+    }
+
     private fun handleLeftDown(device: String, line: String) {
         android.util.Log.d("TRIGGER", "LEFT DOWN device=" + device + " line=" + line)
 
         if (!isScreenInteractive()) {
             android.util.Log.d("TRIGGER", "LEFT ignored because screen is off")
+            return
+        }
+
+        if (!handleLeftIntentUnlock()) {
+            stopRepeater("left_trigger")
             return
         }
 

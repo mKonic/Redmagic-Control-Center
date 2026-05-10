@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -11,6 +12,14 @@ import android.widget.Toast
 import com.elitedarkkaiser.redmagic.ui.AppTheme
 
 object FirstInstallPermissionsDialog {
+    private fun roundedFill(color: Int, radius: Float): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = radius
+            setColor(color)
+        }
+    }
+
     fun show(
         activity: MainActivity,
         onSetupComplete: () -> Unit
@@ -49,7 +58,7 @@ object FirstInstallPermissionsDialog {
             textSize = 13f
             setAllCaps(false)
             setTextColor(AppTheme.textPrimary)
-            background = AppTheme.roundedFill(AppTheme.panelPressed, 16f)
+            background = roundedFill(AppTheme.panelPressed, 16f)
             setPadding(dp(18), dp(12), dp(18), dp(12))
         }
 

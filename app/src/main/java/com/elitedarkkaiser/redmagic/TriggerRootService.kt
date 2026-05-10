@@ -17,6 +17,7 @@ class TriggerRootService : Service() {
     private val repeatThreads = ConcurrentHashMap<String, Thread>()
 
     private var rightUnlockArmedAt = 0L
+    private var rightUnlockTapCount = 0
     private var rightUnlockedUntil = 0L
 
     private val RIGHT_UNLOCK_TAP_WINDOW_MS = 450L
@@ -170,28 +171,43 @@ class TriggerRootService : Service() {
         android.util.Log.d("TRIGGER", "right unlock extended until=" + rightUnlockedUntil)
     }
 
+    private fun intentUnlockTapCountRequired(): Int {
+        return prefs().getInt("intent_unlock_tap_count", 2).coerceIn(2, 4)
+    }
+
     private fun handleRightIntentUnlock(): Boolean {
         if (!prefs().getBoolean("intent_unlock_right_trigger", true)) {
             return true
         }
 
         val current = now()
+        val requiredTaps = intentUnlockTapCountRequired()
 
         if (current <= rightUnlockedUntil) {
             extendRightUnlock()
             return true
         }
 
-        if (rightUnlockArmedAt != 0L && (current - rightUnlockArmedAt) <= RIGHT_UNLOCK_TAP_WINDOW_MS) {
+        if (rightUnlockArmedAt == 0L || (current - rightUnlockArmedAt) > RIGHT_UNLOCK_TAP_WINDOW_MS) {
+            rightUnlockArmedAt = current
+            rightUnlockTapCount = 1
+        } else {
+            rightUnlockTapCount += 1
+        }
+
+        if (rightUnlockTapCount >= requiredTaps) {
             rightUnlockArmedAt = 0L
+            rightUnlockTapCount = 0
             rightUnlockedUntil = current + RIGHT_UNLOCK_ACTIVE_MS
-            android.util.Log.d("TRIGGER", "right trigger UNLOCKED")
+            android.util.Log.d("TRIGGER", "right trigger UNLOCKED taps=$requiredTaps")
             hapticUnlock()
             return true
         }
 
-        rightUnlockArmedAt = current
-        android.util.Log.d("TRIGGER", "right trigger first tap ignored, armedAt=" + rightUnlockArmedAt)
+        android.util.Log.d(
+            "TRIGGER",
+            "right trigger unlock tap $rightUnlockTapCount/$requiredTaps ignored"
+        )
         return false
     }
 

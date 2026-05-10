@@ -241,6 +241,19 @@ class TriggerRootService : Service() {
         stopRepeater(prefKey)
     }
 
+
+    private fun isDownLine(line: String): Boolean {
+        return line.contains(" DOWN") ||
+            line.endsWith(" 00000001") ||
+            line.contains(" value 1")
+    }
+
+    private fun isUpLine(line: String): Boolean {
+        return line.contains(" UP") ||
+            line.endsWith(" 00000000") ||
+            line.contains(" value 0")
+    }
+
     private fun startReader(device: String, prefKey: String) {
         Thread {
             try {
@@ -251,13 +264,15 @@ class TriggerRootService : Service() {
                 while (running) {
                     val line = reader.readLine() ?: break
 
-                    if (line.contains(" DOWN")) {
+                    android.util.Log.d("TRIGGER", "raw device=$device key=$prefKey line=$line")
+
+                    if (isDownLine(line)) {
                         if (prefKey == "left_trigger") {
                             handleLeftDown(device, line)
                         } else {
                             handleRightDown(device, line)
                         }
-                    } else if (line.contains(" UP")) {
+                    } else if (isUpLine(line)) {
                         handleUp(prefKey, device, line)
                     }
                 }

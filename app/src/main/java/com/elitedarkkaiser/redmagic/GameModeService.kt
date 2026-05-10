@@ -3,8 +3,10 @@ package com.elitedarkkaiser.redmagic
 import android.app.Service
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -14,6 +16,37 @@ class GameModeService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var gameModeActiveFor: String? = null
     private var gameModeApplyPendingFor: String? = null
+    private var pollingPausedForScreenOff = false
+
+    private val fastPollMs = 5_000L
+    private val activeGamePollMs = 60_000L
+
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    pollingPausedForScreenOff = true
+                    handler.removeCallbacks(pollRunnable)
+
+                    if (gameModeActiveFor != null) {
+                        restoreNormalProfile()
+                        setGameModeLedOverrideActiveStorage(this@GameModeService, false)
+                        gameModeActiveFor = null
+                    }
+
+                    android.util.Log.i("RedmagicGameMode", "screen off: paused game mode polling")
+                }
+
+                Intent.ACTION_SCREEN_ON,
+                Intent.ACTION_USER_PRESENT -> {
+                    pollingPausedForScreenOff = false
+                    handler.removeCallbacks(pollRunnable)
+                    handler.post(pollRunnable)
+                    android.util.Log.i("RedmagicGameMode", "screen on/unlock: immediate game mode check")
+                }
+            }
+        }
+    }
 
     private val pollRunnable = object : Runnable {
         override fun run() {
@@ -41,18 +74,33 @@ class GameModeService : Service() {
                 }
             } catch (_: Throwable) {
             } finally {
-                handler.postDelayed(this, 5000L)
+                if (!pollingPausedForScreenOff) {
+                    val delay = if (gameModeActiveFor != null) activeGamePollMs else fastPollMs
+                    handler.postDelayed(this, delay)
+                }
             }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
+
+        registerReceiver(
+            screenReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_USER_PRESENT)
+            }
+        )
+
         handler.post(pollRunnable)
     }
 
     override fun onDestroy() {
         handler.removeCallbacks(pollRunnable)
+        runCatching { unregisterReceiver(screenReceiver) }
+
         if (gameModeActiveFor != null) {
             restoreNormalProfile()
             setGameModeLedOverrideActiveStorage(this, false)

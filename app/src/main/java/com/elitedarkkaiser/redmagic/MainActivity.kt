@@ -1445,7 +1445,9 @@ class MainActivity : Activity() {
                 rpmChip.text = "RPM ${rpm ?: "--"}"
                 tempChip.text = if (tempF != null) "TEMP ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "TEMP --"
 
-                tempText.text = if (tempF != null) "Current temp: ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "Current temp: --"
+                if (::tempText.isInitialized) {
+                    tempText.text = if (tempF != null) "Current temp: ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "Current temp: --"
+                }
 
                 setChipState(rootChip, rooted)
                 setChipState(fanChip, fanEnabled)

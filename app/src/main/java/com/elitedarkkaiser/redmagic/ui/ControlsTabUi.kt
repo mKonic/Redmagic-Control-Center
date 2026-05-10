@@ -43,7 +43,10 @@ object ControlsTabUi {
             addView(deps.row(rootCheckBtn, refreshBtn))
         }
 
-        val magicKeyStatusLabel = deps.subtleLabel("Current: ${deps.readMagicKeyModeLabel()}")
+        val magicKeyStatusLabel = deps.subtleLabel("Current: loading...")
+        magicKeyStatusLabel.post {
+            magicKeyStatusLabel.text = "Current: ${deps.readMagicKeyModeLabel()}"
+        }
 
         var sliderAppBtnRef: Button? = null
 

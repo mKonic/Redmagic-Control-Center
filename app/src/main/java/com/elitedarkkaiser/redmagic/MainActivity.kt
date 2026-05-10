@@ -460,8 +460,9 @@ class MainActivity : Activity() {
             refreshStatus()
             startStatusRefreshLoop()
         }, 2500L)
-        GameModeActions.startServiceIfPermitted(this)
-        HardwareServiceActions.startChargingMode(this)
+        // Do not start background services just because the UI opened.
+        // Game Mode starts from selected-app foreground events.
+        // Charging Mode starts from boot, plug state, or explicit toggle.
     }
 
     private fun restoreFanCurveUiState() {

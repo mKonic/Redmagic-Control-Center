@@ -122,6 +122,7 @@ class GameModeService : Service() {
         }
     }
     private fun applyGameModeProfile() {
+        if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this, "game-mode-apply-screen-off")) return
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
         if (ChargingLedState.isActive(this)) {
@@ -202,6 +203,7 @@ class GameModeService : Service() {
         applyOnce("now")
     }
     private fun restoreNormalProfile() {
+        if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this, "game-mode-restore-screen-off")) return
         if (LedScreenPolicy.blockNonChargingLedWriteIfScreenOff(this, "game-mode-restore-normal")) return
 
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)

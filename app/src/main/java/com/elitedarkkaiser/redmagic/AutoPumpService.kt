@@ -60,6 +60,7 @@ class AutoPumpService : Service() {
         }
 
         if (profile != lastProfile) {
+            if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this, "auto-pump-screen-off")) return
             HardwareController.setPumpProfile(profile)
             lastProfile = profile
 

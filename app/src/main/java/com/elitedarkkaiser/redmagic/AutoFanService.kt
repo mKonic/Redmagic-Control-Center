@@ -30,6 +30,7 @@ class AutoFanService : Service() {
             val nextLevel = chooseStableFanLevel(tempF, lastAppliedLevel)
 
             if (nextLevel != null && nextLevel != lastAppliedLevel) {
+                if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this, "auto-fan-screen-off")) return
                 HardwareController.setFanLevel(nextLevel)
                 lastAppliedLevel = nextLevel
             }

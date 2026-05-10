@@ -26,7 +26,14 @@ class FanLedService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> {
-                    turnOffAllManagedLeds()
+                    if (ChargingLedState.isEnabled(this@FanLedService) &&
+                        ChargingLedState.isChargingNow(this@FanLedService)
+                    ) {
+                        ChargingLedState.setActive(this@FanLedService, true)
+                        ChargingLedState.applyChargingProfile(this@FanLedService)
+                    } else {
+                        turnOffAllManagedLeds()
+                    }
                 }
                 Intent.ACTION_SCREEN_ON,
                 Intent.ACTION_USER_PRESENT -> {

@@ -43,6 +43,24 @@ object FirstInstallPermissionsDialog {
                     PermissionActions.openUsageStatsAccessSettings(activity)
                 }
             }
+            .setNeutralButton("Grant with root") { _, _ ->
+                val ok = RootShell.exec(
+                    "appops set ${activity.packageName} GET_USAGE_STATS allow; " +
+                        "appops set ${activity.packageName} SYSTEM_ALERT_WINDOW allow; " +
+                        "pm grant ${activity.packageName} android.permission.POST_NOTIFICATIONS || true"
+                )
+
+                android.widget.Toast.makeText(
+                    activity,
+                    if (ok) "Root permissions applied. Reopen the app." else "Root permission grant failed.",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+
+                if (ok) {
+                    setFirstInstallPermissionsPromptedStorage(activity, true)
+                    onSetupComplete()
+                }
+            }
             .setNegativeButton("Continue") { _, _ ->
                 if (PermissionActions.hasUsageStatsPermission(activity)) {
                     setFirstInstallPermissionsPromptedStorage(activity, true)

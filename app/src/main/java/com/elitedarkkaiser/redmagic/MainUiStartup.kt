@@ -14,6 +14,8 @@ internal object MainUiStartup {
         setAutoPumpEnabled: (Boolean) -> Unit,
         isAutoPumpEnabledSaved: () -> Boolean
     ) {
+        // UI launch should restore UI state only.
+        // Hardware writes are owned by explicit actions/services, not app open.
         applySavedFanLedStateOnLaunch()
         applySavedLogoLedStateOnLaunch()
         applySavedShoulderLedStateOnLaunch()
@@ -40,30 +42,7 @@ internal object MainUiStartup {
         startFanLedService: () -> Unit,
         stopFanLedService: () -> Unit
     ) {
-        if (fanLedEnabled) {
-            applyFanLedSelection(fanLedEffect, fanLedColor)
-            startFanLedService()
-        } else {
-            HardwareController.setFanLedEnabled(false)
-            stopFanLedService()
-        }
-
-        if (logoLedEnabled) {
-            HardwareController.setLogoLedEffect(logoLedEffect, logoLedColor)
-        } else {
-            HardwareController.setLogoLedEnabled(false)
-        }
-
-        if (shoulderLedEnabled) {
-            HardwareController.setShoulderLedEffect(shoulderLedEffect, shoulderLedColor)
-        } else {
-            HardwareController.setShoulderLedEnabled(false)
-        }
-
-        if (pumpEnabled) {
-            HardwareController.setPumpProfile(pumpProfile)
-        } else {
-            HardwareController.enablePump(false)
-        }
+        // Do not write hardware on every app launch.
+        // Services and user actions apply hardware state.
     }
 }

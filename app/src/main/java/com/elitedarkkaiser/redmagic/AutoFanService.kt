@@ -23,6 +23,7 @@ class AutoFanService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var lastAppliedLevel = -1
+    private var lastNotificationText: String? = null
 
     private val loop = object : Runnable {
         override fun run() {
@@ -105,7 +106,11 @@ class AutoFanService : Service() {
         val tempText = if (tempF != null) "${tempF.toInt()}°F" else "--°F"
         val levelText = if (level != null && level >= 0) "Level $level" else "Unknown"
 
-        val notification = buildNotification("Auto Fan Active • Temp: $tempText • Fan: $levelText")
+        val text = "Auto Fan Active • Temp: $tempText • Fan: $levelText"
+        if (text == lastNotificationText) return
+
+        lastNotificationText = text
+        val notification = buildNotification(text)
         val nm = getSystemService(NotificationManager::class.java)
         nm.notify(NOTIF_ID, notification)
     }

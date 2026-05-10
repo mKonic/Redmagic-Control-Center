@@ -9,9 +9,12 @@ import android.os.IBinder
 
 class ChargingModeService : Service() {
 
+    private var lastEnabled: Boolean? = null
+    private var lastCharging: Boolean? = null
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
-            evaluateChargingState()
+            evaluateChargingState(force = false)
         }
     }
 
@@ -25,11 +28,11 @@ class ChargingModeService : Service() {
         }
 
         registerReceiver(receiver, filter)
-        evaluateChargingState()
+        evaluateChargingState(force = true)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        evaluateChargingState()
+        evaluateChargingState(force = true)
         return START_STICKY
     }
 
@@ -40,13 +43,22 @@ class ChargingModeService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun evaluateChargingState() {
+    private fun evaluateChargingState(force: Boolean) {
         val enabled = ChargingLedState.isEnabled(this)
         val charging = ChargingLedState.isChargingNow(this)
 
+        if (!force && lastEnabled == enabled && lastCharging == charging) {
+            return
+        }
+
+        lastEnabled = enabled
+        lastCharging = charging
+
         if (enabled && charging) {
-            ChargingLedState.setActive(this, true)
-            ChargingLedState.applyChargingProfile(this)
+            if (!ChargingLedState.isActive(this) || force) {
+                ChargingLedState.setActive(this, true)
+                ChargingLedState.applyChargingProfile(this)
+            }
         } else {
             val wasActive = ChargingLedState.isActive(this)
             ChargingLedState.setActive(this, false)

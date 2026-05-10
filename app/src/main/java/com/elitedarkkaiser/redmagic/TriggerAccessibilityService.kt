@@ -2,12 +2,22 @@ package com.elitedarkkaiser.redmagic
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
+import android.content.Intent
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 
 class TriggerAccessibilityService : AccessibilityService() {
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val pkg = event?.packageName?.toString() ?: return
+        if (pkg.isBlank() || pkg == packageName || pkg == "com.android.systemui") return
+
+        if (getSavedGamePackagesStorage(this).contains(pkg)) {
+            startService(Intent(this, GameModeService::class.java).apply {
+                putExtra("foreground_pkg", pkg)
+            })
+        }
+    }
     override fun onInterrupt() = Unit
 
     override fun onServiceConnected() {

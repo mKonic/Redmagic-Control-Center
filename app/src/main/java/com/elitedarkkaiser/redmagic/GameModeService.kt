@@ -18,7 +18,7 @@ class GameModeService : Service() {
     private var gameModeApplyPendingFor: String? = null
     private var pollingPausedForScreenOff = false
 
-    private val activeGamePollMs = 60_000L
+    private val activeGamePollMs = 120_000L
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -39,9 +39,7 @@ class GameModeService : Service() {
                 Intent.ACTION_SCREEN_ON,
                 Intent.ACTION_USER_PRESENT -> {
                     pollingPausedForScreenOff = false
-                    handler.removeCallbacks(pollRunnable)
-                    handler.post(pollRunnable)
-                    android.util.Log.i("RedmagicGameMode", "screen on/unlock: immediate game mode check")
+                    android.util.Log.i("RedmagicGameMode", "screen on/unlock: waiting for foreground app event")
                 }
             }
         }
@@ -92,7 +90,42 @@ class GameModeService : Service() {
             }
         )
 
-        handler.post(pollRunnable)
+        // No idle polling here. GameMode starts from an explicit foreground app event.
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val pkg = intent?.getStringExtra("foreground_pkg")
+        if (!pkg.isNullOrBlank()) {
+            handleForegroundPackage(pkg)
+        } else if (gameModeActiveFor != null) {
+            handler.removeCallbacks(pollRunnable)
+            handler.post(pollRunnable)
+        }
+
+        return START_NOT_STICKY
+    }
+
+    private fun handleForegroundPackage(currentPkg: String) {
+        if (pollingPausedForScreenOff) return
+
+        val tracked = getSavedGamePackagesStorage(this)
+        if (!tracked.contains(currentPkg)) return
+
+        handler.removeCallbacks(pollRunnable)
+
+        if (gameModeActiveFor != currentPkg) {
+            gameModeActiveFor = currentPkg
+            setGameModeLedOverrideActiveStorage(this, true)
+            applyGameModeProfile()
+            openGamingTriggerOverlay(currentPkg)
+        } else if (
+            gameModeApplyPendingFor == currentPkg &&
+            LedScreenPolicy.isScreenInteractive(this)
+        ) {
+            applyGameModeProfile()
+        }
+
+        handler.postDelayed(pollRunnable, activeGamePollMs)
     }
 
     override fun onDestroy() {

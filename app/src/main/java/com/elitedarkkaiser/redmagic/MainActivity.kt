@@ -1378,42 +1378,52 @@ class MainActivity : Activity() {
     }
 
     private fun refreshStatus() {
-        val rooted = RootShell.hasRoot()
-        val fanEnabled = HardwareController.isFanEnabled()
-        val rpmRaw = HardwareController.readFanRpm()
-        val rpm = when {
-            rpmRaw == null -> lastDisplayedRpm.takeIf { it >= 0 }
-            lastDisplayedRpm < 0 -> rpmRaw
-            else -> ((lastDisplayedRpm * 0.7) + (rpmRaw * 0.3)).toInt()
-        }
+        Thread {
+            val rooted = hasCachedRootAccessStorage(this) || RootShell.hasRoot()
+            val fanEnabled = HardwareController.isFanEnabled()
+            val rpmRaw = HardwareController.readFanRpm()
+            val tempF = HardwareController.readTemperatureF()
+            val romText = HardwareController.readShortRomFingerprint()
+            val cpuText = HardwareController.readCpuModel()
+            val ramText = HardwareController.readRamInfo()
+            val modelText = Build.MODEL ?: "Unknown"
 
-        if (rpm != null) lastDisplayedRpm = rpm
-        val tempF = HardwareController.readTemperatureF()
-        val previousTempF = lastDisplayedTempF
-        val tempTrend = when {
-            tempF == null || previousTempF == null -> ""
-            tempF > previousTempF + 1f -> " ↑"
-            tempF < previousTempF - 1f -> " ↓"
-            else -> " →"
-        }
-        if (tempF != null) lastDisplayedTempF = tempF
+            runOnUiThread {
+                val rpm = when {
+                    rpmRaw == null -> lastDisplayedRpm.takeIf { it >= 0 }
+                    lastDisplayedRpm < 0 -> rpmRaw
+                    else -> ((lastDisplayedRpm * 0.7) + (rpmRaw * 0.3)).toInt()
+                }
 
-        deviceModelValue.text = Build.MODEL ?: "Unknown"
-        deviceRomValue.text = HardwareController.readShortRomFingerprint()
-        deviceCpuValue.text = HardwareController.readCpuModel()
-        deviceRamValue.text = HardwareController.readRamInfo()
+                if (rpm != null) lastDisplayedRpm = rpm
 
-        rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
-        fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
-        rpmChip.text = "RPM ${rpm ?: "--"}"
-        tempChip.text = if (tempF != null) "TEMP ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "TEMP --"
+                val previousTempF = lastDisplayedTempF
+                val tempTrend = when {
+                    tempF == null || previousTempF == null -> ""
+                    tempF > previousTempF + 1f -> " ↑"
+                    tempF < previousTempF - 1f -> " ↓"
+                    else -> " →"
+                }
+                if (tempF != null) lastDisplayedTempF = tempF
 
-        tempText.text = if (tempF != null) "Current temp: ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "Current temp: --"
+                deviceModelValue.text = modelText
+                deviceRomValue.text = romText
+                deviceCpuValue.text = cpuText
+                deviceRamValue.text = ramText
 
-        setChipState(rootChip, rooted)
-        setChipState(fanChip, fanEnabled)
-        setChipState(rpmChip, (rpm ?: 0) > 0)
-        setChipState(tempChip, tempF != null)
+                rootChip.text = if (rooted) "ROOT ON" else "ROOT OFF"
+                fanChip.text = if (fanEnabled) "FAN ON" else "FAN OFF"
+                rpmChip.text = "RPM ${rpm ?: "--"}"
+                tempChip.text = if (tempF != null) "TEMP ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "TEMP --"
+
+                tempText.text = if (tempF != null) "Current temp: ${TempFormat.formatDisplayTempFromF(tempF, useFahrenheit)}$tempTrend" else "Current temp: --"
+
+                setChipState(rootChip, rooted)
+                setChipState(fanChip, fanEnabled)
+                setChipState(rpmChip, (rpm ?: 0) > 0)
+                setChipState(tempChip, tempF != null)
+            }
+        }.start()
     }
 
     private fun openUrl(url: String) {

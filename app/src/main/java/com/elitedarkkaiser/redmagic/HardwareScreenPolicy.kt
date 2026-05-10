@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.PowerManager
 
 object HardwareScreenPolicy {
+    private const val HOT_KEEP_COOLING_F = 100f
+    private const val SAFE_SHUTDOWN_F = 92f
+
     fun isScreenInteractive(context: Context): Boolean {
         return try {
             val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -13,12 +16,35 @@ object HardwareScreenPolicy {
         }
     }
 
+    fun currentTempF(): Float? {
+        return HardwareController.readTemperatureF()
+            ?: DashboardSnapshot.readCpuTempF().toFloatOrNull()
+    }
+
+    fun coolingAllowedWhileScreenOff(tempF: Float?): Boolean {
+        return tempF != null && tempF >= HOT_KEEP_COOLING_F
+    }
+
+    fun coolingShouldStopWhileScreenOff(tempF: Float?): Boolean {
+        return tempF == null || tempF <= SAFE_SHUTDOWN_F
+    }
+
     fun blockFanPumpAndNormalLedsWhileScreenOff(context: Context, reason: String): Boolean {
         if (isScreenInteractive(context)) return false
 
+        val tempF = currentTempF()
+
+        if (coolingAllowedWhileScreenOff(tempF)) {
+            android.util.Log.i(
+                "RedmagicScreenPolicy",
+                "Allowed cooling while screen is off because temp is hot: reason=$reason tempF=$tempF"
+            )
+            return false
+        }
+
         android.util.Log.i(
             "RedmagicScreenPolicy",
-            "Blocked fan/pump/normal-led write while screen is off: $reason"
+            "Blocked fan/pump/normal-led write while screen is off: reason=$reason tempF=$tempF"
         )
 
         HardwareController.enableFan(false)

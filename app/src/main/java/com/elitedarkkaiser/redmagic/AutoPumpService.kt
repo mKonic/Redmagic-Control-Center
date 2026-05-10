@@ -13,8 +13,8 @@ import android.os.Looper
 class AutoPumpService : Service() {
 
     companion object {
-        private const val HOT_POLL_MS = 5000L
-        private const val COOL_POLL_MS = 10000L
+        private const val HOT_POLL_MS = 15000L
+        private const val COOL_POLL_MS = 60000L
         private const val HOT_TEMP_THRESHOLD_F = 95f
         private const val CHANNEL_ID = "auto_pump_channel"
         private const val NOTIF_ID = 2202
@@ -53,6 +53,14 @@ class AutoPumpService : Service() {
     private fun applyPumpRule(): Float? {
         val tempF = DashboardSnapshot.readCpuTempF().toFloatOrNull() ?: return null
 
+        if (!HardwareScreenPolicy.isScreenInteractive(this@AutoPumpService)) {
+            if (HardwareScreenPolicy.coolingShouldStopWhileScreenOff(tempF)) {
+                HardwareController.enablePump(false)
+                lastProfile = "off"
+                return tempF
+            }
+        }
+
         val profile = when {
             tempF >= 105f -> "quick"
             tempF >= 95f -> "medium"
@@ -60,7 +68,7 @@ class AutoPumpService : Service() {
         }
 
         if (profile != lastProfile) {
-            if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this@AutoPumpService, "auto-pump-screen-off")) return null
+            if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this@AutoPumpService, "auto-pump-screen-off")) return tempF
             HardwareController.setPumpProfile(profile)
             lastProfile = profile
 

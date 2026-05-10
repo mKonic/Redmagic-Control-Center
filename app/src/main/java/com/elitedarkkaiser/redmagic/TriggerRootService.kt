@@ -270,8 +270,11 @@ class TriggerRootService : Service() {
         }
 
         hapticTap()
-        rightTriggerUnlockedUntil = System.currentTimeMillis() + 1000L
-        android.util.Log.d("TRIGGER", "LEFT unlocked right trigger until=" + rightTriggerUnlockedUntil)
+        rightTriggerUnlockedUntil = now() + RIGHT_UNLOCK_ACTIVE_MS
+        rightUnlockedUntil = now() + RIGHT_UNLOCK_ACTIVE_MS
+        rightUnlockArmedAt = 0L
+        rightUnlockTapCount = 0
+        android.util.Log.d("TRIGGER", "LEFT temporarily unlocked right trigger until=" + rightUnlockedUntil)
         performAction(getAction("left_trigger"))
         startRepeater("left_trigger")
     }
@@ -284,8 +287,8 @@ class TriggerRootService : Service() {
             return
         }
 
-        if (System.currentTimeMillis() <= rightTriggerUnlockedUntil) {
-            rightTriggerUnlockedUntil = 0L
+        if (now() <= rightTriggerUnlockedUntil) {
+            extendRightUnlock()
             hapticTap()
             performAction(getAction("right_trigger"))
             startRepeater("right_trigger")

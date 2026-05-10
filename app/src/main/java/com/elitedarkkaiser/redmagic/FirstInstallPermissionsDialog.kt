@@ -1,75 +1,92 @@
 package com.elitedarkkaiser.redmagic
 
-import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 
 object FirstInstallPermissionsDialog {
-    private const val POST_NOTIFICATIONS_REQUEST_CODE = 4101
-
     fun show(
-        activity: Activity,
+        activity: MainActivity,
         onSetupComplete: () -> Unit
     ) {
-        AlertDialog.Builder(activity)
-            .setTitle("App permissions setup")
-            .setMessage(
-                "RedMagic Control needs a few permissions before first use:\n\n" +
-                    "• Usage Access: detects selected Game Mode apps\n" +
-                    "• Notifications: keeps foreground hardware services visible\n" +
-                    "• Display over other apps: required for trigger touch setup overlay\n\n" +
-                    "Grant these now, then return to the app. This dialog will continue showing until Usage Access is granted."
-            )
+        val dp = { value: Int -> (value * activity.resources.displayMetrics.density).toInt() }
+
+        val container = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(20), dp(22), dp(18))
+            background = AppTheme.roundedBg(AppTheme.panelColor, AppTheme.borderColor, 24f)
+        }
+
+        val title = TextView(activity).apply {
+            text = "Root permission setup"
+            textSize = 20f
+            setTextColor(AppTheme.textPrimary)
+            setTypeface(Typeface.SANS_SERIF, Typeface.BOLD)
+        }
+
+        val body = TextView(activity).apply {
+            text =
+                "RedMagic Control is built for rooted RedMagic 11 Pro hardware control.\n\n" +
+                    "Tap Grant with root to allow:\n" +
+                    "• Usage Access for Game Mode detection\n" +
+                    "• Display over other apps for trigger setup\n" +
+                    "• Notifications for foreground services\n" +
+                    "• Phone state for Call Lighting\n\n" +
+                    "Your root manager should ask for superuser access before continuing."
+            textSize = 14f
+            setTextColor(AppTheme.textSecondary)
+            setPadding(0, dp(12), 0, dp(18))
+        }
+
+        val grantButton = Button(activity).apply {
+            text = "GRANT WITH ROOT"
+            textSize = 13f
+            setAllCaps(false)
+            setTextColor(AppTheme.textPrimary)
+            background = AppTheme.roundedFill(AppTheme.panelPressed, 16f)
+            setPadding(dp(18), dp(12), dp(18), dp(12))
+        }
+
+        container.addView(title)
+        container.addView(body)
+        container.addView(grantButton)
+
+        val dialog = AlertDialog.Builder(activity)
+            .setView(container)
             .setCancelable(false)
-            .setPositiveButton("Open permissions") { _, _ ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    activity.requestPermissions(
-                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                        POST_NOTIFICATIONS_REQUEST_CODE
-                    )
-                }
+            .create()
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(activity)) {
-                    activity.startActivity(
-                        android.content.Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${activity.packageName}")
-                        )
-                    )
-                } else {
-                    PermissionActions.openUsageStatsAccessSettings(activity)
-                }
-            }
-            .setNeutralButton("Grant with root") { _, _ ->
-                val ok = RootShell.exec(
-                    "appops set ${activity.packageName} GET_USAGE_STATS allow; " +
-                        "appops set ${activity.packageName} SYSTEM_ALERT_WINDOW allow; " +
-                        "pm grant ${activity.packageName} android.permission.POST_NOTIFICATIONS || true; " +
-                        "pm grant ${activity.packageName} android.permission.READ_PHONE_STATE || true"
-                )
+        grantButton.setOnClickListener {
+            val ok = RootShell.exec(
+                "appops set ${activity.packageName} GET_USAGE_STATS allow; " +
+                    "appops set ${activity.packageName} SYSTEM_ALERT_WINDOW allow; " +
+                    "pm grant ${activity.packageName} android.permission.POST_NOTIFICATIONS || true; " +
+                    "pm grant ${activity.packageName} android.permission.READ_PHONE_STATE || true"
+            )
 
-                android.widget.Toast.makeText(
+            if (ok && PermissionActions.hasUsageStatsPermission(activity)) {
+                setFirstInstallPermissionsPromptedStorage(activity, true)
+                Toast.makeText(activity, "Root permissions applied", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                onSetupComplete()
+            } else {
+                Toast.makeText(
                     activity,
-                    if (ok) "Root permissions applied. Reopen the app." else "Root permission grant failed.",
-                    android.widget.Toast.LENGTH_LONG
+                    "Root permission setup failed. Check your root manager and try again.",
+                    Toast.LENGTH_LONG
                 ).show()
+            }
+        }
 
-                if (ok) {
-                    setFirstInstallPermissionsPromptedStorage(activity, true)
-                    onSetupComplete()
-                }
-            }
-            .setNegativeButton("Continue") { _, _ ->
-                if (PermissionActions.hasUsageStatsPermission(activity)) {
-                    setFirstInstallPermissionsPromptedStorage(activity, true)
-                    onSetupComplete()
-                } else {
-                    PermissionActions.openUsageStatsAccessSettings(activity)
-                }
-            }
-            .show()
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
     }
 }

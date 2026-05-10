@@ -51,10 +51,10 @@ internal object MainUiLauncher {
         }
 
         val homeTab = createHomeTab()
-        val coolingTab = createCoolingTab()
-        val controlsTab = createControlsTab()
-        val hardwareTab = createHardwareTab()
-        val lightingTab = createLightingTab()
+        val coolingTab = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val controlsTab = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val hardwareTab = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val lightingTab = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
 
         contentFrame.addView(homeTab)
         contentFrame.addView(coolingTab)

@@ -1278,10 +1278,39 @@ class MainActivity : Activity() {
 
 
     private fun switchTab(tab: String) {
+        val parent = homeTab.parent as ViewGroup
+
+        fun ensureTab(index: Int, current: LinearLayout, create: () -> LinearLayout, assign: (LinearLayout) -> Unit): LinearLayout {
+            if (current.childCount > 0) return current
+
+            val created = create()
+            parent.removeViewAt(index)
+            parent.addView(created, index)
+            assign(created)
+            return created
+        }
+
+        if (tab == "cooling") {
+            ensureTab(1, coolingTab, { createCoolingTab() }) { coolingTab = it }
+        }
+
+        if (tab == "controls") {
+            ensureTab(2, controlsTab, { createControlsTab() }) { controlsTab = it }
+        }
+
+        if (tab == "hardware") {
+            val current = parent.getChildAt(3) as LinearLayout
+            ensureTab(3, current, { createHardwareTab() }) { }
+        }
+
+        if (tab == "lighting") {
+            ensureTab(4, lightingTab, { createLightingTab() }) { lightingTab = it }
+        }
+
         homeTab.visibility = if (tab == "home") View.VISIBLE else View.GONE
         coolingTab.visibility = if (tab == "cooling") View.VISIBLE else View.GONE
         controlsTab.visibility = if (tab == "controls") View.VISIBLE else View.GONE
-        val hardwareTab = (controlsTab.parent as ViewGroup).getChildAt(3)
+        val hardwareTab = parent.getChildAt(3)
         hardwareTab.visibility = if (tab == "hardware") View.VISIBLE else View.GONE
         lightingTab.visibility = if (tab == "lighting") View.VISIBLE else View.GONE
 

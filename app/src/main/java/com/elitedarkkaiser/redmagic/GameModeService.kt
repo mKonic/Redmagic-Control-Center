@@ -18,7 +18,6 @@ class GameModeService : Service() {
     private var gameModeApplyPendingFor: String? = null
     private var pollingPausedForScreenOff = false
 
-    private val fastPollMs = 5_000L
     private val activeGamePollMs = 60_000L
 
     private val screenReceiver = object : BroadcastReceiver() {
@@ -74,9 +73,8 @@ class GameModeService : Service() {
                 }
             } catch (_: Throwable) {
             } finally {
-                if (!pollingPausedForScreenOff) {
-                    val delay = if (gameModeActiveFor != null) activeGamePollMs else fastPollMs
-                    handler.postDelayed(this, delay)
+                if (!pollingPausedForScreenOff && gameModeActiveFor != null) {
+                    handler.postDelayed(this, activeGamePollMs)
                 }
             }
         }

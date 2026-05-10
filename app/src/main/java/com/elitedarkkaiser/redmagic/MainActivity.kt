@@ -128,9 +128,10 @@ class MainActivity : Activity() {
             return
         }
 
-        if (!isFirstInstallPermissionsPromptedStorage(this)) {
-            FirstInstallPermissionsDialog.show(this) { launchMainUi()
- }
+        if (!isFirstInstallPermissionsPromptedStorage(this) || !PermissionActions.hasUsageStatsPermission(this)) {
+            FirstInstallPermissionsDialog.show(this) {
+                launchMainUi()
+            }
             return
         }
 

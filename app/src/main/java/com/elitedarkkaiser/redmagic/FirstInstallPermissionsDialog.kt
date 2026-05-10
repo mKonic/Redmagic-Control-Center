@@ -3,7 +3,9 @@ package com.elitedarkkaiser.redmagic
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 
 object FirstInstallPermissionsDialog {
     private const val POST_NOTIFICATIONS_REQUEST_CODE = 4101
@@ -15,14 +17,14 @@ object FirstInstallPermissionsDialog {
         AlertDialog.Builder(activity)
             .setTitle("App permissions setup")
             .setMessage(
-                "RedMagic Control needs notification permission for foreground services and Usage Access for Game Mode detection. " +
-                    "These are requested now so permission prompts do not appear later throughout the UI. " +
-                    "\n\nAfter granting Usage Access, return to the app."
+                "RedMagic Control needs a few permissions before first use:\n\n" +
+                    "• Usage Access: detects selected Game Mode apps\n" +
+                    "• Notifications: keeps foreground hardware services visible\n" +
+                    "• Display over other apps: required for trigger touch setup overlay\n\n" +
+                    "Grant these now, then return to the app. This dialog will continue showing until Usage Access is granted."
             )
             .setCancelable(false)
-            .setPositiveButton("Start setup") { _, _ ->
-                setFirstInstallPermissionsPromptedStorage(activity, true)
-
+            .setPositiveButton("Open permissions") { _, _ ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     activity.requestPermissions(
                         arrayOf(Manifest.permission.POST_NOTIFICATIONS),
@@ -30,8 +32,24 @@ object FirstInstallPermissionsDialog {
                     )
                 }
 
-                PermissionActions.openUsageStatsAccessSettings(activity)
-                onSetupComplete()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(activity)) {
+                    activity.startActivity(
+                        android.content.Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${activity.packageName}")
+                        )
+                    )
+                } else {
+                    PermissionActions.openUsageStatsAccessSettings(activity)
+                }
+            }
+            .setNegativeButton("Continue") { _, _ ->
+                if (PermissionActions.hasUsageStatsPermission(activity)) {
+                    setFirstInstallPermissionsPromptedStorage(activity, true)
+                    onSetupComplete()
+                } else {
+                    PermissionActions.openUsageStatsAccessSettings(activity)
+                }
             }
             .show()
     }

@@ -47,7 +47,8 @@ object FirstInstallPermissionsDialog {
                 val ok = RootShell.exec(
                     "appops set ${activity.packageName} GET_USAGE_STATS allow; " +
                         "appops set ${activity.packageName} SYSTEM_ALERT_WINDOW allow; " +
-                        "pm grant ${activity.packageName} android.permission.POST_NOTIFICATIONS || true"
+                        "pm grant ${activity.packageName} android.permission.POST_NOTIFICATIONS || true; " +
+                        "pm grant ${activity.packageName} android.permission.READ_PHONE_STATE || true"
                 )
 
                 android.widget.Toast.makeText(

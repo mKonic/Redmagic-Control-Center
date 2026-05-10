@@ -225,7 +225,6 @@ internal object GameModeActions {
         profile: GameModeProfile,
         applyFanLed: (String, Int) -> Unit
     ) {
-        if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(context, "game-mode-actions-apply-now")) return
         if (profile.fanEnabled) {
             HardwareController.setFanLevel(profile.fanLevel)
         } else {

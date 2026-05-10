@@ -24,10 +24,6 @@ object HardwareScreenPolicy {
         HardwareController.enableFan(false)
         HardwareController.enablePump(false)
 
-        if (!ChargingLedState.isEnabled(context) || !ChargingLedState.isChargingNow(context)) {
-            HardwareController.turnOffAllLeds()
-        }
-
         return true
     }
 }

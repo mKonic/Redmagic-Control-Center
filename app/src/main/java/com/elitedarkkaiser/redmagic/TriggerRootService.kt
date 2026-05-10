@@ -15,7 +15,6 @@ class TriggerRootService : Service() {
     private var running = true
     private val held = ConcurrentHashMap<String, AtomicBoolean>()
     private val repeatThreads = ConcurrentHashMap<String, Thread>()
-    private val lastDownAt = ConcurrentHashMap<String, Long>()
 
     private var rightUnlockArmedAt = 0L
     private var rightUnlockedUntil = 0L
@@ -32,9 +31,8 @@ class TriggerRootService : Service() {
         
         HardwareController.enableTriggers()
         android.util.Log.d("TRIGGER", "TriggerRootService onCreate")
-        startReader("/dev/input/event4", "left_trigger")
+        startReader("/dev/input/event3", "left_trigger")
         startReader("/dev/input/event5", "right_trigger")
-        startReader("/dev/input/event5", "left_trigger_fallback")
     }
 
     private fun prefs() = getSharedPreferences("triggers", MODE_PRIVATE)
@@ -257,22 +255,6 @@ class TriggerRootService : Service() {
     }
 
 
-    private fun shouldAcceptDown(prefKey: String): Boolean {
-        val realKey = if (prefKey == "left_trigger_fallback") "left_trigger" else prefKey
-        val current = now()
-        val previous = lastDownAt[realKey] ?: 0L
-        if (current - previous < 120L) {
-            android.util.Log.d("TRIGGER", "duplicate down ignored key=$prefKey realKey=$realKey")
-            return false
-        }
-        lastDownAt[realKey] = current
-        return true
-    }
-
-    private fun normalizedKey(prefKey: String): String {
-        return if (prefKey == "left_trigger_fallback") "left_trigger" else prefKey
-    }
-
     private fun startReader(device: String, prefKey: String) {
         Thread {
             try {
@@ -286,16 +268,13 @@ class TriggerRootService : Service() {
                     android.util.Log.d("TRIGGER", "raw device=$device key=$prefKey line=$line")
 
                     if (isDownLine(line)) {
-                        if (!shouldAcceptDown(prefKey)) {
-                            continue
-                        }
-
-                        when (normalizedKey(prefKey)) {
-                            "left_trigger" -> handleLeftDown(device, line)
-                            "right_trigger" -> handleRightDown(device, line)
+                        if (prefKey == "left_trigger") {
+                            handleLeftDown(device, line)
+                        } else {
+                            handleRightDown(device, line)
                         }
                     } else if (isUpLine(line)) {
-                        handleUp(normalizedKey(prefKey), device, line)
+                        handleUp(prefKey, device, line)
                     }
                 }
             } catch (t: Throwable) {

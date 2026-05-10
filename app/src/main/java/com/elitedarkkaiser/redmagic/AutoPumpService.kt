@@ -68,7 +68,7 @@ class AutoPumpService : Service() {
         }
 
         if (profile != lastProfile) {
-            if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this@AutoPumpService, "auto-pump-screen-off")) return tempF
+            if (HardwareScreenPolicy.blockCoolingWhileScreenOffUnlessHot(this@AutoPumpService, "auto-pump-screen-off")) return tempF
             HardwareController.setPumpProfile(profile)
             lastProfile = profile
 

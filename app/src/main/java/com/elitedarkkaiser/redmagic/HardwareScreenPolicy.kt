@@ -29,7 +29,18 @@ object HardwareScreenPolicy {
         return tempF == null || tempF <= SAFE_SHUTDOWN_F
     }
 
-    fun blockFanPumpAndNormalLedsWhileScreenOff(context: Context, reason: String): Boolean {
+    fun blockNormalLedsWhileScreenOff(context: Context, reason: String): Boolean {
+        if (isScreenInteractive(context)) return false
+
+        android.util.Log.i(
+            "RedmagicScreenPolicy",
+            "Blocked normal/game LED write while screen is off: reason=$reason"
+        )
+
+        return true
+    }
+
+    fun blockCoolingWhileScreenOffUnlessHot(context: Context, reason: String): Boolean {
         if (isScreenInteractive(context)) return false
 
         val tempF = currentTempF()
@@ -44,12 +55,16 @@ object HardwareScreenPolicy {
 
         android.util.Log.i(
             "RedmagicScreenPolicy",
-            "Blocked fan/pump/normal-led write while screen is off: reason=$reason tempF=$tempF"
+            "Blocked fan/pump while screen is off: reason=$reason tempF=$tempF"
         )
 
         HardwareController.enableFan(false)
         HardwareController.enablePump(false)
 
         return true
+    }
+
+    fun blockFanPumpAndNormalLedsWhileScreenOff(context: Context, reason: String): Boolean {
+        return blockCoolingWhileScreenOffUnlessHot(context, reason)
     }
 }

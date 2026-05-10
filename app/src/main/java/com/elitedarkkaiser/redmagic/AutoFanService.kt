@@ -40,7 +40,7 @@ class AutoFanService : Service() {
             }
 
             if (nextLevel != null && nextLevel != lastAppliedLevel) {
-                if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(this@AutoFanService, "auto-fan-screen-off")) {
+                if (HardwareScreenPolicy.blockCoolingWhileScreenOffUnlessHot(this@AutoFanService, "auto-fan-screen-off")) {
                     updateNotification(tempF, lastAppliedLevel)
                     handler.postDelayed(this, COOL_POLL_MS)
                     return

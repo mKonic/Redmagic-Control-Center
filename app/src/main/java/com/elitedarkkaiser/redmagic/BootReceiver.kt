@@ -52,7 +52,7 @@ class BootReceiver : BroadcastReceiver() {
 
 
     private fun restorePersistentHardware(context: Context) {
-        if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(context, "boot-restore-screen-off")) return
+        if (HardwareScreenPolicy.blockNormalLedsWhileScreenOff(context, "boot-restore-screen-off")) return
         val prefs = context.getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
         val triggerPrefs = context.getSharedPreferences("triggers", Context.MODE_PRIVATE)
 
@@ -124,7 +124,7 @@ class BootReceiver : BroadcastReceiver() {
         GameModeActions.startServiceSilentlyIfPermitted(context)
 
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (HardwareScreenPolicy.blockFanPumpAndNormalLedsWhileScreenOff(context, "boot-delayed-restore-screen-off")) {
+            if (HardwareScreenPolicy.blockNormalLedsWhileScreenOff(context, "boot-delayed-restore-screen-off")) {
                 return@postDelayed
             }
 

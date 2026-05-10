@@ -453,8 +453,10 @@ class MainActivity : Activity() {
 
         restoreFanCurveUiState()
         switchTab("home")
-        refreshStatus()
-        startStatusRefreshLoop()
+        statusRefreshHandler.postDelayed({
+            refreshStatus()
+            startStatusRefreshLoop()
+        }, 2500L)
         GameModeActions.startServiceIfPermitted(this)
         HardwareServiceActions.startChargingMode(this)
     }

@@ -123,9 +123,12 @@ class MainActivity : Activity() {
         initDefaultTriggerMappingsStorage(this)
         DeviceScanActions.runBackgroundScan(this)
 
-        if (!RootShell.hasRoot()) {
-            showRootRequiredDialog()
-            return
+        if (!hasCachedRootAccessStorage(this)) {
+            if (!RootShell.hasRoot()) {
+                showRootRequiredDialog()
+                return
+            }
+            setCachedRootAccessStorage(this, true)
         }
 
         if (!isFirstInstallPermissionsPromptedStorage(this) || !PermissionActions.hasUsageStatsPermission(this)) {

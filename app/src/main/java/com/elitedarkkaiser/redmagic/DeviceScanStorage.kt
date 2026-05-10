@@ -30,3 +30,9 @@ fun deviceScanSummaryStorage(context: Context): String {
     return context.getSharedPreferences(AppPrefs.PREFS_NAME, Context.MODE_PRIVATE)
         .getString(DEVICE_SCAN_SUMMARY, "Device scan pending…") ?: "Device scan pending…"
 }
+
+
+fun hasDeviceCapabilityReportStorage(context: Context): Boolean {
+    return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .contains(REPORT_KEY)
+}

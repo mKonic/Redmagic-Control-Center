@@ -3,7 +3,9 @@ package com.elitedarkkaiser.redmagic
 import android.content.Context
 
 object DeviceScanActions {
-    fun runBackgroundScan(context: Context) {
+    fun runBackgroundScan(context: Context, force: Boolean = false) {
+        if (!force && hasDeviceCapabilityReportStorage(context)) return
+
         Thread {
             val report = DeviceCapabilityScanner.scan()
             saveDeviceCapabilityReportStorage(context, report)

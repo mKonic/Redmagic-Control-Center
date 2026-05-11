@@ -1432,9 +1432,18 @@ class MainActivity : Activity() {
             val fanEnabled = HardwareController.isFanEnabled()
             val rpmRaw = HardwareController.readFanRpm()
             val tempF = HardwareController.readTemperatureF()
-            val romText = HardwareController.readShortRomFingerprint()
-            val cpuText = HardwareController.readCpuModel()
-            val ramText = HardwareController.readRamInfo()
+            val cachedDeviceInfo = loadDeviceInfoCacheStorage(this)
+            val deviceInfo = cachedDeviceInfo ?: DeviceInfoCache(
+                rom = HardwareController.readShortRomFingerprint(),
+                cpu = HardwareController.readCpuModel(),
+                ram = HardwareController.readRamInfo()
+            ).also {
+                saveDeviceInfoCacheStorage(this, it)
+            }
+
+            val romText = deviceInfo.rom
+            val cpuText = deviceInfo.cpu
+            val ramText = deviceInfo.ram
             val modelText = Build.MODEL ?: "Unknown"
 
             runOnUiThread {

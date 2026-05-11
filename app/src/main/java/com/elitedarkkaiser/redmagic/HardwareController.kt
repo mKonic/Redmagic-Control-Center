@@ -205,11 +205,11 @@ object HardwareController {
     }
 
     fun enableTriggers(): Boolean {
-        return RootShell.exec("echo 1 > $SAR0_MODE; echo 1 > $SAR1_MODE")
+        return execHardwareWrite("triggers_enabled:true", "echo 1 > $SAR0_MODE; echo 1 > $SAR1_MODE")
     }
 
     fun disableTriggers(): Boolean {
-        return RootShell.exec("echo 0 > $SAR0_MODE; echo 0 > $SAR1_MODE")
+        return execHardwareWrite("triggers_enabled:false", "echo 0 > $SAR0_MODE; echo 0 > $SAR1_MODE")
     }
 
     fun injectTap(x: Int, y: Int): Boolean {
@@ -219,7 +219,7 @@ object HardwareController {
     private fun setSliderStockFunction(value: Int): Boolean {
         val cmd = "settings put system fourth_physical_key_function_value $value; " +
             "settings put system physical_key_function_app_value cn.nubia.gamelauncher"
-        return RootShell.exec(cmd)
+        return execHardwareWrite("slider_stock_function:$value", cmd)
     }
 
     fun setSliderOpenCamera(): Boolean = setSliderStockFunction(1)
@@ -235,11 +235,11 @@ object HardwareController {
     fun setSliderLaunchApp(pkg: String): Boolean {
         val cmd = "settings put system fourth_physical_key_function_value 16; " +
             "settings put system physical_key_function_app_value $pkg"
-        return RootShell.exec(cmd)
+        return execHardwareWrite("slider_launch_app:$pkg", cmd)
     }
 
     fun disableSliderSystemHandling(): Boolean {
-        return RootShell.exec("settings put system fourth_physical_key_function_value 0")
+        return execHardwareWrite("slider_system_handling:false", "settings put system fourth_physical_key_function_value 0")
     }
 
     fun readSliderState(): String? {

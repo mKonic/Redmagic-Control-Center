@@ -36,8 +36,21 @@ class TriggerRootService : Service() {
         
         HardwareController.enableTriggers()
         android.util.Log.d("TRIGGER", "TriggerRootService onCreate")
-        startReader("/dev/input/event3", "left_trigger")
-        startReader("/dev/input/event5", "right_trigger")
+        startReader(findTriggerEvent("nubia_tgk_aw_sar0_ch0"), "left_trigger")
+        startReader(findTriggerEvent("nubia_tgk_aw_sar1_ch0"), "right_trigger")
+    }
+
+
+    private fun findTriggerEvent(triggerName: String): String {
+        val cmd = "for ev in /sys/class/input/event*; do name=\$(cat \"\$ev/device/name\" 2>/dev/null); if [ \"\$name\" = \"$triggerName\" ]; then basename \"\$ev\"; exit 0; fi; done"
+        val eventName = RootShell.execForOutput(cmd)?.trim()?.lineSequence()?.firstOrNull()?.trim()
+
+        return if (!eventName.isNullOrBlank()) {
+            "/dev/input/$eventName"
+        } else {
+            android.util.Log.e("TRIGGER", "failed to resolve trigger event for $triggerName")
+            "/dev/input/event0"
+        }
     }
 
     private fun prefs() = getSharedPreferences("triggers", MODE_PRIVATE)

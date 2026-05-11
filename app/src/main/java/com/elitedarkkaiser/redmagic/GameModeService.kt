@@ -204,8 +204,11 @@ class GameModeService : Service() {
         if (HardwareScreenPolicy.blockNormalLedsWhileScreenOff(this, "game-mode-apply-screen-off")) return
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
-        if (ChargingLedState.isActive(this)) {
-            android.util.Log.i("RedmagicChargingMode", "GameModeService skipped game LED apply because Charging Mode owns LEDs")
+        if (!LedOwnership.canGameModeApply(this)) {
+            android.util.Log.i(
+                "RedmagicLedOwnership",
+                "GameModeService skipped game LED apply because owner=${LedOwnership.current(this)}"
+            )
             return
         }
 

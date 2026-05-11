@@ -81,18 +81,11 @@ class FanLedService : Service() {
     private fun reapplySavedLedState() {
         val prefs = getSharedPreferences("redmagic_hw_controls_prefs", Context.MODE_PRIVATE)
 
-        if (ChargingLedState.isActive(this)) {
-            android.util.Log.i("RedmagicChargingMode", "FanLedService skipped normal LED apply because Charging Mode owns LEDs")
-            return
-        }
-
-        if (CallLightingState.isActive(this)) {
-            android.util.Log.i("RedmagicCallLighting", "FanLedService skipped normal LED apply because Call Lighting owns LEDs")
-            return
-        }
-
-        if (isGameModeLedOverrideActiveStorage(this)) {
-            android.util.Log.i("RedmagicGameMode", "FanLedService skipped normal LED apply because Game Mode owns LEDs")
+        if (!LedOwnership.canNormalApply(this)) {
+            android.util.Log.i(
+                "RedmagicLedOwnership",
+                "FanLedService skipped normal LED apply because owner=${LedOwnership.current(this)}"
+            )
             return
         }
 

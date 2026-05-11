@@ -46,7 +46,7 @@ class CallLightingService : Service() {
             return
         }
 
-        if (ChargingLedState.isActive(this)) {
+        if (!LedOwnership.canCallApply(this)) {
             CallLightingState.setActive(this, false)
             return
         }

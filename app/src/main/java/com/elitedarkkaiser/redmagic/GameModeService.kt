@@ -117,7 +117,6 @@ class GameModeService : Service() {
             gameModeActiveFor = currentPkg
             setGameModeLedOverrideActiveStorage(this, true)
             applyGameModeProfile()
-            openGamingTriggerOverlay(currentPkg)
         } else if (
             gameModeApplyPendingFor == currentPkg &&
             LedScreenPolicy.isScreenInteractive(this)

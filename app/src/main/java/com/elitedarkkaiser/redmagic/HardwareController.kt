@@ -78,7 +78,7 @@ object HardwareController {
     }
 
     fun enablePump(enabled: Boolean): Boolean {
-        return RootShell.exec("echo ${if (enabled) 1 else 0} > $PUMP_ENABLE")
+        return execHardwareWrite("pump_enable:$enabled", "echo ${if (enabled) 1 else 0} > $PUMP_ENABLE")
     }
 
     fun setPumpProfile(profile: String): Boolean {

@@ -54,9 +54,15 @@ class MainActivity : Activity() {
     private lateinit var tempChip: TextView
     private var lastDisplayedTempF: Float? = null
 
+    private var coolingTabBuilt = false
+    private var controlsTabBuilt = false
+    private var hardwareTabBuilt = false
+    private var lightingTabBuilt = false
+
     private lateinit var homeTab: LinearLayout
     private lateinit var coolingTab: LinearLayout
     private lateinit var controlsTab: LinearLayout
+    private lateinit var hardwareTab: LinearLayout
     private lateinit var lightingTab: LinearLayout
     private var magicKeyStatusLabelRef: TextView? = null
     private var dialogRefreshPump: (() -> Unit)? = null
@@ -431,7 +437,13 @@ class MainActivity : Activity() {
         homeTab = result.homeTab
         coolingTab = result.coolingTab
         controlsTab = result.controlsTab
+        hardwareTab = result.hardwareTab
         lightingTab = result.lightingTab
+
+        coolingTabBuilt = false
+        controlsTabBuilt = false
+        hardwareTabBuilt = false
+        lightingTabBuilt = false
 
         MainUiStartup.applyLaunchHardware(
             fanLedEnabled = fanLedEnabled,
@@ -1279,38 +1291,46 @@ class MainActivity : Activity() {
     private fun switchTab(tab: String) {
         val parent = homeTab.parent as ViewGroup
 
-        fun ensureTab(index: Int, current: LinearLayout, create: () -> LinearLayout, assign: (LinearLayout) -> Unit): LinearLayout {
-            if (current.childCount > 0) return current
-
-            val created = create()
+        fun replaceTab(index: Int, newTab: LinearLayout): LinearLayout {
             parent.removeViewAt(index)
-            parent.addView(created, index)
-            assign(created)
-            return created
+            parent.addView(newTab, index)
+            return newTab
         }
 
-        if (tab == "cooling") {
-            ensureTab(1, coolingTab, { createCoolingTab() }) { coolingTab = it }
-            restoreFanCurveUiState()
-        }
+        when (tab) {
+            "cooling" -> {
+                if (!coolingTabBuilt) {
+                    coolingTab = replaceTab(1, createCoolingTab())
+                    coolingTabBuilt = true
+                    restoreFanCurveUiState()
+                }
+            }
 
-        if (tab == "controls") {
-            ensureTab(2, controlsTab, { createControlsTab() }) { controlsTab = it }
-        }
+            "controls" -> {
+                if (!controlsTabBuilt) {
+                    controlsTab = replaceTab(2, createControlsTab())
+                    controlsTabBuilt = true
+                }
+            }
 
-        if (tab == "hardware") {
-            val current = parent.getChildAt(3) as LinearLayout
-            ensureTab(3, current, { createHardwareTab() }) { }
-        }
+            "hardware" -> {
+                if (!hardwareTabBuilt) {
+                    hardwareTab = replaceTab(3, createHardwareTab())
+                    hardwareTabBuilt = true
+                }
+            }
 
-        if (tab == "lighting") {
-            ensureTab(4, lightingTab, { createLightingTab() }) { lightingTab = it }
+            "lighting" -> {
+                if (!lightingTabBuilt) {
+                    lightingTab = replaceTab(4, createLightingTab())
+                    lightingTabBuilt = true
+                }
+            }
         }
 
         homeTab.visibility = if (tab == "home") View.VISIBLE else View.GONE
         coolingTab.visibility = if (tab == "cooling") View.VISIBLE else View.GONE
         controlsTab.visibility = if (tab == "controls") View.VISIBLE else View.GONE
-        val hardwareTab = parent.getChildAt(3)
         hardwareTab.visibility = if (tab == "hardware") View.VISIBLE else View.GONE
         lightingTab.visibility = if (tab == "lighting") View.VISIBLE else View.GONE
 

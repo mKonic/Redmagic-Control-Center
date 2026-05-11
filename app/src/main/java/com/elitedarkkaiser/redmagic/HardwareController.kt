@@ -2,8 +2,25 @@ package com.elitedarkkaiser.redmagic
 
 import kotlin.math.abs
 import kotlin.math.round
+import java.util.concurrent.ConcurrentHashMap
 
 object HardwareController {
+
+    private val recentHardwareWrites = ConcurrentHashMap<String, Long>()
+    private const val DUPLICATE_WRITE_SKIP_MS = 2_000L
+
+    private fun execHardwareWrite(key: String, command: String): Boolean {
+        val now = System.currentTimeMillis()
+        val last = recentHardwareWrites[key]
+        if (last != null && (now - last) < DUPLICATE_WRITE_SKIP_MS) {
+            android.util.Log.d("HardwareController", "skip duplicate write key=$key")
+            return true
+        }
+
+        val ok = RootShell.exec(command)
+        if (ok) recentHardwareWrites[key] = now
+        return ok
+    }
 
     private const val FAN_ENABLE = "/sys/kernel/fan/fan_enable"
     private const val FAN_LEVEL = "/sys/kernel/fan/fan_speed_level"
@@ -25,7 +42,7 @@ object HardwareController {
     private const val HAPTIC_ACTIVATE = "/sys/class/leds/zte_vibrator/activate"
 
     fun enableFan(enabled: Boolean): Boolean {
-        return RootShell.exec("echo ${if (enabled) 1 else 0} > $FAN_ENABLE")
+        return execHardwareWrite("fan_enable:$enabled", "echo ${if (enabled) 1 else 0} > $FAN_ENABLE")
     }
 
     fun isFanEnabled(): Boolean {
@@ -39,7 +56,7 @@ object HardwareController {
         } else {
             "echo 1 > $FAN_ENABLE; echo $safe > $FAN_LEVEL"
         }
-        return RootShell.exec(cmds)
+        return execHardwareWrite("fan_level:$safe", cmds)
     }
 
     fun setFanPwm(value: Int): Boolean {
@@ -49,7 +66,7 @@ object HardwareController {
         } else {
             "echo 1 > $FAN_ENABLE; echo $safe > $FAN_PWM"
         }
-        return RootShell.exec(cmds)
+        return execHardwareWrite("fan_pwm:$safe", cmds)
     }
 
     fun readFanRpm(): Int? {
@@ -73,7 +90,7 @@ object HardwareController {
             "off" -> "echo 0 > $PUMP_ENABLE"
             else -> "echo 1 > $PUMP_ENABLE; echo 4 > $PUMP_FREQ; echo 80 > $PUMP_SPEED"
         }
-        return RootShell.exec(cmd)
+        return execHardwareWrite("led_effect:$cmd", cmd)
     }
 
     fun readPumpEnabled(): String? = RootShell.execForOutput("cat $PUMP_ENABLE")
@@ -82,30 +99,30 @@ object HardwareController {
 
     fun setFanLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            RootShell.exec("echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("fan_led_enabled:true", "echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            RootShell.exec("echo 0x3000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("fan_led_enabled:false", "echo 0x3000000 > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
 
     fun setFanLedStockPreset(effectValue: String): Boolean {
         val safeEffectValue = effectValue.takeIf { it in FAN_LED_STOCK_PRESETS } ?: return false
-        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $safeEffectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+        return execHardwareWrite("fan_led_preset:$safeEffectValue", "echo 1 > $FAN_ENABLE; echo $safeEffectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
     fun setLogoLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            RootShell.exec("echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("logo_led_enabled:true", "echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            RootShell.exec("echo 0x1000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("logo_led_enabled:false", "echo 0x1000000 > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
 
     fun setShoulderLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2002005 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("shoulder_led_enabled:true", "echo 1 > $FAN_ENABLE; echo 0x2002005 > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            RootShell.exec("echo 1 > $FAN_ENABLE; echo 0x2000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("shoulder_led_enabled:false", "echo 1 > $FAN_ENABLE; echo 0x2000000 > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
 
@@ -162,7 +179,7 @@ object HardwareController {
         } else {
             "echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
         }
-        return RootShell.exec(cmd)
+        return execHardwareWrite("led_unified:${zone.name}:$effectName:$color", cmd)
     }
 
     fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
@@ -184,7 +201,7 @@ object HardwareController {
                 append("echo 1 > $LED_CFG; ")
             }
         }
-        return RootShell.exec(cmd)
+        return execHardwareWrite("led_all_off", cmd)
     }
 
     fun enableTriggers(): Boolean {

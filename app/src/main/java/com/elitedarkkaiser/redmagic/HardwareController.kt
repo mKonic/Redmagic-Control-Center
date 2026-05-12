@@ -183,41 +183,26 @@ object HardwareController {
     }
 
     fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
-        val effectValue = when (effectName.lowercase() to color) {
-            "steady" to 1 -> "0x2002001"
-            "steady" to 3 -> "0x2002003"
-            "steady" to 4 -> "0x2002004"
-            "steady" to 5 -> "0x2002005"
-            "steady" to 6 -> "0x2002006"
-            "steady" to 7 -> "0x2002007"
-            "steady" to 8 -> "0x2002008"
-            "steady" to 9 -> "0x2002009"
-
-            "breathe" to 1 -> "0x2003001"
-            "breathe" to 3 -> "0x2003003"
-            "breathe" to 4 -> "0x2003004"
-            "breathe" to 5 -> "0x2003005"
-            "breathe" to 6 -> "0x2003006"
-            "breathe" to 7 -> "0x2003007"
-            "breathe" to 8 -> "0x2003008"
-            "breathe" to 9 -> "0x2003009"
-
-            "flashing" to 1 -> "0x2004001"
-            "flashing" to 3 -> "0x2004003"
-            "flashing" to 4 -> "0x2004004"
-            "flashing" to 5 -> "0x2004005"
-            "flashing" to 6 -> "0x2004006"
-            "flashing" to 7 -> "0x2004007"
-            "flashing" to 8 -> "0x2004008"
-            "flashing" to 9 -> "0x2004009"
-
-            else -> "0x2002005"
+        val colorCode = when (color) {
+            1 -> 1  // red
+            3 -> 3  // orange
+            4 -> 4  // yellow
+            5 -> 5  // green
+            6 -> 6  // cyan
+            7 -> 7  // blue
+            8 -> 8  // purple
+            9 -> 9  // pink
+            else -> 5
         }
 
-        return execHardwareWrite(
-            "shoulder_led_effect_direct:$effectName:$color:$effectValue",
-            "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
-        )
+        val effectValue = when (effectName.lowercase()) {
+            "steady" -> "0x200200${Integer.toHexString(colorCode)}"
+            "breathe" -> "0x200300${Integer.toHexString(colorCode)}"
+            "flashing" -> "0x200400${Integer.toHexString(colorCode)}"
+            else -> "0x200200${Integer.toHexString(colorCode)}"
+        }
+
+        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
     fun setLogoLedEffect(effectName: String, color: Int): Boolean {

@@ -183,7 +183,18 @@ object HardwareController {
     }
 
     fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
-        return setUnifiedLedEffect(LedZone.SHOULDER, effectName, color)
+        val colorCode = mapUnifiedLedColor(color)
+        val effectValue = when (effectName.lowercase()) {
+            "steady" -> "0x200200${Integer.toHexString(colorCode)}"
+            "breathe" -> "0x200300${Integer.toHexString(colorCode)}"
+            "flashing" -> "0x200400${Integer.toHexString(colorCode)}"
+            else -> "0x200200${Integer.toHexString(colorCode)}"
+        }
+
+        return execHardwareWrite(
+            "shoulder_led_effect:$effectName:$color",
+            "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
+        )
     }
 
     fun setLogoLedEffect(effectName: String, color: Int): Boolean {

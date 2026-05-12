@@ -20,6 +20,7 @@ class ChargingModeService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        ChargingLedRecovery.repairStaleChargingOwnership(this)
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_POWER_CONNECTED)

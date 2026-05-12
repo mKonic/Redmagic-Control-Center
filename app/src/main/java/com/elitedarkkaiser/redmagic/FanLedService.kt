@@ -47,6 +47,7 @@ class FanLedService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        ChargingLedRecovery.repairStaleChargingOwnership(this)
         createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification("Fan LED persistence active"))
         registerFanLedReceiver()

@@ -80,6 +80,7 @@ class GameModeService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        ChargingLedRecovery.repairStaleChargingOwnership(this)
 
         registerReceiver(
             screenReceiver,

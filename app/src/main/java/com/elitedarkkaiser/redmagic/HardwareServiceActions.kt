@@ -37,6 +37,11 @@ object HardwareServiceActions {
         context.startService(Intent(context, TriggerRootService::class.java))
     }
 
+    fun stopTriggers(context: Context) {
+        context.stopService(Intent(context, TriggerRootService::class.java))
+        HardwareController.disableTriggers()
+    }
+
     fun startChargingMode(context: Context) {
         context.startService(Intent(context, ChargingModeService::class.java))
     }

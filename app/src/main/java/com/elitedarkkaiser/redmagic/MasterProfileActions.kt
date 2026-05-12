@@ -294,7 +294,7 @@ object MasterProfileActions {
             HardwareController.enableTriggers()
             HardwareServiceActions.startTriggers(context)
         } else {
-            HardwareController.disableTriggers()
+            HardwareServiceActions.stopTriggers(context)
         }
 
         GameModeActions.startServiceSilentlyIfPermitted(context)

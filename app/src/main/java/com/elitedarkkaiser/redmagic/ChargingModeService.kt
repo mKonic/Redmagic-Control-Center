@@ -65,8 +65,10 @@ class ChargingModeService : Service() {
             ChargingLedState.setActive(this, false)
 
             if (wasActive) {
+                HardwareController.turnOffAllLeds()
                 GameModeActions.startServiceSilentlyIfPermitted(this)
                 HardwareServiceActions.startFanLed(this)
+                HardwareServiceActions.enqueueFanLedRestore(this, delaySeconds = 1)
             }
         }
     }

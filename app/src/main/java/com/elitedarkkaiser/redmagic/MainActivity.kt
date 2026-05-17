@@ -703,6 +703,12 @@ class MainActivity : Activity() {
                     refreshStatus()
                     Toast.makeText(this, "Triggers enabled", Toast.LENGTH_SHORT).show()
                 },
+                disableTriggersAndService = {
+                    HardwareServiceActions.stopTriggers(this)
+                    refreshStatus()
+                    Toast.makeText(this, "Triggers disabled", Toast.LENGTH_SHORT).show()
+                },
+                isTriggersEnabled = { HardwareController.isTriggersEnabled() },
                 testHaptic = {
                     HardwareController.vibrate(durationMs = 100, gain = 220)
                     Toast.makeText(this, "Haptic test sent", Toast.LENGTH_SHORT).show()

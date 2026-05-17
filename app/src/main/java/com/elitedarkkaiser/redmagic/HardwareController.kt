@@ -37,9 +37,9 @@ object HardwareController {
     private const val SAR0_MODE = "/sys/class/leds/sar0/mode_operation"
     private const val SAR1_MODE = "/sys/class/leds/sar1/mode_operation"
 
-    private const val HAPTIC_DURATION = "/sys/class/leds/zte_vibrator/duration"
-    private const val HAPTIC_GAIN = "/sys/class/leds/zte_vibrator/gain"
-    private const val HAPTIC_ACTIVATE = "/sys/class/leds/zte_vibrator/activate"
+    private const val HAPTIC_DURATION = "/sys/class/leds/vibrator/duration"
+    private const val HAPTIC_GAIN = "/sys/class/leds/vibrator/gain"
+    private const val HAPTIC_ACTIVATE = "/sys/class/leds/vibrator/activate"
 
     fun enableFan(enabled: Boolean): Boolean {
         return execHardwareWrite("fan_enable:$enabled", "echo ${if (enabled) 1 else 0} > $FAN_ENABLE")
@@ -97,130 +97,103 @@ object HardwareController {
     fun readPumpFreq(): String? = RootShell.execForOutput("cat $PUMP_FREQ")
     fun readPumpSpeed(): String? = RootShell.execForOutput("cat $PUMP_SPEED")
 
+    // LED effect encoding on NX789J: OEM LightOldData protocol.
+    // Kernel only accepts ≤3-digit hex values; rejects 8-digit zone-prefixed values.
+    // Only the FAN zone (aw22xxx_led on a single matrix) is wired up here; on
+    // RM 10 Pro the logo + shoulder strip aren't exposed via this chip.
+    private const val FAN_LED_OFF_VALUE = "2"
+    private val FAN_LED_COLOR_CODES = mapOf(
+        // color index → (steady, breathe, flashing, flow, burst) hex strings
+        1 to LedEffectSet("100", "30", "20", "40", "110"),  // red
+        9 to LedEffectSet("101", "31", "21", "41", "111"),  // rose
+        3 to LedEffectSet("107", "37", "27", "47", "117"),  // orange
+        4 to LedEffectSet("102", "32", "22", "42", "112"),  // yellow
+        5 to LedEffectSet("103", "33", "23", "43", "113"),  // green
+        6 to LedEffectSet("105", "35", "25", "45", "115"),  // cyan
+        7 to LedEffectSet("104", "34", "24", "44", "114"),  // blue
+        8 to LedEffectSet("106", "36", "26", "46", "116")   // purple
+    )
+
+    private data class LedEffectSet(
+        val steady: String,
+        val breathe: String,
+        val flashing: String,
+        val flow: String,
+        val burst: String
+    ) {
+        fun pick(effectName: String): String = when (effectName.lowercase()) {
+            "breathe" -> breathe
+            "flashing" -> flashing
+            "flow" -> flow
+            "burst" -> burst
+            else -> steady
+        }
+    }
+
+    private fun fanLedValueFor(effectName: String, color: Int): String {
+        val set = FAN_LED_COLOR_CODES[color] ?: FAN_LED_COLOR_CODES.getValue(1)
+        return set.pick(effectName)
+    }
+
     fun setFanLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            execHardwareWrite("fan_led_enabled:true", "echo 0x3002005 > $LED_EFFECT; echo 1 > $LED_CFG")
+            val on = fanLedValueFor("steady", 5)
+            execHardwareWrite("fan_led_enabled:true", "echo $on > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            execHardwareWrite("fan_led_enabled:false", "echo 0x3000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("fan_led_enabled:false", "echo $FAN_LED_OFF_VALUE > $LED_EFFECT; echo 1 > $LED_CFG")
         }
     }
 
     fun setFanLedStockPreset(effectValue: String): Boolean {
-        val safeEffectValue = effectValue.takeIf { it in FAN_LED_STOCK_PRESETS } ?: return false
-        return execHardwareWrite("fan_led_preset:$safeEffectValue", "echo 1 > $FAN_ENABLE; echo $safeEffectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+        return execHardwareWrite("fan_led_preset:$effectValue", "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
+    }
+
+    fun setFanLedEffect(effectName: String, color: Int): Boolean {
+        val value = fanLedValueFor(effectName, color)
+        return execHardwareWrite("fan_led:$effectName:$color", "echo 1 > $FAN_ENABLE; echo $value > $LED_EFFECT; echo 1 > $LED_CFG")
+    }
+
+    // Back logo + X emblem on RM 10 Pro live on the aw22xxx chip too, but at a
+    // different value range than the fan matrix. Values 0x60..0x67 each load a
+    // dedicated firmware preset (aw_cfg0_1..aw_cfg0_8) — observed sequence is
+    // red / orange / yellow / green / cyan / blue / purple / rose.
+    private const val BACK_LED_OFF_VALUE = "0"  // loads m_led_off.bin (all-zone blank)
+    private fun backLedValueFor(color: Int): String = when (color) {
+        1 -> "0x60"  // red
+        3 -> "0x61"  // orange
+        4 -> "0x62"  // yellow
+        5 -> "0x63"  // green
+        6 -> "0x64"  // cyan
+        7 -> "0x65"  // blue
+        8 -> "0x66"  // purple
+        9 -> "0x67"  // rose
+        else -> "0x63"
     }
 
     fun setLogoLedEnabled(enabled: Boolean): Boolean {
         return if (enabled) {
-            execHardwareWrite("logo_led_enabled:true", "echo 0x1002001 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("back_led_enabled:true", "echo ${backLedValueFor(5)} > $LED_EFFECT; echo 1 > $LED_CFG")
         } else {
-            execHardwareWrite("logo_led_enabled:false", "echo 0x1000000 > $LED_EFFECT; echo 1 > $LED_CFG")
+            execHardwareWrite("back_led_enabled:false", "echo $BACK_LED_OFF_VALUE > $LED_EFFECT; echo 1 > $LED_CFG")
         }
-    }
-
-    fun setShoulderLedEnabled(enabled: Boolean): Boolean {
-        return if (enabled) {
-            execHardwareWrite("shoulder_led_enabled:true", "echo 1 > $FAN_ENABLE; echo 0x2002005 > $LED_EFFECT; echo 1 > $LED_CFG")
-        } else {
-            execHardwareWrite("shoulder_led_enabled:false", "echo 1 > $FAN_ENABLE; echo 0x2000000 > $LED_EFFECT; echo 1 > $LED_CFG")
-        }
-    }
-
-    private val FAN_LED_STOCK_PRESETS = setOf(
-        "0x3002101",
-        "0x3002102",
-        "0x3002103",
-        "0x3002104",
-        "0x3002105",
-        "0x3002106",
-        "0x3002107",
-        "0x3002108"
-    )
-
-    private enum class LedZone(val zonePrefix: String, val enableFanFirst: Boolean) {
-        LOGO("1", false),
-        SHOULDER("2", true),
-        FAN("3", true)
-    }
-
-    private fun mapUnifiedLedColor(color: Int): Int {
-        return when (color) {
-            1 -> 1  // red
-            3 -> 3  // orange
-            4 -> 4  // yellow
-            5 -> 5  // green
-            6 -> 6  // cyan
-            7 -> 7  // blue
-            8 -> 8  // purple
-            9 -> 9  // pink
-            else -> 1
-        }
-    }
-
-    private fun mapUnifiedLedEffect(effectName: String): String {
-        return when (effectName.lowercase()) {
-            "steady" -> "00200"
-            "breathe" -> "00300"
-            "flashing" -> "00400"
-            else -> "00200"
-        }
-    }
-
-    private fun buildUnifiedLedEffectValue(zone: LedZone, effectName: String, color: Int): String {
-        val colorCode = mapUnifiedLedColor(color)
-        val effectCode = mapUnifiedLedEffect(effectName)
-        return "0x${zone.zonePrefix}${effectCode}${Integer.toHexString(colorCode)}"
-    }
-
-    private fun setUnifiedLedEffect(zone: LedZone, effectName: String, color: Int): Boolean {
-        val effectValue = buildUnifiedLedEffectValue(zone, effectName, color)
-        val cmd = if (zone.enableFanFirst) {
-            "echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
-        } else {
-            "echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG"
-        }
-        return execHardwareWrite("led_unified:${zone.name}:$effectName:$color", cmd)
-    }
-
-    fun setShoulderLedEffect(effectName: String, color: Int): Boolean {
-        val colorCode = when (color) {
-            1 -> 1  // red
-            3 -> 3  // orange
-            4 -> 4  // yellow
-            5 -> 5  // green
-            6 -> 6  // cyan
-            7 -> 7  // blue
-            8 -> 8  // purple
-            9 -> 9  // pink
-            else -> 5
-        }
-
-        val effectValue = when (effectName.lowercase()) {
-            "steady" -> "0x200200${Integer.toHexString(colorCode)}"
-            "breathe" -> "0x200300${Integer.toHexString(colorCode)}"
-            "flashing" -> "0x200400${Integer.toHexString(colorCode)}"
-            else -> "0x200200${Integer.toHexString(colorCode)}"
-        }
-
-        return RootShell.exec("echo 1 > $FAN_ENABLE; echo $effectValue > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
     fun setLogoLedEffect(effectName: String, color: Int): Boolean {
-        return setUnifiedLedEffect(LedZone.LOGO, effectName, color)
+        // Back logo is solid-color only; effectName is ignored, the chip drives
+        // its own breathing/idle behavior baked into the firmware preset.
+        val value = backLedValueFor(color)
+        return execHardwareWrite("back_led:$color", "echo $value > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
-    fun setFanLedEffect(effectName: String, color: Int): Boolean {
-        return setUnifiedLedEffect(LedZone.FAN, effectName, color)
+    fun setShoulderLedEnabled(enabled: Boolean): Boolean {
+        // No dedicated shoulder LED strip on RM 10 Pro. No-op.
+        return true
     }
+
+    fun setShoulderLedEffect(effectName: String, color: Int): Boolean = true
 
     fun turnOffAllLeds(): Boolean {
-        val cmd = buildString {
-            for (z in 1..3) {
-                append("echo 0x${z}000000 > $LED_EFFECT; ")
-                append("echo 1 > $LED_CFG; ")
-            }
-        }
-        return execHardwareWrite("led_all_off", cmd)
+        return execHardwareWrite("led_all_off", "echo $FAN_LED_OFF_VALUE > $LED_EFFECT; echo 1 > $LED_CFG")
     }
 
     fun enableTriggers(): Boolean {
@@ -229,6 +202,15 @@ object HardwareController {
 
     fun disableTriggers(): Boolean {
         return execHardwareWrite("triggers_enabled:false", "echo 0 > $SAR0_MODE; echo 0 > $SAR1_MODE")
+    }
+
+    fun isTriggersEnabled(): Boolean {
+        // sar0/sar1 mode_operation reads back as: "mode : 1, REG_WST(0x1a14) :0x1000000"
+        // Parse the first "mode : N" digit rather than the whole string.
+        val pattern = Regex("""mode\s*:\s*(\d)""")
+        val sar0 = RootShell.execForOutput("cat $SAR0_MODE")?.let { pattern.find(it)?.groupValues?.get(1) }
+        val sar1 = RootShell.execForOutput("cat $SAR1_MODE")?.let { pattern.find(it)?.groupValues?.get(1) }
+        return sar0 == "1" || sar1 == "1"
     }
 
     fun injectTap(x: Int, y: Int): Boolean {

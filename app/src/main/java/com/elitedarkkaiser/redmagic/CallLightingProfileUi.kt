@@ -86,7 +86,7 @@ internal object CallLightingProfileUi {
 
         container.addView(zoneEditor(activity, fanKeys.label, fan, deps, modeLabel, showFanPresets = true) { fan = it })
         container.addView(zoneEditor(activity, logoKeys.label, logo, deps, modeLabel, showFanPresets = false) { logo = it })
-        container.addView(zoneEditor(activity, shoulderKeys.label, shoulder, deps, modeLabel, showFanPresets = false) { shoulder = it })
+        // shoulder zone omitted: RM 10 Pro has no shoulder LED strip.
 
         val buttonRow = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL

@@ -103,7 +103,8 @@ class AutoFanService : Service() {
     }
 
     private fun updateNotification(tempF: Float?, level: Int?) {
-        val tempText = if (tempF != null) "${tempF.toInt()}°F" else "--°F"
+        val useF = isUseFahrenheitStorage(this)
+        val tempText = TempFormat.formatDisplayTempFromF(tempF, useF)
         val levelText = if (level != null && level >= 0) "Level $level" else "Unknown"
 
         val text = "Auto Fan Active • Temp: $tempText • Fan: $levelText"

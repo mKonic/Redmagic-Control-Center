@@ -75,7 +75,7 @@ class AutoPumpService : Service() {
             val nm = getSystemService(NotificationManager::class.java)
             nm.notify(
                 NOTIF_ID,
-                buildNotification("Pump: ${profile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • ${tempF}°F")
+                buildNotification("Pump: ${profile.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} • ${TempFormat.formatDisplayTempFromF(tempF, isUseFahrenheitStorage(this))}")
             )
         }
 

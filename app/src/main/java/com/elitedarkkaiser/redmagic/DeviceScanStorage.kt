@@ -17,7 +17,7 @@ fun saveDeviceCapabilityReportStorage(context: Context, report: DeviceCapability
         .edit()
         .putString(DEVICE_SCAN_MODEL, report.model)
         .putString(DEVICE_SCAN_SUMMARY, report.summary)
-        .putBoolean(DEVICE_SCAN_SUPPORTED_MODEL, report.isKnownRedmagic11Pro)
+        .putBoolean(DEVICE_SCAN_SUPPORTED_MODEL, report.isKnownRedmagicDevice)
         .putBoolean(DEVICE_SCAN_FAN_AVAILABLE, report.fanAvailable)
         .putBoolean(DEVICE_SCAN_PUMP_AVAILABLE, report.pumpAvailable)
         .putBoolean(DEVICE_SCAN_LED_AVAILABLE, report.ledAvailable)

@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-      - sixteen
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
-      - sixteen
   workflow_dispatch:
 
 permissions:
@@ -33,10 +31,8 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set up Gradle 8.7
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.7
 
       - name: Accept licenses
         run: yes | sdkmanager --licenses
@@ -48,16 +44,29 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Check release signing availability
+        id: signing
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Decode release keystore
+        if: steps.signing.outputs.available == 'true'
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: |
           echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/red-release.jks"
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
-
       - name: Build signed release APK
+        if: steps.signing.outputs.available == 'true'
         env:
           SIGNING_STORE_FILE: ${{ runner.temp }}/red-release.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
@@ -72,6 +81,7 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Upload signed release APK artifact
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: redmagic-signed-release-apk
@@ -82,14 +92,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: RedMagic Root Control ${{ github.ref_name }}
+          name: Redmagic Control Center ${{ github.ref_name }}
           body: |
-            Signed release build for ${{ github.ref_name }}
+            Build for ${{ github.ref_name }}
 
             Included files:
             - Debug APK
-            - Signed release APK
+            ${{ steps.signing.outputs.available == 'true' && '- Signed release APK' || '' }}
           files: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
+          fail_on_unmatched_files: false
           generate_release_notes: true

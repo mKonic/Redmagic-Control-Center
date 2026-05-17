@@ -7,7 +7,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.elitedarkkaiser.redmagic.DashboardSnapshot
 import com.elitedarkkaiser.redmagic.R
 
 object HomeTabUi {
@@ -112,13 +111,13 @@ object HomeTabUi {
             headerRow.addView(titleView)
 
             addView(headerRow)
-            addView(deps.subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 11 Pro"))
+            addView(deps.subtitleText("Cooling, lighting, triggers and hardware controls for Redmagic 10 Pro"))
         }
 
         val summaryCard = deps.sectionPanel().apply {
             addView(deps.sectionHeader("⌂", "WELCOME"))
-            addView(deps.bodyText("RedMagic HW Controls is a root-powered control center for RedMagic 11 Pro that brings key hardware features into one place with a cleaner interface than stock tools."))
-            addView(deps.bodyText("It lets you manage cooling behavior, fan profiles, micropump control, fan LED effects, logo lighting, shoulder LED strips, trigger tools, slider actions, and haptics directly from the app."))
+            addView(deps.bodyText("RedMagic HW Controls is a root-powered control center for RedMagic 10 Pro that brings key hardware features into one place with a cleaner interface than stock tools."))
+            addView(deps.bodyText("It lets you manage cooling behavior, fan profiles, fan LED effects, back logo lighting, trigger tools, slider actions, and haptics directly from the app."))
             addView(deps.bodyText("The app is built around real device paths and behavior confirmed on hardware so the controls feel practical, focused, and close to an OEM-style utility."))
 
             val linksRow = LinearLayout(context).apply {
@@ -127,7 +126,7 @@ object HomeTabUi {
             }
 
             val githubBtn = deps.segmentedChip("GitHub", false) {
-                deps.openUrl("https://github.com/austineyoung2000/Red")
+                deps.openUrl("https://github.com/mKonic/Redmagic-Control-Center")
             }
 
             val referenceBtn = deps.segmentedChip("Reference", false) {
@@ -199,31 +198,6 @@ object HomeTabUi {
         }
 
         container.addView(welcomeCard)
-
-        val dashboardCard = deps.sectionPanel().apply {
-            addView(deps.sectionHeader("◈", "LIVE DASHBOARD"))
-
-            val dashboardText = TextView(context).apply {
-                text = DashboardSnapshot.buildSummary(context)
-                textSize = 13f
-                setTextColor(AppTheme.textPrimary)
-                setLineSpacing(0f, 1.15f)
-                setPadding(0, 0, 0, deps.dp(12))
-            }
-
-            val refreshBtn = deps.actionButton("REFRESH DASHBOARD", false) {
-                dashboardText.text = DashboardSnapshot.buildSummary(context)
-            }
-
-            addView(dashboardText)
-            addView(deps.singleRow(refreshBtn))
-        }
-
-        val automationCard = deps.sectionPanel().apply {
-            addView(deps.sectionHeader("⚙", "AUTOMATION"))
-            addView(deps.bodyText("Auto Pump uses safe temperature rules and automatically shifts between Slow, Medium, and Quick."))
-        }
-
         container.addView(summaryCard)
         container.addView(infoCard)
         container.addView(statusCard)

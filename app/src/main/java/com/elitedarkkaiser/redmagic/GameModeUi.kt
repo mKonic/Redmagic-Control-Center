@@ -454,9 +454,7 @@ internal object GameModeUi {
         container.addView(fanEnableCheck)
         container.addView(fanLevelLabel)
         container.addView(fanLevelSeek)
-        container.addView(pumpEnableCheck)
-        container.addView(pumpLabel)
-        container.addView(pumpRow)
+        // pump UI omitted: RM 10 Pro has no liquid cooling pump.
         container.addView(ledEnableCheck)
         container.addView(ledEffectLabel)
         container.addView(ledEffectRow)
@@ -668,11 +666,7 @@ internal object GameModeUi {
             addView(gmShoulderColorDot(9, "#FF69B4"))
         }
 
-        container.addView(shoulderLabel)
-        container.addView(shoulderEnable)
-        container.addView(shoulderEffectRow)
-        container.addView(shoulderColorRow)
-        container.addView(shoulderColorRow2)
+        // shoulder LED UI omitted: RM 10 Pro has no shoulder LED strip.
 
         container.addView(buttonRow)
 

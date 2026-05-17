@@ -17,8 +17,17 @@ object HardwareTabUi {
             deps.showTriggerSetupDialog()
         }
 
-        val trigEnableBtn = deps.actionButton("ENABLE TRIGGERS", false) {
-            deps.enableTriggersAndService()
+        val trigToggleBtn = deps.actionButton(
+            if (deps.isTriggersEnabled()) "DISABLE TRIGGERS" else "ENABLE TRIGGERS",
+            false
+        ) {}
+        trigToggleBtn.setOnClickListener {
+            if (deps.isTriggersEnabled()) {
+                deps.disableTriggersAndService()
+            } else {
+                deps.enableTriggersAndService()
+            }
+            trigToggleBtn.text = if (deps.isTriggersEnabled()) "DISABLE TRIGGERS" else "ENABLE TRIGGERS"
         }
 
         val triggerCard = deps.sectionPanel().apply {
@@ -81,7 +90,7 @@ object HardwareTabUi {
 
             addView(deps.space(deps.dp(4)))
             addView(deps.bodyText("Automatically enable triggers and start the service on boot or when the app launches."))
-            addView(deps.row(configureTriggersBtn, trigEnableBtn))
+            addView(deps.row(configureTriggersBtn, trigToggleBtn))
         }
 
         val vibrateBtn = deps.actionButton("TEST HAPTIC", false) {
@@ -100,7 +109,7 @@ object HardwareTabUi {
 
         val profilesCard = deps.sectionPanel().apply {
             addView(deps.sectionHeader("★", "HARDWARE PROFILES"))
-            addView(deps.bodyText("Save and apply full hardware presets for fan, pump, LEDs, triggers, and haptics."))
+            addView(deps.bodyText("Save and apply full hardware presets for fan, LEDs, triggers, and haptics."))
 
             val profileList = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
@@ -145,7 +154,7 @@ object HardwareTabUi {
 
         val masterProfilesCard = deps.sectionPanel().apply {
             addView(deps.sectionHeader("◆", "MASTER PROFILES"))
-            addView(deps.bodyText("Save and restore a full app snapshot including hardware, Game Mode, charging LEDs, fan curves, pump, and triggers."))
+            addView(deps.bodyText("Save and restore a full app snapshot including hardware, Game Mode, charging LEDs, fan curves, and triggers."))
 
             val masterProfileList = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL

@@ -43,13 +43,12 @@ object LightingTabUi {
 
         val zonesCard = deps.sectionPanel().apply {
             addView(deps.sectionHeader("✦", "LED ZONES"))
-            addView(deps.bodyText("Configure fan LEDs, logo lighting, and shoulder strip effects separately."))
+            addView(deps.bodyText("Configure fan LEDs and back logo lighting separately."))
             addView(deps.singleRow(deps.actionButton("FAN LED", false) {
                 deps.showFanLedDialog()
             }))
-            addView(deps.row(
-                deps.actionButton("LOGO LED", false) { deps.showLogoLedDialog() },
-                deps.actionButton("SHOULDER LEDS", false) { deps.showShoulderLedDialog() }
+            addView(deps.singleRow(
+                deps.actionButton("LOGO LED", false) { deps.showLogoLedDialog() }
             ))
         }
 
@@ -90,9 +89,8 @@ object LightingTabUi {
             addView(deps.singleRow(deps.actionButton("CHARGING FAN LED", false) {
                 deps.showChargingFanLedDialog()
             }))
-            addView(deps.row(
-                deps.actionButton("CHARGING LOGO LED", false) { deps.showChargingLogoLedDialog() },
-                deps.actionButton("CHARGING SHOULDER LEDS", false) { deps.showChargingShoulderLedDialog() }
+            addView(deps.singleRow(
+                deps.actionButton("CHARGING LOGO LED", false) { deps.showChargingLogoLedDialog() }
             ))
         }
 

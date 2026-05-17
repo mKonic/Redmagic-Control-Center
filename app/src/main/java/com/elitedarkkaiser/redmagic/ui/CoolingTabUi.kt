@@ -409,8 +409,7 @@ object CoolingTabUi {
         }
 
         container.addView(coolingCard)
-        container.addView(deps.spacer(deps.dp(16)))
-        container.addView(pumpCard)
+        // pumpCard intentionally not attached: RM 10 Pro has no liquid cooling pump.
 
         return Result(
             view = container,

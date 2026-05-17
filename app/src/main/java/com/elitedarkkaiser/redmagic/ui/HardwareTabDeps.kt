@@ -20,6 +20,8 @@ data class HardwareTabDeps(
 
     val showTriggerSetupDialog: () -> Unit,
     val enableTriggersAndService: () -> Unit,
+    val disableTriggersAndService: () -> Unit,
+    val isTriggersEnabled: () -> Boolean,
     val testHaptic: () -> Unit,
 
     val loadProfiles: () -> List<HardwareProfile>,

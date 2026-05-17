@@ -5,54 +5,11 @@ Root-level hardware control app for RedMagic devices.
 ---
 
 
-## ✨ New UI Enhancements
-- 🔥 Animated LED-style title on welcome screen
-- 📱 Larger app icon integrated into header
-- 🧠 Improved tab structure (Hardware tab separation)
-- 🎮 Hardware Profiles moved to dedicated hardware section
-- ⚡ Cleaner Magic Key control logic (mutually exclusive modes)
-
 ## 🔧 Core Features
 - Full control over:
   - Cooling fan
   - RGB LEDs (Fan, Logo)
   - Shoulder triggers
-- Direct sysfs interaction using root
-- Instant hardware response via shell execution
-
----
-
-## 💡 Unified LED System
-- Fully rewritten LED control engine
-- Single unified pipeline for all LED zones:
-  - Fan
-  - Logo
-- Shared logic for:
-  - Color mapping
-  - Effect mapping
-  - Command generation
-
-### Supported Effects
-- Steady
-- Breathe
-- Flashing
-
----
-
-## 🎨 LED Customization
-- Per-zone LED control
-- Full color selection
-- Hardware-level enable/disable
-- Reliable effect application across all zones
-
----
-
-## ⚡ Real-Time LED Preview
-- Toggleable live preview system
-- Instantly applies:
-  - Colors
-  - Effects
-- Can be disabled for performance or battery savings
 
 ---
 
@@ -65,48 +22,6 @@ Root-level hardware control app for RedMagic devices.
   - Turbo
 - Automatically adjusts fan speed based on CPU temperature
 
-### ⏱️ Dynamic Polling
-- Adaptive temperature checks:
-  - ≥95°F → every 5 seconds
-  - <95°F → every 10 seconds
-
----
-
-## 📊 Temperature Monitoring
-- Reads multiple thermal zones
-- Automatic value normalization
-
----
-
-## 🎮 Shoulder Trigger Controls
-- Enable / disable triggers
-- Root-level SAR interaction
-- Tap injection support
-
----
-
-## 🎚️ Background Services
-- Fan LED service maintains LED state
-- Prevents system overrides
-- Auto-start/stop logic based on usage
-
----
-
-## 💾 Persistent Settings
-- Saves all hardware states:
-  - LED configs
-  - Fan curve
-  - Preview toggle
-- Restores everything on launch
-
----
-
-## 🧼 UI Improvements
-- Clean section-based layout
-- Removed redundant controls
-- Improved spacing and consistency
-- Dedicated preview controls
-
 ---
 
 ## ⚠️ Requirements
@@ -117,3 +32,12 @@ Root-level hardware control app for RedMagic devices.
 
 ## 🛠️ Notes
 This app directly interfaces with hardware nodes. Use responsibly.
+
+## Discussion
+
+- Telegram: [@RedMagic10Pro](https://t.me/redmagic10prochat)
+
+
+## Credits
+
+- [Redmagic-Control-Center](https://github.com/austineyoung2000/Redmagic-Control-Center.git): The OG project that made this possible.

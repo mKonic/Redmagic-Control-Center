@@ -15,9 +15,8 @@ Root-level hardware control app for RedMagic devices.
 ## 🔧 Core Features
 - Full control over:
   - Cooling fan
-  - RGB LEDs (Fan, Logo, Shoulder)
+  - RGB LEDs (Fan, Logo)
   - Shoulder triggers
-  - Liquid cooling pump
 - Direct sysfs interaction using root
 - Instant hardware response via shell execution
 
@@ -28,7 +27,6 @@ Root-level hardware control app for RedMagic devices.
 - Single unified pipeline for all LED zones:
   - Fan
   - Logo
-  - Shoulder
 - Shared logic for:
   - Color mapping
   - Effect mapping
@@ -65,13 +63,7 @@ Root-level hardware control app for RedMagic devices.
   - Quiet
   - Balanced
   - Turbo
-- Automatically adjusts fan speed based on CPU temperature (°F)
-
-### 💧 Smart Pump Control
-- Automatic pump profiles:
-  - Slow
-  - Medium
-  - Quick
+- Automatically adjusts fan speed based on CPU temperature
 
 ### ⏱️ Dynamic Polling
 - Adaptive temperature checks:
@@ -83,7 +75,6 @@ Root-level hardware control app for RedMagic devices.
 ## 📊 Temperature Monitoring
 - Reads multiple thermal zones
 - Automatic value normalization
-- Outputs in Fahrenheit for UI + logic
 
 ---
 
@@ -105,7 +96,6 @@ Root-level hardware control app for RedMagic devices.
 - Saves all hardware states:
   - LED configs
   - Fan curve
-  - Pump profile
   - Preview toggle
 - Restores everything on launch
 
